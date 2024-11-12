@@ -39,7 +39,8 @@ class Woo
         $isVariation = $type == 'variation' ? true : false;
         $cached_data = self::get_post_sirv_data($id, '_sirv_woo_viewf_data');
         $prod_path = $this->getProductPath($id, $isVariation);
-        $headers = $this->get_HEAD_request($prod_path . '.view');
+        //$headers = $this->get_HEAD_request($prod_path . '.view');
+        $headers = Utils::get_head_request($prod_path . '.view');
         if ((!isset($cached_data->file_version) && isset($headers['X-File-VersionId'])) || (isset($headers['X-File-VersionId']) && $cached_data->file_version !== $headers['X-File-VersionId'])) {
 
           $data = array('items' => array(), 'id' => $id, 'cache' => true, 'file_version' => $headers['X-File-VersionId']);
@@ -321,8 +322,8 @@ class Woo
       <input type="hidden" id="sirv_woo_gallery_data_<?php echo $id; ?>" name="sirv_woo_gallery_data_<?php echo $id; ?>" value="<?php echo htmlentities($data_json_str); ?>" />
       <div class="sirv-woo-gallery-toolbar hide-if-no-js">
         <div class="sirv-woo-gallery-toolbar-main">
-          <a class="button button-primary button-large sirv-woo-add-media" data-type="<?php echo $type; ?>" data-id="<?php echo $id; ?>">Add Sirv Media</a>
-          <a class="button button-primary button-large sirv-woo-add-online-video" data-id="<?php echo $id; ?>">Add Online Video</a>
+          <a class="button button-primary button-large sirv-woo-add-media" data-type="<?php echo $type; ?>" data-id="<?php echo $id; ?>">Add Sirv media</a>
+          <a class="button button-primary button-large sirv-woo-add-online-video" data-id="<?php echo $id; ?>">Add online video</a>
         </div>
         <div class="sirv-add-online-videos-container" id="sirv-add-online-videos-container_<?php echo $id; ?>">
           <textarea class="sirv-online-video-links" id="sirv-online-video-links_<?php echo $id; ?>" placeholder="Add links to YouTube or Vimeo videos. One per line..."></textarea>
@@ -399,9 +400,9 @@ class Woo
     if (!isset($sirv_local_data->items)) $sirv_local_data->items = array();
     if (!isset($sirv_remote_data->items)) $sirv_remote_data->items = array();
 
-    $main_product_image_data = $this->get_main_image($this->product_id);
-
     $sirv_data = $this->merge_object_data($sirv_local_data->items, $sirv_remote_data->items, true);
+
+    $main_product_image_data = $this->get_main_image($this->product_id);
 
     $wc_gallery = $this->parse_wc_gallery($this->product_id);
     $sirv_variations = $this->parse_variations($this->product_id);
@@ -412,6 +413,37 @@ class Woo
     }
 
     return $html;
+  }
+
+
+  protected function get_sirv_items_data($isVariation){
+    $sirv_local_data = (object) $this->get_sirv_local_data($this->product_id);
+    $sirv_remote_data = (object) $this->get_sirv_remote_data($this->product_id, $isVariation);
+
+    if (!isset($sirv_local_data->items)) $sirv_local_data->items = array();
+    if (!isset($sirv_remote_data->items)) $sirv_remote_data->items = array();
+
+    return $this->merge_object_data($sirv_local_data->items, $sirv_remote_data->items, true);
+  }
+
+
+  public function get_export_data_to_csv_column($isVariation){
+    $sirv_gallery = $this->get_sirv_items_data($isVariation);
+    $sirv_item_urls = array();
+
+    if( !$isVariation && $this->isSirvProductImage($this->product_id) ){
+        $sirv_main_image_url = self::get_post_sirv_data($this->product_id, 'sirv_woo_product_image', false, false);
+
+        if( $sirv_main_image_url ){
+          $sirv_item_urls[] = $sirv_main_image_url;
+        }
+    }
+
+    foreach ($sirv_gallery as $sirv_item) {
+      $sirv_item_urls[] = $sirv_item->url;
+    }
+
+    return implode(", ", $sirv_item_urls);
   }
 
 
@@ -549,11 +581,8 @@ class Woo
 
   protected function get_HEAD_request($url)
   {
-    //TODO: use curl to get HEAD request.
-    $default_stream = stream_context_get_default();
-    $default_stream_options = stream_context_get_options($default_stream);
 
-    stream_context_set_default(
+    $context = stream_context_create(
       array(
         'http' => array(
           'method' => 'HEAD'
@@ -561,9 +590,7 @@ class Woo
       )
     );
 
-    $headers = get_headers($url, true);
-
-    stream_context_set_default(array());
+    $headers = get_headers($url, true, $context);
 
     return $headers;
   }
@@ -745,9 +772,13 @@ class Woo
 
   protected function get_product_sku($product_id)
   {
-    $product = new WC_Product($product_id);
-    $sku = $product->get_sku();
-    $sku = empty($sku) ? 'error-no-sku' : $sku;
+    try{
+      $product = new WC_Product($product_id);
+      $sku = $product->get_sku();
+      $sku = empty($sku) ? 'error-no-sku' : $sku;
+    }catch(Exception $e){
+      $sku = 'error-no-sku';
+    }
 
     return $sku;
   }
@@ -973,7 +1004,10 @@ class Woo
     $sirv_local_variation = $this->get_sirv_local_data($variation_id);
     $sirv_remote_variation = $this->get_sirv_remote_data($variation_id, true);
 
-    if (!empty($sirv_local_variation->items) && !empty($sirv_remote_variation->items)) {
+    $sirv_local_variation = $this->fix_item_viewIds($variation_id, $sirv_local_variation);
+
+
+    if (!empty($sirv_local_variation->items) && !empty($sirv_remote_variation)) {
       $variation_data = $this->merge_object_data($sirv_local_variation->items, $sirv_remote_variation->items, true);
     } else {
       if (empty($sirv_local_variation->items) && empty($sirv_remote_variation->items)) {
@@ -988,6 +1022,18 @@ class Woo
     }
 
     return $variation_data;
+  }
+
+
+  function fix_item_viewIds($currnet_item_id, $sirv_variation_data){
+    if( !empty($sirv_variation_data->items) && $sirv_variation_data->items[0]->viewId !== $currnet_item_id){
+      foreach($sirv_variation_data->items as $item){
+        $item->viewId = $currnet_item_id;
+      }
+      $sirv_variation_data->id = $currnet_item_id;
+    }
+
+    return $sirv_variation_data;
   }
 
 
@@ -1208,7 +1254,7 @@ class Woo
     return $url;
   }
 
-  protected function remove_script_tag($string)
+  public function remove_script_tag($string)
   {
     return preg_replace('/<(\/)*script.*?>/im', '', $string);
   }
@@ -1418,8 +1464,8 @@ class Woo
     $items_html = '';
     $isCaption = false;
 
-    $mv_custom_options = $this->remove_script_tag(get_option('SIRV_WOO_MV_CUSTOM_OPTIONS'));
-    $mv_custom_options_block = !empty($mv_custom_options) ? '<script nowprocket>' . $mv_custom_options . '</script>' . PHP_EOL : '';
+    /* $mv_custom_options = $this->remove_script_tag(get_option('SIRV_WOO_MV_CUSTOM_OPTIONS'));
+    $mv_custom_options_block = !empty($mv_custom_options) ? '<script nowprocket>' . $mv_custom_options . '</script>' . PHP_EOL : ''; */
 
     $mv_custom_css = get_option('SIRV_WOO_MV_CUSTOM_CSS');
     $mv_custom_css = !empty($mv_custom_css) ? '<style>' . $mv_custom_css . '</style>' . PHP_EOL : '';
@@ -1483,7 +1529,7 @@ class Woo
 
     $json_data_block = '<div style="display: none;" ' . $data_item_by_variation_id . 'data-existings-ids=\'' . json_encode($existings_ids, JSON_HEX_QUOT | JSON_HEX_APOS) . '\' id="sirv-woo-gallery_data_' . $this->product_id . '" data-is-caption="' . $isCaption . '"></div>' . PHP_EOL;
 
-    return $json_data_block . '<div class="Sirv' . $opacityClass . '" id="sirv-woo-gallery_' . $this->product_id . '"' . $this->render_viewer_options($viewer_options) . '>' . PHP_EOL . $items_html . '</div>' . PHP_EOL . $mv_custom_options_block . $mv_custom_css . $max_height_style;
+    return /* $mv_custom_options_block . PHP_EOL .  */$json_data_block . '<div class="Sirv' . $opacityClass . '" id="sirv-woo-gallery_' . $this->product_id . '"' . $this->render_viewer_options($viewer_options) . '>' . PHP_EOL . $items_html . '</div>' . PHP_EOL. $mv_custom_css . $max_height_style;
   }
 
 

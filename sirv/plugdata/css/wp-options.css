@@ -770,7 +770,7 @@ input.cmn-toggle-round:checked+label+span:before {
 }
 
 .optiontable.form-table h3 {
-    margin: 0px 0 10px 0;
+    margin: 5px 0 10px 0;
 }
 
 .sirv-form-table th {
@@ -2114,4 +2114,11 @@ input[name=SIRV_EMAIL]:focus::placeholder {
     display: none;
     align-items: center;
     height: 40px;
+}
+
+.sirv-media-lib-title{
+    padding: 0 10px !important;
+}
+.sirv-media-lib-title h3{
+    margin-bottom: 0 !important;
 }

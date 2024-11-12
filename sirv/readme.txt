@@ -4,7 +4,7 @@ Donate link: https://sirv.com/
 Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
-Tested up to: 6.6
+Tested up to: 6.7
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -238,6 +238,16 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 18. To upload images to your Sirv library, go to the Media Library page within the Sirv sub-menu (in the left navigation column).
 
 == Changelog ==
+
+= 7.3.1 (2024-11-12) =
+* Tested with the latest WordPress version 6.7.
+* Improved security for uploading large images.
+* Improved integration with WooCommerce variation images.
+* Improved detection of media uploaded to Sirv folders.
+* Improved loading of custom Sirv JS global options.
+* Improved design of the Synchronization tab.
+* Fixed issue with incorrect initialization of Advanced Editor Tools (TinyMCE plugin).
+* Many small fixes and optimizations.
 
 = 7.3.0 (2024-10-03) =
 * Improved plugin security.

@@ -25,7 +25,7 @@ class SirvProdImageHelper{
       'meta_input'     => array(
         "_wp_attachment_image_alt" => preg_replace('/\.[^.]+$/', '', basename($sirv_url)),
         "sirv_woo_product_image_attachment" => $sirv_url,
-        "_wp_attachment_metadata" => self::get_sirv_item_metadata($sirv_url, $sirv_item_type_data['sirv_type']),
+        "_wp_attachment_metadata" => self::get_sirv_item_metadata($sirv_url, $sirv_item_type_data),
       ),
     );
 
@@ -40,44 +40,61 @@ class SirvProdImageHelper{
 
 
   public static function get_sirv_item_type($sirv_url){
-    $sirv_type = array("sirv_type" => '');
+    $sirv_type = array("type" => '', "ext" => '', "mime_type" => '');
 
-    $filetype = wp_check_filetype(basename($sirv_url), null);
+    $filetype = wp_check_filetype(basename($sirv_url));
 
-    if( !empty($filetype) && !empty($filetype['type'])){
+    if( !empty($filetype['type']) ){
       $sirv_type['ext'] = $filetype['ext'];
-      $sirv_type['type'] = $filetype['type'];
+      $sirv_type['mime_type'] = $filetype['type'];
       list($type, $ext) = explode('/', $filetype['type']);
       switch ($type) {
         case 'sirv':
-          if($ext == 'spin') $sirv_type['sirv_type'] = 'spin';
+          if($ext == 'spin') $sirv_type['type'] = 'spin';
           break;
 
         default:
-          $sirv_type['sirv_type'] = $type;
+          $sirv_type['type'] = $type;
           break;
       }
+    }else{
+      $sirv_type['ext'] = pathinfo($sirv_url, PATHINFO_EXTENSION);
     }
 
     return $sirv_type;
   }
 
 
-  protected static function get_sirv_item_metadata($sirv_url, $sirv_item_type){
+  protected static function get_sirv_item_metadata($sirv_url, $sirv_item_type_data){
 
-    $sirv_metadata = array("sirv_type" => $sirv_item_type);
-
+    $sirv_metadata = array("sirv_type" => '');
     $allow_dimensions_types = array('image', 'video');
 
-    if( in_array($sirv_item_type, $allow_dimensions_types) ){
-      $string_metadata = @file_get_contents($sirv_url . '?info');
+    $sirv_item_metadata = Utils::get_sirv_item_info($sirv_url);
 
-      if( !empty($string_metadata)){
-        $metadata = json_decode($string_metadata, true);
+    if ( $sirv_item_type_data['type'] ) {
+      $sirv_metadata["sirv_type"] = $sirv_item_type_data['type'];
+    } else {
+      if( $sirv_item_metadata ){
+        if (isset($sirv_item_metadata->original->File->MIMEType)) {
+          $sirv_metadata['sirv_type'] = explode('/', $sirv_item_metadata->original->File->MIMEType)[0];
+        }
 
+        if (isset($sirv_item_metadata->layers)) {
+          $sirv_metadata['sirv_type'] = 'spin';
+        }
+      }else{
+        $sirv_metadata['sirv_type'] = 'image';
+      }
 
-        if (isset($metadata['original']['width'])) $sirv_metadata['width'] = $metadata['original']['width'];
-        if (isset($metadata['original']['height'])) $sirv_metadata['height'] = $metadata['original']['height'];
+    }
+
+    if( in_array($sirv_metadata['sirv_type'], $allow_dimensions_types) ){
+
+      if( !empty($sirv_item_metadata)){
+
+        if ( isset($sirv_item_metadata->original->width) ) $sirv_metadata['width'] = $sirv_item_metadata->original->width;
+        if ( isset($sirv_item_metadata->original->height) ) $sirv_metadata['height'] = $sirv_item_metadata->original->height;
       }
     }else{
       $dimensions = @getimagesize($sirv_url . "?thumb");
@@ -88,7 +105,7 @@ class SirvProdImageHelper{
       }
     }
 
-    $filesize = self::get_filesize($sirv_url, $sirv_item_type);
+    $filesize = self::get_filesize($sirv_url, $sirv_metadata['sirv_type'])  ;
 
     if( !empty($filesize) ) $sirv_metadata['filesize'] = $filesize;
 

@@ -25,7 +25,7 @@ class SirvControl extends \Elementor\Base_Data_Control{
 		wp_enqueue_style('sirv_style');
 		wp_register_style( 'sirv_mce_style', SIRV_PLUGIN_SUBDIR_URL_PATH . 'css/wp-sirv-shortcode-view.css' );
 		wp_enqueue_style('sirv_mce_style');
-		wp_register_script( 'sirv_logic', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv.js', array( 'jquery', 'jquery-ui-sortable, sirv_toast_js' ), false);
+		wp_register_script( 'sirv_logic', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv.js', array( 'jquery','jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-tooltip', 'sirv_toast_js' ), false);
 		wp_localize_script( 'sirv_logic', 'sirv_ajax_object', array(
 			'ajaxurl' => admin_url( 'admin-ajax.php' ),
 			'ajaxnonce' => wp_create_nonce('sirv_logic_ajax_validation_nonce'),

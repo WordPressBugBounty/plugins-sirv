@@ -793,6 +793,9 @@ jQuery(function($){
                 case 'video':
                     meta.main = formatVideoDuration(data.meta.duration);
                     break;
+                case 'model':
+                    meta.main = shortDate;
+                    break;
 
                 default:
                     break;
@@ -1888,7 +1891,6 @@ jQuery(function($){
         window['modernUploadImages'] = function(files){
             let groupedImages = groupedFiles(files, maxFileSize, maxFilesCount, sirvFileSizeLimit);
             let countFiles = files.length;
-
             //let currentDir = htmlDecode($('#filesToUpload').attr('data-current-folder'));
             let currentDir = getCurrentDir(hasLastSlash = true);
 
@@ -1965,6 +1967,7 @@ jQuery(function($){
             for(let index = 0; index < totalOverSizedFiles; index++){
                 let fileItem = overSizedImages[index];
                 let reader = new FileReader();
+
                 uploadImageByChunk(fileItem, 0, reader, 1, totalOverSizedFiles, currentDir);
             }
         }
@@ -1988,7 +1991,8 @@ jQuery(function($){
                 let data = new FormData();
                 data.append('action', 'sirv_upload_file_by_chunks');
                 data.append("_ajax_nonce", sirv_ajax_object.ajaxnonce);
-                data.append("filename", file.name);
+                //data.append("filename", file.name);
+                data.append("filename", fileItem.fullPath);
                 data.append('totalParts', totalSlices);
                 data.append('totalFiles', totalOverSizedFiles);
                 data.append('partNum', partNum);
@@ -2023,14 +2027,14 @@ jQuery(function($){
                             const json_res = JSON.parse(response);
 
                             if(!!json_res.error){
-                                $(".sirv-upload-ajax").hide();
-                                toastr.error(`Error: ${json_res.error}`, "", {preventDuplicates: true, timeOut: 4000, positionClass: "toast-top-center"});
-                                getContentFromSirv(window.sirvGetPath);
-                                return;
+                                toastr.error(`Error: ${json_res.error}`, "", {preventDuplicates: true, timeOut: 5000, positionClass: "toast-top-center"});
                             }
 
-                            if ( nextSlice < file.size ) {
-                                uploadImageByChunk(fileItem, nextSlice, reader, partNum + 1, totalOverSizedFiles, currentDir);
+                            if(!!json_res.critical_error){
+                                $(".sirv-upload-ajax").hide();
+                                toastr.error(`Error: ${json_res.error}`, "", {preventDuplicates: true, timeOut: 5000, positionClass: "toast-top-center"});
+                                getContentFromSirv(window.sirvGetPath);
+                                return;
                             }
 
                             if(json_res.hasOwnProperty('stop') && json_res.stop == true){
@@ -2038,6 +2042,11 @@ jQuery(function($){
                                 getContentFromSirv(window.sirvGetPath);
                                 realRequestSize = 0;
                             }
+
+                            if ( nextSlice < file.size ) {
+                                uploadImageByChunk(fileItem, nextSlice, reader, partNum + 1, totalOverSizedFiles, currentDir);
+                            }
+
                         }
                     },
                     beforeSendFunc=false,
@@ -3871,6 +3880,19 @@ jQuery(function($){
         // Initialization
         patchMediaBar();
         getPhpFilesLimitations();
+
+        $(document).tooltip({
+            classes:{
+                "ui-tooltip": "sirv-ui-widget-content sirv-ui-corner-all sirv-ui-widget-shadow",
+            },
+            show: false,
+            hide: false,
+            position: {
+                my: "left bottom-25",
+                at: "left bottom",
+                collision: "flipfit",
+            },
+        });
 
         if($('.sirv-items-container').length > 0) getContentFromSirv();
 

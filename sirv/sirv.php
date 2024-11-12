@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           7.3.0
+ * Version:           7.3.1
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '7.3.0');
+define('SIRV_PLUGIN_VERSION', '7.3.1');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -117,6 +117,35 @@ function sirv_mime_types($mimes){
   $mimes['spin']  = 'sirv/spin';
 
   return $mimes;
+}
+
+
+//filters for export products woo feature
+add_filter('woocommerce_product_export_column_names', 'sirv_add_column_to_export_csv');
+add_filter('woocommerce_product_export_product_default_columns', 'sirv_add_column_to_export_csv');
+function sirv_add_column_to_export_csv( $columns ) {
+
+	// column slug => column name
+	$columns['sirv_woo_all_urls'] = 'Sirv product media URLs';
+
+	return $columns;
+}
+
+
+// Filter you want to hook into will be: 'woocommerce_product_export_product_column_{$column_slug}'.
+add_filter('woocommerce_product_export_product_column_sirv_woo_all_urls', 'sirv_add_export_data', 10, 2);
+function sirv_add_export_data( $value, $product ) {
+  //$product_id = $product->get_id();
+  $post_type = $product->post_type;
+  $is_variation = $post_type == 'product_variation' ? true : false;
+
+  $woo = new Woo($product->get_id());
+	$value = $woo->get_export_data_to_csv_column($is_variation);
+/*   sirv_qdebug($product_id, '$product_id');
+  sirv_qdebug($value, '$value');
+
+  $value = "TEST TEST TEST"; */
+	return $value;
 }
 
 
@@ -263,10 +292,14 @@ function sirv_woocommerce_cart_item_thumbnail_filter($image_html, $cart_item, $c
 
 //TODO: Add posibillity to get size from html
 function sirv_variation_image_html($image_html, $product_id, $variaition_id){
-  $modified_image_html = $image_html;
+  //$modified_image_html = $image_html;
   $sirv_url = '';
 
   if ($variaition_id > 0) {
+    $image_tag_metadata = Utils::parse_html_tag_attrs($image_html);
+    $width = isset($image_tag_metadata['width']) ? $image_tag_metadata['width'] : 300;
+    $height = isset($image_tag_metadata['height']) ? $image_tag_metadata['height'] : 300;
+
     $woo = new Woo($product_id);
 
     $wc_variation = $woo->parse_wc_variation($variaition_id, $product_id, true);
@@ -274,8 +307,9 @@ function sirv_variation_image_html($image_html, $product_id, $variaition_id){
     if (!empty($wc_variation)) {
       if ($wc_variation[0]->provider == 'sirv') {
         $sirv_url = $wc_variation[0]->url;
-        $sirv_parametrized_url = sirv_get_parametrized_url($sirv_url, array(250, 250), true);
-        $modified_image_html = preg_replace('/(src=".*?")/', "src=\"$sirv_parametrized_url\"", $image_html);
+        $sirv_parametrized_url = sirv_get_parametrized_url($sirv_url, array($width, $height), true);
+        //$modified_image_html = preg_replace('/(src=".*?")/', "src=\"$sirv_parametrized_url\"", $image_html);
+        $image_tag_metadata['src'] = $sirv_parametrized_url;
       } else {
         return $image_html;
       }
@@ -290,13 +324,16 @@ function sirv_variation_image_html($image_html, $product_id, $variaition_id){
       }
 
       if (!empty($sirv_url)) {
-        $sirv_parametrized_url = sirv_get_parametrized_url($sirv_url, array(250, 250), true);
-        $modified_image_html = preg_replace('/(src=".*?")/', "src=\"$sirv_parametrized_url\"", $image_html);
+        $sirv_parametrized_url = sirv_get_parametrized_url($sirv_url, array($width, $height), true);
+        //$modified_image_html = preg_replace('/(src=".*?")/', "src=\"$sirv_parametrized_url\"", $image_html);
+        $image_tag_metadata['src'] = $sirv_parametrized_url;
       }
+      //return $modified_image_html;
+      return Utils::build_html_tag('img', $image_tag_metadata, array('srcset', 'sizes', 'data-src'));
     }
   }
 
-  return $modified_image_html;
+    return $image_html;
 }
 
 
@@ -1362,7 +1399,7 @@ function sirv_button($editor_id = 'content'){
   wp_register_style('sirv_mce_style', SIRV_PLUGIN_SUBDIR_URL_PATH . 'css/wp-sirv-shortcode-view.css');
   wp_enqueue_style('sirv_mce_style');
 
-  wp_register_script('sirv_logic', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv.js', array('jquery', 'jquery-ui-sortable', 'sirv_toast_js'), false);
+  wp_register_script('sirv_logic', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv.js', array('jquery', 'jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-tooltip', 'sirv_toast_js'), false);
   wp_localize_script('sirv_logic', 'sirv_ajax_object', array(
     'ajaxurl' => admin_url('admin-ajax.php'),
     'ajaxnonce' => wp_create_nonce('sirv_logic_ajax_validation_nonce'),
@@ -1453,7 +1490,7 @@ function sirv_admin_scripts(){
       wp_enqueue_style('sirv_style');
       wp_register_style('sirv_mce_style', SIRV_PLUGIN_SUBDIR_URL_PATH . 'css/wp-sirv-shortcode-view.css');
       wp_enqueue_style('sirv_mce_style');
-      wp_register_script('sirv_logic', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv.js', array('jquery', 'jquery-ui-sortable', 'sirv_toast_js'), '1.1.0');
+      wp_register_script('sirv_logic', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv.js', array('jquery','jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-tooltip', 'sirv_toast_js'), '1.1.0');
       wp_localize_script('sirv_logic', 'sirv_ajax_object', array(
         'ajaxurl' => admin_url('admin-ajax.php'),
         'ajaxnonce' => wp_create_nonce('sirv_logic_ajax_validation_nonce'),
@@ -1529,7 +1566,7 @@ function sirv_admin_scripts(){
 
     wp_register_style('sirv_style', SIRV_PLUGIN_SUBDIR_URL_PATH . 'css/wp-sirv.css');
     wp_enqueue_style('sirv_style');
-    wp_enqueue_script('sirv_logic', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv.js', array('jquery', 'jquery-ui-sortable', 'sirv_toast_js'), false);
+    wp_enqueue_script('sirv_logic', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv.js', array('jquery','jquery-ui-core', 'jquery-ui-sortable', 'jquery-ui-tooltip', 'sirv_toast_js'), false);
     wp_localize_script('sirv_logic', 'sirv_ajax_object', array(
       'ajaxurl' => admin_url('admin-ajax.php'),
       'ajaxnonce' => wp_create_nonce('sirv_logic_ajax_validation_nonce'),
@@ -1570,8 +1607,10 @@ function sirv_elementor_widget(){
 //include plugin for tinyMCE to show sirv gallery shortcode in visual mode
 add_filter('mce_external_plugins', 'sirv_tinyMCE_plugin_shortcode_view');
 
-function sirv_tinyMCE_plugin_shortcode_view(){
-  return array('sirvgallery' => SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv-shortcode-view.js');
+function sirv_tinyMCE_plugin_shortcode_view($plugins){
+  $plugins['sirvgallery'] = SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv-shortcode-view.js';
+
+  return $plugins;
 }
 
 
@@ -1852,8 +1891,21 @@ if (get_option('SIRV_JS') === '1') {
 function sirv_add_sirv_js(){
   $sirv_js_path = getValue::getOption('SIRV_JS_FILE');
 
+  global $post;
+
   wp_register_script('sirv-js', $sirv_js_path, array(), false, false);
   wp_enqueue_script('sirv-js');
+
+  if (isset($post->post_type) && $post->post_type == 'product') {
+    $sirv_woo_is_enable_option = get_option('SIRV_WOO_IS_ENABLE');
+    $sirv_woo_is_enable = !empty($sirv_woo_is_enable_option) && $sirv_woo_is_enable_option == '2' ? true : false;
+    if( $sirv_woo_is_enable ){
+      $woo = new Woo($post->ID);
+      $mv_custom_options = $woo->remove_script_tag(get_option('SIRV_WOO_MV_CUSTOM_OPTIONS'));
+
+      wp_add_inline_script('sirv-js', $mv_custom_options, 'after');
+    }
+  }
 }
 
 
@@ -1895,8 +1947,23 @@ function sirv_check_responsive($content){
       if (preg_match($sirvjs_pattern, $content) == 0) {
         $sirv_js_path = getValue::getOption('SIRV_JS_FILE');
 
+        global $post;
+
+        $mv_custom_options_block = '';
+
+        if (isset($post->post_type) && $post->post_type == 'product') {
+          $sirv_woo_is_enable_option = get_option('SIRV_WOO_IS_ENABLE');
+          $sirv_woo_is_enable = !empty($sirv_woo_is_enable_option) && $sirv_woo_is_enable_option == '2' ? true : false;
+          if ($sirv_woo_is_enable) {
+            $woo = new Woo($post->ID);
+            $mv_custom_options = $woo->remove_script_tag(get_option('SIRV_WOO_MV_CUSTOM_OPTIONS'));
+            $mv_custom_options_block = !empty($mv_custom_options) ?  PHP_EOL . '<script nowprocket>' . PHP_EOL . $mv_custom_options . PHP_EOL . '</script>' . PHP_EOL : '';
+
+          }
+        }
+
         if(preg_match($link_prefetch_pattern, $content) === 1){
-          $content = preg_replace($link_prefetch_pattern, '$1<script src="' . $sirv_js_path . '"></script>', $content, 1);
+          $content = preg_replace($link_prefetch_pattern,  '$1'. PHP_EOL .'<script src="' . $sirv_js_path . '"></script>'. $mv_custom_options_block, $content, 1);
         }else{
           $content = preg_replace('/(<\/head>)/is', '<script src="' . $sirv_js_path . '"></script>$1', $content, 1);
         }
@@ -2028,6 +2095,8 @@ function sirv_image_downsize($downsize, $attachment_id, $size){
 
   $url = wp_get_attachment_url($attachment_id);
 
+  if( !$url ) return false;
+
   if (sirv_is_sirv_item($url)) {
     $post = get_post($attachment_id);
     if (isset($post->post_author) && (int) $post->post_author === 5197000) {
@@ -2077,11 +2146,16 @@ function sirv_envira_crop($resized_image, $id, $item, $data){
 }
 
 function sirv_is_sirv_item($url){
-    if( empty($url) ) return false;
-    //$sirv_cdn_url = get_option('SIRV_CDN_URL');
-    $sirv_cdn_url = sirv_get_cached_cdn_url();
-    $sirv_url = empty($sirv_cdn_url) ? 'sirv.com' : $sirv_cdn_url;
-    return stripos($url, $sirv_url) !== false;
+  if( empty($url) ) return false;
+
+  //does not give 100% guarantee that this is sirv image
+  $count = substr_count($url, 'http');
+  if( $count > 1 ) return true;
+
+  //$sirv_cdn_url = get_option('SIRV_CDN_URL');
+  $sirv_cdn_url = sirv_get_cached_cdn_url();
+  $sirv_url = empty($sirv_cdn_url) ? 'sirv.com' : $sirv_cdn_url;
+  return stripos($url, $sirv_url) !== false;
   }
 
 
@@ -2615,20 +2689,20 @@ function sirv_get_parametrized_url($sirv_url, $size = null, $isCrop=false){
   $sirv_item_type_data = SirvProdImageHelper::get_sirv_item_type($sirv_image);
 
   if( empty($size)){
-    if( $sirv_item_type_data['sirv_type'] == 'video' ) return sirv_add_profile($sirv_image . "?thumbnail=500");
-    if( $sirv_item_type_data['sirv_type'] == 'spin' ) return sirv_add_profile($sirv_image . "?thumb");
+    if( $sirv_item_type_data['type'] == 'video' ) return sirv_add_profile($sirv_image . "?thumbnail=500");
+    if( $sirv_item_type_data['type'] == 'spin' ) return sirv_add_profile($sirv_image . "?thumb");
 
     return sirv_add_profile($sirv_image);
   }
 
   $item_show_pattern = '';
 
-  if( $sirv_item_type_data['sirv_type'] == 'video' ){
+  if( $sirv_item_type_data['type'] == 'video' ){
     $image = sirv_get_correct_item_size($size, $isCrop);
     $url = $sirv_image . "?thumbnail=" . $image['width'];
     return sirv_add_profile($url);
 
-  }else if( $sirv_item_type_data['sirv_type'] == 'spin' ){
+  }else if( $sirv_item_type_data['type'] == 'spin' ){
     $item_show_pattern = "?thumb";
   }
 
@@ -4693,16 +4767,18 @@ add_action('wp_ajax_sirv_upload_file_by_chunks', 'sirv_upload_file_by_chunks_cal
 
 function sirv_upload_file_by_chunks_callback(){
   if (!(is_array($_POST) && isset($_POST['binPart']) && defined('DOING_AJAX') && DOING_AJAX)) {
-    return;
-  }
-
-  if (!sirv_is_allow_ajax_connect('sirv_logic_ajax_validation_nonce', 'edit_posts')) {
-    echo json_encode(array('error' => 'Access to the requested resource is forbidden'));
+    echo json_encode(array('critical_error' => 'AJAX not allowed'));
     wp_die();
   }
 
-  $is_upload_file = true;
+  if (!sirv_is_allow_ajax_connect('sirv_logic_ajax_validation_nonce', 'edit_posts')) {
+    echo json_encode(array('critical_error' => 'Access to the requested resource is forbidden'));
+    wp_die();
+  }
 
+  $response = array();
+  $error = '';
+  $is_upload_file = true;
   $arr_content = array();
 
   $current_dir = htmlspecialchars_decode(stripslashes($_POST['currentDir']));
@@ -4717,7 +4793,7 @@ function sirv_upload_file_by_chunks_callback(){
   $tmp_filepath = sirv_get_tmp_filename($filename);
 
   if( !$tmp_filepath ){
-    echo json_encode(array('error' => 'Can\'t create tmp file. Please check if php tmp path is correctly set.'));
+    echo json_encode(array('critical_error' => 'Can\'t create tmp file. Please check if php tmp path is correctly set'));
     wp_die();
   }
 
@@ -4735,7 +4811,8 @@ function sirv_upload_file_by_chunks_callback(){
   }
 
   if($partNum < $totalParts){
-    echo json_encode(array('status' => 'processing', 'stop' => false));
+    $response['status'] = 'processing';
+    $response['stop'] = false;
 
   }
 
@@ -4743,38 +4820,32 @@ function sirv_upload_file_by_chunks_callback(){
     $disallowed_types = array('application', 'text');
 
     $mime_type = Utils::get_mime_type($tmp_filepath);
-
     if( in_array($mime_type, $disallowed_types) ){
       unlink($tmp_filepath);
-      delete_option($filename);
+      sirv_remove_tmp_option($filename);
 
-      echo json_encode(array('error' => 'File type is not allowed'));
-      wp_die();
+      $error ="File $filename type is not allowed";
     }
 
-    //sanitize svg file before upload
-    if (Utils::get_mime_subtype($tmp_filepath) == 'svg+xml') {
-      $is_upload_file = sirv_sanitize_svg($tmp_filepath);
+    if( !$error ){
+      //sanitize svg file before upload
+      if ( Utils::get_mime_subtype($tmp_filepath) == 'svg+xml' ) {
+        $is_upload_file = sirv_sanitize_svg($tmp_filepath);
+      }
+
+      if( $is_upload_file ){
+        $APIClient = sirv_getAPIClient();
+        $result = $APIClient->uploadImage($tmp_filepath, $sirv_path);
+      }else{
+        $filename = basename(urldecode($sirv_path));
+        $error = "SVG file $filename cannot be sanitized. Upload is forbidden";
+      }
+
+
+      @unlink($tmp_filepath);
+      sirv_remove_tmp_option($filename);
     }
 
-
-
-    if($is_upload_file){
-      $APIClient = sirv_getAPIClient();
-      $result = $APIClient->uploadImage($tmp_filepath, $sirv_path);
-
-      unlink($tmp_filepath);
-      delete_option($filename);
-    }else{
-      $filename = basename(urldecode($sirv_path));
-      $result['error'] = "SVG file $filename cannot be sanitized. Upload is forbidden";
-    }
-
-
-    if( isset($result["error"]) ){
-      echo json_encode(array('error' => $result["error"]));
-      wp_die();
-    }
 
     session_id("image-uploading-status");
     session_start();
@@ -4787,18 +4858,25 @@ function sirv_upload_file_by_chunks_callback(){
     session_write_close();
 
     if ($arr_content['processedImage'] == $arr_content['count']){
-      echo json_encode(array('stop' => true));
+      $response['stop'] = true;
+      $response['status'] = 'done';
     }else{
-      echo json_encode(array('status' => 'processing', 'stop' => false));
+      $response['status'] = 'processing';
+      $response['stop'] = false;
     }
   }
 
+  if ($error) $response['error'] = $error;
+
+  echo json_encode($response);
   wp_die();
 }
 
 
-function sirv_get_tmp_filename($db_key){
-  $tmp_filepath = get_option($db_key);
+function sirv_get_tmp_filename($raw_option_key){
+
+  $option_key = sirv_get_tmp_option_name($raw_option_key);
+  $tmp_filepath = get_option($option_key);
 
   if( $tmp_filepath ){
     return $tmp_filepath;
@@ -4807,13 +4885,24 @@ function sirv_get_tmp_filename($db_key){
   $tmp_filepath = wp_tempnam();
 
   if($tmp_filepath){
-    update_option($db_key, $tmp_filepath);
+    update_option($option_key, $tmp_filepath);
   }
 
   //TODO? if not tmp path then create own path and use it for processing
 
   return $tmp_filepath;
 
+}
+
+
+function sirv_get_tmp_option_name($filename){
+  return "SIRV_TMP_FILEPATH" . '_' . md5($filename);
+}
+
+
+function sirv_remove_tmp_option($raw_option_key){
+  $option_key = sirv_get_tmp_option_name($raw_option_key);
+  delete_option($option_key);
 }
 
 
@@ -5892,7 +5981,7 @@ function sirv_wp_media_library_size(){
         'count' => $post_images_count
   ); */
   $media_storage_data =  array(
-        'date' => date('\o\n F d, Y'),
+        'date' => date('\o\n F j, Y'),
         'size' => Utils::getFormatedFileSize($upload_space),
         'img_count' => $post_images_count
   );
@@ -5952,7 +6041,7 @@ function sirv_wp_media_library_size_new(){
 
   if( in_array($stored_data['status'], array('initial', 'done', 'stopped')) ){
     $stored_data['all_images_count'] = sirv_get_all_post_images_count();
-    $stored_data['date'] = date('F d, Y');
+    $stored_data['date'] = date('F j, Y');
   }
 
   if($stored_data['status'] !== 'processing'){
@@ -6475,6 +6564,8 @@ add_action('admin_init', 'sirv_monitoring_nopriv_ajax');
 function sirv_monitoring_nopriv_ajax(){
   //if (is_admin() || $isAdmin) return;
 
+  $forbidden_actions = array('query-attachments');
+
   if (defined('DOING_AJAX') && DOING_AJAX) {
     $action = '';
     $post_action = isset($_POST['action']) ? $_POST['action'] : '';
@@ -6483,6 +6574,8 @@ function sirv_monitoring_nopriv_ajax(){
     } else {
       $action = isset($_GET['action']) ? $_GET['action'] : '';
     }
+
+    if(in_array($action, $forbidden_actions)) return;
 
     if (!empty($action) && sirv_is_frontend_ajax($action)) {
       //global $isAdmin;

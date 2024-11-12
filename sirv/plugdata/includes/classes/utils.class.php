@@ -105,6 +105,58 @@ class Utils{
   }
 
 
+  public static function parse_html_tag_attrs($html_data){
+  $tag_metadata = array();
+
+  if ( ! empty($html_data) ) {
+    preg_match_all('/\s(\w*)=\"([^"]*)\"/ims', $html_data, $matches_tag_attrs, PREG_SET_ORDER);
+    $tag_metadata = self::convert_matches_to_assoc_array($matches_tag_attrs);
+  }
+
+  return $tag_metadata;
+}
+
+
+  public static function convert_matches_to_assoc_array($matches){
+    $assoc_array = array();
+
+    for ($i=0; $i < count($matches); $i++) {
+      $assoc_array[$matches[$i][1]] = $matches[$i][2];
+    }
+
+    return $assoc_array;
+  }
+
+
+  public static function join_tag_attrs($tag_metadata, $skip_attrs = array()){
+    $tag_attrs = array();
+
+    foreach ($tag_metadata as $attr_name => $value) {
+      if( in_array($attr_name, $skip_attrs) ) continue;
+
+      $tag_attrs[] = $attr_name . '="' . $value . '"';
+    }
+
+    return implode(' ', $tag_attrs);
+  }
+
+
+
+  public static function get_sirv_item_info($sirv_url){
+    $context = stream_context_create(array('http' => array('method' => "GET")));
+    $sirv_item_metadata = @json_decode(@file_get_contents($sirv_url . '?info', false, $context));
+
+    return empty($sirv_item_metadata) ? false : $sirv_item_metadata;
+  }
+
+
+  public static function build_html_tag($tag_name, $tag_metadata, $skip_attrs = array()){
+    $tag_attrs = self::join_tag_attrs($tag_metadata, $skip_attrs);
+
+    return '<' . $tag_name . ' ' . $tag_attrs . '>';
+  }
+
+
   public static function get_head_request($url, $protocol_version = 1){
     self::$headers = array();
     $error = NULL;

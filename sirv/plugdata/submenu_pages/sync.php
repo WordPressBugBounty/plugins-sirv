@@ -21,8 +21,8 @@ $storageInfo = sirv_getStorageInfo();
       </th>
     </tr>
     <tr>
-      <td>
-        <h2>WordPress media</h2>
+      <td class="sirv-media-lib-title">
+        <h3>Your WordPress media library</h3>
       </td>
     </tr>
     <tr>
@@ -41,7 +41,7 @@ $storageInfo = sirv_getStorageInfo();
             <span>Date checked</span>
           </div>
           <div class="sirv-calc-library-size-view-column sirv-calc-library-size-view-data">
-            <div class="sirv-calc-library-size-show-analizing"><span class="sirv-traffic-loading-ico"></span>Analizing...<span class="sirv-calc-library-size-analizing-progress">0%</span></div>
+            <div class="sirv-calc-library-size-show-analizing"><span class="sirv-traffic-loading-ico"></span>Analizing...&nbsp<span class="sirv-calc-library-size-analizing-progress">0%</span></div>
             <div class="sirv-calc-media-size-data">
               <span class="sirv-calc-media-size-approx_symbol"><?php echo $approximately_symbol; ?></span>
               <span class="sirv-calc-library-size-show-size"><?php echo $wp_media_library_size_txt ?></span>
@@ -70,8 +70,8 @@ $storageInfo = sirv_getStorageInfo();
     </tr>
     <tr>
       <td colspan="2">
-        <h3>Status</h3>
-        <p class="sirv-options-desc">Images are copied to Sirv the first time they are viewed, which can take 1-2 seconds per image. To perform a full synchronization now, click Sync images:</p>
+        <h3>Sync to Sirv</h3>
+        <p class="sirv-options-desc">Your images will automatically copy to Sirv the first time they're viewed. This usually takes 1-2 seconds per image.</p>
       </td>
     </tr>
     <tr class="small-padding">
@@ -203,6 +203,11 @@ $storageInfo = sirv_getStorageInfo();
             <input type="button" name="optimize_cache" class="button-primary sirv-clear-cache" data-type="garbage" value="Clean up" />&nbsp;
             <span class="sirv-traffic-loading-ico" style="display: none;"></span>
           </div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <p>You can pre-sync all images to Sirv. This will remove the 1-2 second delay the first time an image is requested.</p>
         </td>
       </tr>
       <tr>

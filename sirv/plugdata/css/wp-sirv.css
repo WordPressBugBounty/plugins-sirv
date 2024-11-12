@@ -1363,3 +1363,27 @@ input#sirv-model-shadow-slider {
 #gallery-thumbs-height{
     width: 100%;
 }
+
+
+.ui-tooltip {
+	padding: 8px;
+	position: absolute;
+	z-index: 99999999;
+	max-width: 400px;
+    background-color: white !important;
+    background-image: none;
+}
+
+.sirv-ui-widget-content {
+    border: none;
+    background-image: none;
+}
+
+/* Corner radius */
+.sirv-ui-corner-all	{
+    border-radius: 3px;
+}
+
+.sirv-ui-widget-shadow {
+	box-shadow: 0px 0px 5px #666666 !important;
+}
