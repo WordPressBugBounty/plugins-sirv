@@ -239,6 +239,9 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 == Changelog ==
 
+= 7.3.3 (2024-11-14) =
+* Removed of unnecessary requests that could slow down the admin area.
+
 = 7.3.2 (2024-11-14) =
 * Improved code to avoid get errors on customer plan load.
 
