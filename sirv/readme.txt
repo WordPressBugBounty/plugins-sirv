@@ -239,6 +239,9 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 == Changelog ==
 
+= 7.3.2 (2024-11-14) =
+* Improved code to avoid get errors on customer plan load.
+
 = 7.3.1 (2024-11-12) =
 * Tested with the latest WordPress version 6.7.
 * Improved security for uploading large images.

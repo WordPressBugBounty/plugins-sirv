@@ -770,7 +770,8 @@ class SirvAPIClient
 
             $storage = $this->sendRequest('v2/account/storage', array(), 'GET');
 
-            $storage->result->plan = $storage->result->plan + $storage->result->extra;
+            $storage->result->plan = (int) $this->getPlanValue($storage->result->plan) + (int) $this->getPlanValue($storage->result->extra);
+            $storage->result->used = (int) $this->getPlanValue($storage->result->used);
 
             $storageInfo['storage'] = array(
                 'allowance' => $storage->result->plan,
@@ -786,7 +787,7 @@ class SirvAPIClient
                 ),
                 'used_text' => Utils::getFormatedFileSize($storage->result->used),
                 'used_percent' => number_format($storage->result->used / $storage->result->plan * 100, 2, '.', ''),
-                'files' => $storage->result->files,
+                'files' => $this->getPlanValue($storage->result->files),
             );
 
             $storageInfo['traffic'] = array(
@@ -885,6 +886,12 @@ class SirvAPIClient
 
         return $storageInfo;
     }
+
+
+    protected function getPlanValue($planKey){
+        return isset($planKey) ? $planKey : 1;
+    }
+
 
     public function calcTime($end){
         $mins = round(($end - time())/60);
