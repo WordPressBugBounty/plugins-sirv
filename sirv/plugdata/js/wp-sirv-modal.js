@@ -70,6 +70,22 @@ jQuery(function($){
                             }
                         });
                     });
+
+                    $('body').on('click', '.sirv-woo-add-variation-image', function () {
+                        //window.isAddMedia = true;
+                        window.sirvProductID = $(this).attr('data-id');
+                        let $modalBlock = $('.sirv-modal').length > 1 ? $($('.sirv-modal')[0]) : $('.sirv-modal');
+                        window['bPopup'] = $modalBlock.bPopup({
+                            position: ['auto', 'auto'],
+                            zIndex: 9999999,
+                            //contentContainer:'.modal-content',
+                            loadUrl: modal_object.woo_set_variation_image_url,
+                            loadCallback: function(){
+                                $('.loading-ajax').show();
+                                getContentFromSirv();
+                            }
+                        });
+                    });
             }else{
                 $('body').on('click', '.sirv-modal-click, .sirv-add-image-modal-click, .sirv-woo-add-media', function () {
                     window['bPopup'] = $('.sirv-modal').bPopup({

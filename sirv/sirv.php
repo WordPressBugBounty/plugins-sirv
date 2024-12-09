@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           7.3.3
+ * Version:           7.4.0
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '7.3.3');
+define('SIRV_PLUGIN_VERSION', '7.4.0');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -93,8 +93,23 @@ add_action('admin_head', 'sirv_global_logo_fix');
 function sirv_global_logo_fix(){
   echo '
   <style>
-    a[href*="page='. SIRV_PLUGIN_RELATIVE_SUBDIR_PATH .'options.php"] img {
+    a[href*="page='. SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'options.php"] img {
       padding-top:7px !important;
+    }
+    a[href*="page=' . SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . '"] span.sirv-active-issues{
+      display: inline-block;
+      vertical-align: top;
+      box-sizing: border-box;
+      margin: 1px 0 -1px 2px;
+      padding: 0 5px;
+      /* width: 18px; */
+      /* height: 18px; */
+      border-radius: 9px;
+      background-color: #d63638;
+      color: #fff;
+      font-size: 11px;
+      line-height: 1.6;
+      text-align: center;
     }
   </style>';
 }
@@ -935,6 +950,8 @@ function sirv_fill_empty_options(){
     'percent_finished' => 0
   )), 'no');
 
+  if( !get_option('SIRV_TROUBLESHOOTING_ISSUES_STATUS') ) update_option('SIRV_TROUBLESHOOTING_ISSUES_STATUS', json_encode(array()), 'no');
+
   if (!get_option('SIRV_HTTP_AUTH_CHECK')) update_option('SIRV_HTTP_AUTH_CHECK', '0');
   if (!get_option('SIRV_HTTP_AUTH_USER')) update_option('SIRV_HTTP_AUTH_USER', '');
   if (!get_option('SIRV_HTTP_AUTH_PASS')) update_option('SIRV_HTTP_AUTH_PASS', '');
@@ -1120,6 +1137,8 @@ if (function_exists('register_block_type')) {
 add_action('admin_notices', 'sirv_admin_notices');
 
 function sirv_admin_notices(){
+  require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/conflict.plugins.class.php');
+
   if ($notices = get_option('sirv_admin_notices')) {
     foreach ($notices as $notice) {
       echo "<div class='updated'><p>$notice</p></div>";
@@ -1129,6 +1148,9 @@ function sirv_admin_notices(){
 
   sirv_review_notice();
   sirv_empty_logins_notice();
+
+  ConflictPlugins::show_conflicts_notice();
+
   sirv_oversize_storage_notice();
 }
 
@@ -1222,6 +1244,22 @@ function sirv_get_wp_notice($msg, $notice_id, $notice_type = 'info', $is_dismiss
       .sirv-admin-notice h3 {
         margin-bottom: 0px;
         margin-top: 10px;
+      }
+
+      .sirv-admin-notice ul{
+        list-style: disc;
+      }
+
+      .sirv-admin-notice ul, .sirv-admin-notice ol {
+        margin-left: 2rem;
+        margin-top: 10px;
+      }
+
+      .sirv-admin-notice, .sirv-admin-notice p {
+        font-size: 15px;
+      }
+      div[data-sirv-notice-id=sirv-conflict-plugins] ul > li{
+        margin: 20px 0;
       }
     </style>
   " . PHP_EOL;
@@ -1416,6 +1454,7 @@ function sirv_button($editor_id = 'content'){
     'login_error_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . 'templates/login_error.html',
     'featured_image_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . 'templates/featured_image.html',
     'woo_set_product_image_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . '/templates/woo_set_product_image.html',
+    'woo_set_variation_image_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . '/templates/woo_set_variation_image.html',
     'isNotEmptySirvOptions' => $isNotEmptySirvOptions
   ));
 
@@ -1445,12 +1484,20 @@ function sirv_check_empty_options_on_backend(){
 add_action("admin_menu", "sirv_create_menu", 0);
 
 function sirv_create_menu(){
+  require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/conflict.plugins.class.php');
+
   $settings_item = DIRECTORY_SEPARATOR . SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'options.php';
   $library_item = DIRECTORY_SEPARATOR . SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'media_library.php';
   $shortcodes_view_item = DIRECTORY_SEPARATOR . SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'shortcodes-view.php';
   $account_item = DIRECTORY_SEPARATOR . SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/account.php';
   $help_item = DIRECTORY_SEPARATOR . SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/help.php';
   $feedback_item = DIRECTORY_SEPARATOR . SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/feedback.php';
+  $troubleshooting_item = DIRECTORY_SEPARATOR . SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/troubleshooting.php';
+
+  $is_troubleshooting = ConflictPlugins::get_issues_count() > 0;
+  $troubleshooting_issue_class = $is_troubleshooting ? 'sirv-active-issues' : '';
+  $count = $is_troubleshooting ? ConflictPlugins::get_issues_count() : '';
+  $troubleshooting_issues_count_html = ' <span class="sirv-troubleshooting-count '. $troubleshooting_issue_class .'">' . $count . '</span>';
 
   add_menu_page('Sirv Menu', 'Sirv', 'manage_options', $settings_item, NULL, SIRV_PLUGIN_SUBDIR_URL_PATH . 'assets/menu-icon.svg');
   add_submenu_page($settings_item, 'Sirv Settings', 'Settings', 'manage_options', $settings_item);
@@ -1458,6 +1505,7 @@ function sirv_create_menu(){
   add_submenu_page($settings_item, 'Sirv Shortcodes', 'Shortcodes', 'manage_options', $shortcodes_view_item);
   add_submenu_page($settings_item, 'Sirv Media Library', 'Media Library', 'manage_options', $library_item);
   add_submenu_page($settings_item, 'Sirv Help', 'Help', 'manage_options', $help_item);
+  add_submenu_page($settings_item, 'Sirv Troubleshooting', 'Troubleshooting' . $troubleshooting_issues_count_html, 'manage_options', $troubleshooting_item);
   add_submenu_page($settings_item, 'Sirv Feedback', 'Contact', 'manage_options', $feedback_item);
 }
 
@@ -1471,6 +1519,7 @@ function sirv_admin_scripts(){
   $account_page = SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/account.php';
   $help_page = SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/help.php';
   $feedback_page = SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/feedback.php';
+  $troubleshooting_page = SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/troubleshooting.php';
 
   global $pagenow;
 
@@ -1512,6 +1561,7 @@ function sirv_admin_scripts(){
           'featured_image_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . 'templates/featured_image.html',
           'woo_media_add_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . 'templates/woo_media_add.html',
           'woo_set_product_image_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . '/templates/woo_set_product_image.html',
+          'woo_set_variation_image_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . '/templates/woo_set_variation_image.html',
           'isNotEmptySirvOptions' => $isNotEmptySirvOptions
         )
       );
@@ -1543,11 +1593,15 @@ function sirv_admin_scripts(){
     wp_enqueue_script('sirv_options');
   }
 
-  if ( isset($_GET['page']) && ( $_GET['page'] == $feedback_page || $_GET['page'] == $account_page) ) {
+  if ( isset($_GET['page']) && ( $_GET['page'] == $feedback_page || $_GET['page'] == $account_page || $_GET['page'] = $troubleshooting_page) ) {
     wp_register_style('sirv_options_style', SIRV_PLUGIN_SUBDIR_URL_PATH . 'css/wp-options.css');
     wp_enqueue_style('sirv_options_style');
 
-    wp_register_script('sirv_options', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-options.js', array('jquery', 'jquery-ui-sortable'), false, true);
+    wp_register_style('sirv_toast_style', SIRV_PLUGIN_SUBDIR_URL_PATH . 'css/vendor/toastr.css');
+    wp_enqueue_style('sirv_toast_style');
+    wp_enqueue_script('sirv_toast_js', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/vendor/toastr.min.js', array('jquery'), false);
+
+    wp_register_script('sirv_options', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-options.js', array('jquery', 'jquery-ui-sortable', 'sirv_toast_js'), false, true);
     wp_localize_script('sirv_options', 'sirv_options_data', array(
       'ajaxurl' => admin_url('admin-ajax.php'),
       'ajaxnonce' => wp_create_nonce('ajax_validation_nonce'),
@@ -1578,6 +1632,7 @@ function sirv_admin_scripts(){
       'login_error_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . 'templates/login_error.html',
       'featured_image_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . 'templates/featured_image.html',
       'woo_set_product_image_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . '/templates/woo_set_product_image.html',
+      'woo_set_variation_image_url' => SIRV_PLUGIN_SUBDIR_URL_PATH . '/templates/woo_set_variation_image.html',
     ));
 
     wp_register_script('sirv-shortcodes-page', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv-shortcodes-page.js', array('jquery'), false);
@@ -1714,6 +1769,7 @@ function sirv_register_settings(){
   register_setting('sirv-settings-group', 'SIRV_PREVENTED_SIZES');
 
   register_setting('sirv-settings-group', 'SIRV_THUMBS_DATA');
+  register_setting('sirv-settings-group', 'SIRV_TROUBLESHOOTING_ISSUES_STATUS');
 
 
   register_setting('sirv-settings-group', 'SIRV_HTTP_AUTH_CHECK');
@@ -2142,12 +2198,38 @@ function sirv_envira_crop($resized_image, $id, $item, $data){
   return $resized_image;
 }
 
+
+add_filter('adt_get_product_data', 'sirv_product_feed_pro_fix_urls', 10, 3);
+function sirv_product_feed_pro_fix_urls($product_data, $feed, $product){
+
+  $processed_fields = ['image', 'non_local_image', 'image_all', 'all_images', 'all_gallery_images', 'all_images_kogan', 'feature_image'];
+
+  for ($i=0; $i < count($processed_fields); $i++) {
+    $field = $processed_fields[$i];
+    if( isset($product_data[$field]) && !empty($product_data[$field]) ){
+      $is_double_http = sirv_is_double_http($product_data[$field]);
+
+      if( $is_double_http ){
+        $uploads_dir = wp_upload_dir()['baseurl'] . '/';
+        $product_data[$field] = str_replace($uploads_dir, '', $product_data[$field]);
+      }
+    }
+  }
+  return $product_data;
+}
+
+
+function sirv_is_double_http($url){
+  $count = substr_count($url, 'http');
+  return $count > 1;
+}
+
+
 function sirv_is_sirv_item($url){
   if( empty($url) ) return false;
 
   //does not give 100% guarantee that this is sirv image
-  $count = substr_count($url, 'http');
-  if( $count > 1 ) return true;
+  if( sirv_is_double_http($url) ) return true;
 
   //$sirv_cdn_url = get_option('SIRV_CDN_URL');
   $sirv_cdn_url = sirv_get_cached_cdn_url();
@@ -3874,6 +3956,31 @@ function sirv_wpseo_opengraph_image($img){
   return $img;
 }
 
+
+//add sirv images(only main image for now due to performance issues) urls directly loaded from sirv
+add_filter('wpseo_sitemap_urlimages', 'sirv_filter_wpseo_sitemap_urlimages', 10, 2);
+function sirv_filter_wpseo_sitemap_urlimages($images, $post_id){
+
+  $product = wc_get_product($post_id);
+
+  try{
+    if ( !empty($product) ){
+      $woo = new Woo($post_id);
+
+      $sirv_urls = $woo->get_all_pdp_sirv_images_urls();
+
+      if (!empty($sirv_urls)) {
+        foreach ($sirv_urls as $sirv_url) {
+          $images[] = array("src" => $sirv_url);
+        }
+      }
+    }
+  }catch (Exception $e){
+    sirv_qdebug($e, 'Error');
+  }
+
+  return $images;
+}
 //---------------------------------------------YOAST SEO meta fixes for og images END ------------------------------------------------------------------//
 
 
@@ -5263,7 +5370,7 @@ function sirv_dismiss_notice(){
     wp_die();
   }
 
-  $allowed_notice_ids = array('sirv_oversize_storage', 'sirv_deprecated_v2', 'sirv_empty_logins', 'sirv_review_notice');
+  $allowed_notice_ids = array('sirv_oversize_storage', 'sirv_deprecated_v2', 'sirv_empty_logins', 'sirv_review_notice', 'sirv-conflict-plugins');
 
   $notice_id = $_POST['notice_id'];
   $dismiss_type = $_POST['dismiss_type'];
@@ -6863,6 +6970,31 @@ function sirv_get_js_uncomressed_size($url){
   $headers_data = get_headers($url, true);
 
   return $headers_data['Content-Length'];
+}
+
+
+add_action('wp_ajax_sirv_save_troubleshooting_issues_status', 'sirv_save_troubleshooting_issues_status', 10);
+function sirv_save_troubleshooting_issues_status(){
+  if (!(is_array($_POST) && defined('DOING_AJAX') && DOING_AJAX)) {
+    return;
+  }
+
+  if (!sirv_is_allow_ajax_connect('ajax_validation_nonce', 'manage_options')) {
+    echo json_encode(array('error' => 'Access to the requested resource is forbidden'));
+    wp_die();
+  }
+
+  $status_data = $_POST['status_data'];
+
+  if( !Utils::isJson(stripslashes($status_data)) ){
+    echo json_encode(array('error' => 'Invalid data'));
+    wp_die();
+  }
+
+  update_option('SIRV_TROUBLESHOOTING_ISSUES_STATUS', htmlentities($status_data, ENT_NOQUOTES), 'no');
+
+  echo json_encode( array('status' => 'updated') );
+  wp_die();
 }
 
 ?>

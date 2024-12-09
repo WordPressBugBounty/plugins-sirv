@@ -1716,6 +1716,7 @@ jQuery(function($){
             $('.set-featured-image').on('click', setFeaturedImage);
             $('.sirv-woo-add-images').on('click', addWooSirvImages);
             $(".sirv-woo-set-product-image").on("click", setWooProductImage);
+            $(".sirv-woo-set-variation-image").on("click", setWooVariationImage);
             $('.nav-tab-wrapper > a').on('click', function(e){changeTab(e, $(this));});
             $('input[id=gallery-width]').on('input', onChangeWidthInputRI);
             $("input[name=sirv-image-link-type]").on("click", manageOptionLink);
@@ -2948,15 +2949,31 @@ jQuery(function($){
             let id = window.sirvProductID;
 
             if ($('.selected-miniature-img').length > 0) {
-                $firstSelectedImage = $(".selected-miniature-img")[0];
-
-                let productImage = $($firstSelectedImage).attr("data-item-url");
-
-                let $storage = $("#sirv_woo_product_image_" + id);
+                const $firstSelectedImage = $(".selected-miniature-img")[0];
+                const productImage = $($firstSelectedImage).attr("data-item-url");
+                const $storage = $("#sirv_woo_product_image_" + id);
 
                 $storage.val(productImage);
 
                 window.runEvent(window, 'update_woo_sirv_product_image');
+            }
+
+            bPopup.close();
+        }
+
+
+        function setWooVariationImage(){
+
+            let id = window.sirvProductID;
+
+            if ($('.selected-miniature-img').length > 0) {
+                const $firstSelectedImage = $(".selected-miniature-img")[0];
+                const productImage = $($firstSelectedImage).attr("data-item-url");
+                const $storage = $("#sirv_woo_product_image_" + id);
+
+                $storage.val(productImage);
+
+                window.runEvent(window, 'update_woo_sirv_variation_image');
             }
 
             bPopup.close();

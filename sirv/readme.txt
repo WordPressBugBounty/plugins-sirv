@@ -4,7 +4,7 @@ Donate link: https://sirv.com/
 Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
-Tested up to: 6.7
+Tested up to: 6.7.1
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -238,9 +238,17 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 18. To upload images to your Sirv library, go to the Media Library page within the Sirv sub-menu (in the left navigation column).
 
 == Changelog ==
+= 7.4.0 (2024-12-09)=
+* Tested with the latest WordPress version 6.7.1.
+* New feature to apply product/variation image from Sirv, without uploading to WooCommerce. Now you can store all your media purely on Sirv.
+* Added instructions to resolve possible conflicts with third-party plugins.
+* Added support for Avada variations switcher.
+* Added support for generating sitemap.xml from Yoast SEO. Will add Sirv main product image to sitemap.xml generation.
+* Small visual improvements for options.
+* Small fixes and improvements.
 
 = 7.3.3 (2024-11-14) =
-* Removed of unnecessary requests that could slow down the admin area.
+* Removed unnecessary requests that could slow down admin pages.
 
 = 7.3.2 (2024-11-14) =
 * Improved code to avoid get errors on customer plan load.

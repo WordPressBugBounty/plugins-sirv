@@ -265,3 +265,7 @@
     top: 5px;
     font-size: 12px;
 }
+
+a.upload_image_button{
+    overflow: hidden;
+}

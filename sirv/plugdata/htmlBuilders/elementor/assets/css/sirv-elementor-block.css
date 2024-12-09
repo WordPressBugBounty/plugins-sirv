@@ -32,4 +32,5 @@
 img.Sirv.sirv-img-container__img {
     min-width: 50px;
     max-width: 100%;
+    height: auto;
 }

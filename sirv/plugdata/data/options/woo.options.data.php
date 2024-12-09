@@ -96,6 +96,39 @@ $content_options = array(
       'value' => ''
     ),
   ),
+  'SIRV_WOO_MAIN_PRODUCT_IMAGE_FROM_VIEW_FILE' => array(
+    'enabled_option' => true,
+    'option_name' => 'SIRV_WOO_MAIN_PRODUCT_IMAGE_FROM_VIEW_FILE',
+    'label' => 'Auto-map primary image',
+    //'desc' => 'Some text here',
+    'below_text' => 'Save time by uploading images to Sirv - the plugin can add them to your WooCommerce products and variants by matching the SKU to the folder name.',
+    'type' => 'radio',
+    'func' => 'render_radio_option',
+    'is_new_line' => true,
+    'value' => '',
+    'values' => array(
+      array(
+        'label' => 'Enable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'on',
+        ),
+      ),
+      array(
+        'label' => 'Disable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'off',
+        ),
+      ),
+    ),
+    'default' => 'off',
+    'default_type' => 'str',
+    'show_status' => false,
+    'enabled_value' => 'on',
+  ),
 /*   'SIRV_WOO_TTL' => array(
     'enabled_option' => true,
     'option_name' => 'SIRV_WOO_TTL',
@@ -161,7 +194,7 @@ $content_options = array(
     'button_val' => 'Empty cache',
     'button_class' => 'sirv-clear-view-cache-table',
     'data_provider' => 'sirv_get_view_cache_info',
-  )
+  ),
 );
 
 $order_options = array(
@@ -386,7 +419,8 @@ $design_options = array(
     'attrs' => array(
       'class' => 'sirv-font-monospace',
       'rows' => 6,
-      'placeholder' => "Add custom js options for Media Viewer. e.g.
+      'placeholder' => "e.g.
+
 var SirvOptions = {
   zoom: {
     mode: 'deep'

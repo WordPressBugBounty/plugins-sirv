@@ -42,6 +42,15 @@ class Utils{
     }
   }
 
+  public static function isJson($json_str) {
+    if(!function_exists('json_validate')){
+      json_decode($json_str);
+      return (json_last_error() == JSON_ERROR_NONE);
+    }else{
+      return json_validate($json_str);
+    }
+  }
+
 
   public static function get_file_extensions(){
     return array(

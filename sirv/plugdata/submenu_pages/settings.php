@@ -356,7 +356,8 @@
         </th>
         <td>
           <span class="sirv-option-responsive-text">Go to the <a href="https://sirv.com/help/viewer/" target="_blank">Sirv Media Viewer designer</a> to create the perfect experience for your store. Paste code from the "Script" tab:</span>
-          <textarea class="sirv-font-monospace" name="SIRV_CUSTOM_SMV_SH_OPTIONS" placeholder="Add custom js options for Media Viewer. e.g.
+          <textarea class="sirv-font-monospace" name="SIRV_CUSTOM_SMV_SH_OPTIONS" placeholder="e.g.
+
 var SirvOptions = {
   zoom: {
     mode: 'deep'

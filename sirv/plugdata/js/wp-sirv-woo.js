@@ -109,6 +109,11 @@ jQuery(function ($) {
       filterByGroups();
     });
 
+    //fix for avada variation switcher
+    $("body").on("reset_data", ".variations_form", function () {
+      filterByGroups();
+    });
+
 
     Sirv.on('viewer:ready', function (viewer) {
       $('.sirv-skeleton').removeClass('sirv-skeleton');

@@ -30,6 +30,7 @@ jQuery( function($){
       window.sirvProductID = "";
     }
 
+
     $(".sirv-woo-delete-product-image").on('click', deleteProductImage);
     function deleteProductImage(){
       const id = $(this).attr('data-id');
@@ -39,6 +40,39 @@ jQuery( function($){
 
       $img.attr('src', productImagePlaceholder);
       $storage.val("");
+    }
+
+
+    $(window).on("update_woo_sirv_variation_image", updateWooSirvVariationImage);
+    function updateWooSirvVariationImage(){
+      //?w=128&h=128&scale.option=fill&cw=128&ch=128&cx=center&cy=center";
+      const imgPattern = "?thumbnail=128&image";
+      const id = window.sirvProductID;
+
+      const imgUrl = $($("#sirv_woo_product_image_" + id)[0]).val();
+      const $variationImgATag = $(`a[rel='${id}'].upload_image_button`);
+      const $variationImg = $(`a[rel='${id}'].upload_image_button > img`);
+
+
+      if (!!imgUrl) {
+        $variationImgATag.addClass('remove');
+        $variationImgATag.children('.upload_image_id').trigger('change');
+        $variationImg.attr("src", imgUrl + imgPattern);
+
+      }
+
+      window.sirvProductID = "";
+    }
+
+
+    $(document).on("click", "a.upload_image_button", deleteVariationImage);
+    function deleteVariationImage(e){
+      const id = $(this).attr('rel');
+      const $storage = $("#sirv_woo_product_image_" + id);
+
+      if(!!$storage.val()){
+        $storage.val("");
+      }
     }
 
 

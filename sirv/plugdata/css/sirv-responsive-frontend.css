@@ -25,6 +25,7 @@
 
 .sirv-img-container__img{
     display: block;
+    height: auto;
 }
 
 .sirv-img-container__cap{
