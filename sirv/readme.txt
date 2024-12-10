@@ -5,31 +5,29 @@ Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
 Tested up to: 6.7.1
-Stable tag: trunk
+Stable tag: 7.4.1
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
-Serve perfectly optimized images from the fastest WordPress CDN plugin. Image hosting with deep image zoom, 360 spin, responsive imaging & lazy loading.
+Serve perfectly optimized images, videos, models and 360 spins. The best WordPress & WooCommerce CDN plugin for media.
 
 == Description ==
 
-Accelerate your website and improve SEO with Sirv – the most complete image CDN and optimization plugin for WordPress.
+Accelerate your website and improve SEO with Sirv – the most complete image CDN and media optimization plugin for WordPress & WooCommerce.
 
-Automatically resize, compress and serve images in the most [optimal image format](https://sirv.com/blog/optimal-image-format/) over a fast global CDN.
+Automatically resize, compress and serve videos & images in next-gen formats, from Sirv's fast CDN in 25 major cities.
 
 = Why is Sirv the best choice for WordPress image optimization? =
 
-* Automatic image optimization.
-* Automatic responsive images (resized to fit users screen).
-* Automatic WebP delivery when possible (~30% saving).
-* Smaller files than any other WP optimization plugin (~15% saving).
-* Incredibly fast WordPress CDN.
-* Full WooCommerce support.
-* Lazy load your images, to speed up your website even more.
-* Protect images with automatic backups.
-* Remove image meta for even more optimization.
+* Automatic optimization
+* Automatic scaled images
+* Automatic next-gen formats (AVIF & WebP)
+* Smaller files than any other WP optimization plugin
+* Incredibly fast CDN
+* Perfect on WooCommerce
+* Lazy loading
 
-The best WordPress image optimizer - you don't need to lift a finger. Just install the plugin and Sirv will automatically create and serve the smallest possible file-size (without looking over-compressed). The default settings are perfect for most sites and if you want to get under the hood, every option is very easily adjusted.
+The best WordPress image optimizer - you don't need to lift a finger. Just install the plugin and Sirv will automatically serve perfectly scaled and optimized images possible file-size. Every option is easily configured, if you wish to change the defaults.
 
 = Optimize your WordPress Media Library =
 
@@ -37,29 +35,36 @@ Automatically optimize your existing WordPress media library images, without lif
 
 All these images (and more) can be automatically optimized by Sirv:
 
-* Media Gallery images
+* Media gallery images
 * Featured images
-* WooCommerce images
+* WooCommerce product & category images
 * Images added via other plugins or scripts
-* *NEW* Images added via "Add Media" button
+* Images added via "Add Media" button
+* CSS background images
 
-Simply enable the Sirv CDN after you've installed the plugin and Sirv will take care of the rest.
+Simply enable the Sirv CDN and images will sync to your Sirv account automatically.
 
-See the [complete list of features](https://sirv.com/features/) of Sirv's fresh new take on image optimization.
+See the [complete list of features](https://sirv.com/features/) of Sirv's fresh new take on media hosting and optimization.
 
 == Take your WooCommerce sales to another level ==
 
-* Optimization & CDN delivery for all your product images.
-* Add ultra-deep image zoom and 360-spin to product descriptions.
-* Add image watermarks to images.
-* Add text captions to images.
-* Use Sirv for all your websites, apps, eBay & social media.
+* Optimization & CDN delivery of all your product images
+* Ultra-deep image zoom, 3D GLB models and 360-spin for your media viewer
+* Add image watermarks
+* Add text captions
+* Serves your files wherever you need them - websites, apps, feeds, social media, email campaigns
 
 = Image zoom =
 
-Sirv loves huge images - it can zoom deep inside them very fast. No matter how big, images load fast, just like when you zoom into a Google Map. The bigger your images, the more impressive this image zoom is - perfect if you have really high quality images.
+Sirv loves huge images - it can zoom deep inside them very fast. No matter how big, images load fast, just like zooming on a Google Map. The bigger your images, the more impressive this image zoom is - perfect if you have really high quality images.
 
-[Try demos](https://sirv.com/demos/).
+= Video streaming =
+
+Any video you upload to Sirv will be converted to different resolution video streams, for instant playback. Every user will receive the most optimal stream for their device, screen and network connection speed.
+
+= 3D models (GLB and USDZ) =
+
+Upload your 3D models to Sirv and embed them in your web pages and product galleries. It's easy and automated with Sirv Media Viewer. No coding needed. It also provides Augmented Reality (AR) automatically.
 
 = 360 spin =
 
@@ -69,7 +74,7 @@ Shoppers adore spinning products around to see them from all sides. If you're se
 
 Free and paid plans are available, depending on your needs. See "Price Plans" below.
 
-= What our users have to say =
+= What our users say =
 
 >★★★★★
 "We’ve halved the load time on mobiles of a site that we had already done quite a bit of work on to get image sizes down." [@martingfisher](https://wordpress.org/support/users/martingfisher/)
@@ -78,19 +83,16 @@ Free and paid plans are available, depending on your needs. See "Price Plans" be
 "So far the best CDN plugin for WordPress. Please, never disappear!" [@mavenickster](https://wordpress.org/support/users/mavenickster/)
 
 >★★★★★
-"I was looking for a CDN fast and easy (no need to code)! Sirv is the best – Just upload your photos on your WordPress library and voilà “roulez jeunesse!!!” (French expression). Very good service!" [@disconance](https://wordpress.org/support/users/disconance/)
+"I was looking for a CDN fast and easy (no need to code)! Sirv is the best – Just upload your photos to your WordPress library and voilà “roulez jeunesse!!!” (French expression). Very good service!" [@disconance](https://wordpress.org/support/users/disconance/)
 
 >★★★★★
 "Sirv is fantastic! I have a lot of images on my website, and most of them are large, which resulted in slow site speeds, even with a CDN. What I love about Sirv is that they offer a CDN service, but also dynamically resize images based on the user’s browser/device, and serve the right file type. It has meant HUGE speed improvements on my website." [@basellen](https://wordpress.org/support/users/basellen/)
 
-
 = Optimal format (every time) =
 
-WebP is probably the best image format you've never heard of. Incredibly, it has the same quality of a JPEG, yet its typically 30% smaller in file-size (versus Sirv's already outstanding JPEG compression).
+Google loves next-gen image formats for SEO, but it's a pain to convert all your images and keep track of them. Sirv solves that. It automatically delivers images to each user in the most optimal format. Usually that'll be AVIF or WebP and the filesize is dramatically smaller, so Google will reward you with better search ranking.
 
-Sirv is intelligent enough to always serve the smallest possible file format that each of your users' browser supports. For Chrome & Opera, that's usually WebP. Another reason why your pages will instantly load faster, once you install the Sirv plugin for WordPress.
-
-All this is 100% automatic. Add in lazy loading and responsive images and you truly have the best possible image delivery system for WordPress.
+Sirv's intelligence always serves the smallest possible file format to each users' browser. It is 100% automatic. Plus, images are automatically scaled down to the suitable width/height and they're lazy loaded, so you'll really have the best possible image solution for WordPress.
 
 = Price plans =
 
@@ -112,12 +114,14 @@ We believe in fair and transparent pricing:
 * Upgrade/downgrade any time.
 * Start/stop any time.
 * Complete and easy access to your images.
-* No credit card required for the free plan.
+* No credit card required for the Free plan.
 
 = Further reading =
 
 Keep learning with these helpful resources:
 
+* [Sirv for WordPress documentation](https://sirv.com/help/articles/manage-wordpress-media-with-sirv/).
+* [Sirv for WooCommerce documentation](https://sirv.com/help/articles/add-sirv-to-woocommerce/).
 * The official Sirv [Help Center & Documentation](https://sirv.com/help/).
 * Serve images from [your own domain name](https://sirv.com/help/resources/custom-domain/).
 
@@ -132,67 +136,47 @@ Keep learning with these helpful resources:
 1. Install and activate the plugin.
 1. Go to the Settings page and copy/paste the S3 settings [from this page](https://my.sirv.com/#/account/settings) of your Sirv account. You only need to do this once.
 
-= Manual installation =
-
-1. Instead of the quick installation above, you can download and unzip the plugin to your computer.
-1. Upload the `sirv` folder to the `/wp-content/plugins/` directory of your WordPress site.
-1. Activate the plugin through the 'Plugins' menu in WordPress.
-1. Go to the Settings page to enter your [S3 connection details](https://my.sirv.com/#/account/settings).
-1. If you don't already have a Sirv account, [create an account here](https://my.sirv.com/#/signup).
-
-= How to embed images =
-
-1. Embed images from your Sirv library by clicking the *Add Sirv Media* button next to any page or post.
-1. For help, submit the [Sirv support form](https://my.sirv.com/#/contact) in your control panel.
-
 == Frequently Asked Questions ==
 
 = Is Sirv free to try? =
 
-You can try Sirv for 30 days without any obligations.
-Then you have the option to downgrade to a free plan with 500 MB storage and 2 GB of bandwidth. Or you can choose one of our [pricing plans](https://sirv.com/pricing/).
+Yes. Create a free account and get 5 GB for 30 days. Then you continue on the Free plan with 500 MB storage + 2 GB bandwidth or choose from the [pricing plans](https://sirv.com/pricing/).
 
-= How do I enable WebP image optimization? =
+= How do I enable next-gen image optimization? =
 
-WebP is enabled by default. Sirv automatically optimizes your images in the most suitable format for each users' browser and screen. WebP is usually the smallest file-size for Chrome and Opera, so your images will be served in WebP format (regardless of what image format your original images are). Other browsers will receive either JPEG or PNG, whichever is most optimal.
+WebP & AVIF are enabled by default. Sirv automatically serves your images in the best format for each users' browser and screen. Usually AVIF or WebP are the smallest file-size, so you'll get Google-recommended next-gen formats automatically, no matter what the original format was.
 
 = Can I serve images from my own domain name? =
 
-You can serve images from any domain or subdomain that you own. All you need is an SSL certificate for that domain/subdomain. You'll update your DNS to point the CNAME to your Sirv account, then all your images will be optimized and served rapidly over HTTPS from Sirv. Follow this [short tutorial](https://sirv.com/help/resources/custom-domain/).
+You can serve images from any domain or subdomain that you own. It comes free with any paid account. Just create a new CNAME record and your media will be optimized and served rapidly over HTTPS from Sirv. Follow this [short tutorial](https://sirv.com/help/resources/custom-domain/).
 
 = Can I host other files, as well as images? =
 
-You can serve almost any file from your Sirv account. Use it as a WordPress CDN to deliver JS files, CSS files, text/CSV/XML files, PDFs, PSDs and more. Think of Sirv as a complete CDN hosting solution for all your files, with the best possible image optimization and delivery.
+You can serve almost any file from your Sirv account. Use it as a WordPress CDN to deliver JS files, CSS files, text/CSV/XML files, PDFs, PSDs and more. Sirv is a complete CDN hosting solution for static files, with the best possible image optimization and delivery.
 
 = What happens to my original images if I disable the plugin? =
 
-Your images are perfectly safe, Sirv does not modify them. After you turn off our plugin your site keeps working just the way it did before.
+Any images in your WordPress media library are safe, Sirv does not modify them. If you turn off our plugin, your site will keep working.
 
 = What makes Sirv stand out among other image optimization plugins? =
 
-Your original images are left untouched. Sirv serves your images from a robust CDN. It automatically resizes and optimizes all of your images on-the-fly allowing for a superb experience for each and every user, on any device, from any country in the world.
+You'll achieve every media SEO best practice with Sirv. Next gen formats, scaled images, outstanding optimization, CDN delivery, lazy loading, alt tags. It is designed for videos, images, 3D models and 360 spins. It has a beautiful media viewer for single assets or galleries.
 
 = What formats does Sirv support? =
 
-JPEG, PNG, GIF, WebP and [many more](https://sirv.com/help/resources/file-formats-supported/).
+JPEG, PNG, GIF, WebP, AVIF, APNG, HEIC and [many more](https://sirv.com/help/resources/file-formats-supported/).
 
 = Is Sirv better than other WordPress image optimization plugins? =
 
-People tell us they prefer Sirv to other plugins (Smush, Cloudinary, ImgIX, Imagify, ShortPixel) because Sirv optimizes images smaller, the Sirv plugin is entirely automated and images load faster anywhere in the world, thanks to Sirv's CDN.
+People tell us they prefer Sirv to other plugins (Smush, Cloudinary, ImgIX, Imagify, ShortPixel) because Sirv optimizes images smaller, has more features, is entirely automated and loads files faster anywhere in the world, thanks to Sirv's CDN.
 
 = Can I use Sirv with Cloudflare? =
 
-Yes. Clouflare and Sirv work perfectly together on the same site. Sirv will serve your images, Cloudflare will serve your other files.
+Yes. Cloudflare and Sirv work perfectly together on the same site. Sirv will serve your images, Cloudflare will serve your other files.
 
 = The plugin doesn't work with my theme =
 
-Sirv works instantly on over 95% of WordPress sites. In case Sirv doesn't instantly work for you, we can usually resolve that within 24 hours (Mon-Fri). Just send us a message containing a login to your WordPress admin [from this secure form](https://sirv.com/contact/) and our helpful team will find and resolve the problem ASAP.
-
-= I'm a photographer, can I keep my EXIF data? =
-
-Yes, you can keep your image meta data, including any copyright information. [Learn how](https://sirv.com/help/resources/image-metadata/#Meta_stripping).
-
-Sirv also helps you protect your images with watermarks and hotlink protection. [Learn how](https://sirv.com/help/resources/protect-images-copyright-theft/).
+Sirv works instantly on 98% of WordPress sites. If Sirv doesn't instantly work for you, we can usually resolve that within 24 hours (Mon-Fri). Just send us a message containing a login to your WordPress admin [from our secure form](https://sirv.com/contact/) and we'll solve it ASAP.
 
 = Can I use Sirv with Elementor? =
 
@@ -221,7 +205,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 1. Responsive image gallery, with perfectly scaled images.
 2. Zoom deep into images and swap between them.
 3. Deep zoom, for big images.
-4. Embed perfectly sized images, scaled on-the-fly to suit each users screen.
+4. Embed perfectly sized images, scaled on-the-fly to suit each user's screen.
 5. 360 spin that is responsive, smooth and fast loading.
 6. Create a free Sirv account: https://my.sirv.com/#/signup
 7. Configure the plugin by pasting the S3 settings from https://my.sirv.com/account.
@@ -238,12 +222,16 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 18. To upload images to your Sirv library, go to the Media Library page within the Sirv sub-menu (in the left navigation column).
 
 == Changelog ==
-= 7.4.0 (2024-12-09)=
+
+= 7.4.1 (2024-12-10) =
+* Updated plugin description for WordPress plugin directory.
+
+= 7.4.0 (2024-12-09) =
 * Tested with the latest WordPress version 6.7.1.
 * New feature to apply product/variation image from Sirv, without uploading to WooCommerce. Now you can store all your media purely on Sirv.
 * Added instructions to resolve possible conflicts with third-party plugins.
 * Added support for Avada variations switcher.
-* Added support for generating sitemap.xml from Yoast SEO. Will add Sirv main product image to sitemap.xml generation.
+* Added support for Yoast SEO sitemaps to use Sirv main product image URL.
 * Small visual improvements for options.
 * Small fixes and improvements.
 
@@ -312,9 +300,9 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Removed debug code.
 
 = 7.2.1 =
-* Added fix for duplicated images in categories.
-* Imroved work with classic editor.
-* Added role checking for some actions to improve security. Add, upload, edit sirv content now can only users that have possibility to edit posts. Usualy Superadmin, Admin and Editor.
+* Added fix for duplicate images in categories.
+* Improved work how Add Sirv Media works with the classic WordPress editor.
+* Added role checking for some actions to improve security. Usually only the roles Superadmin, Admin and Editor will be able to add, upload or edit Sirv content.
 * Added option to migrate images from the plugin WooCommerce Additional Variation Images to the Sirv product gallery.
 * Removed deprecated jQuery functions from the codebase.
 * Small fixes and optimizations.
@@ -431,7 +419,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Fixed some security issues
 * Improved crop option.
 * Improved Gallery placeholder option.
-* Small texts fixes.
+* Small text fixes.
 
 == 6.8.0 ==
 * Plugin tested with the latest WordPress version - 6.1.
@@ -439,7 +427,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Added option to bypass responsive image scaling via img attribute.
 * Added option to show Sirv Media Viewer galleries on WooCommerce categories (images, videos, 360 spins).
 * Added global options for Sirv Media Viewer shortcodes.
-* Improved logic when uses WooCommerce variations.
+* Improved logic when using WooCommerce variations.
 * Improved TTL cache logic.
 * Improved design of skeleton styles for product gallery.
 * Fixed issue when adding Vimeo videos to product gallery.
@@ -485,7 +473,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Added ability to rename folders within the Sirv Media Library (right-click).
 * Improved logic when renaming the primary Sirv synchronization folder, to avoid duplication.
 * Added Sirv shortcode to Avada builder.
-* Improved code when working with images requesting by frontend Ajax.
+* Improved code when working with images requested by frontend Ajax.
 * Added "pinned thumbnail" option in WooCommerce media gallery.
 * Added ability to order thumbnails in the WooCommerce media gallery.
 * Reworked lazy loading placeholder for better PageSpeed score.
@@ -568,7 +556,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Added responsive grey placeholder. Gutenberg can now restore blocks with "Attempt Block Recovery" function.
 * Added button in the Gutenberg right sidebar to edit shortcode settings.
 * Elementor improvements to JS scripts running when not needed.
-* Added fixes for the log in account issues.
+* Added fixes to help solve login problems.
 * Small fixes and optimizations.
 
 == 5.6.9 ==
@@ -584,7 +572,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Fixed issue with using multi custom domains.
 * Fixed small issues with the plugin menu pages.
 * Fixed rare issue with 'divided by zero' in stats.
-* Added some checks into the creating new account.
+* Added checks when creating a new account.
 * Other small fixes.
 
 == 5.6.6 ==
@@ -605,7 +593,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Added improvements to the failed image sync reports.
 * Added confirmation dialog when emptying image cache.
 * Fixed issue with detection of sirv.js on some pages.
-* Fixed issue with does not showing spin as thumbnail.
+* Fixed issue where spin doesn’t show as thumbnail.
 
 == 5.6.3 ==
 * Fixed issue with showing incorrect slides in Sirv Media Viewer for WooCommerce.
@@ -689,7 +677,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Fixed issue with error system.
 
 == 5.0 ==
-* Added support for WooCommerce (beta) - 360 spins, image zoom and videos (from Sirv, YouTube or Vimeo). Need use Sirv Media Viewer js version.
+* Added support for WooCommerce (beta) - 360 spins, image zoom and videos (from Sirv, YouTube or Vimeo). Must use Sirv Media Viewer JS version.
 * Added feature to add multiple sirv items(images, spins, videos) per variation.
 * Displays image resolution and video duration in Sirv library.
 * Fixed a rare issue with special symbols in filenames.
@@ -724,7 +712,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Added support for Sirv Media Viewer galleries(beta). You need to select the latest version of sirv.js in the plugin settings.
 * Added support for videos. Works in Media Viewer only.
 * Added support for video streaming.
-* More detail error messages.
+* More detailed error messages.
 * Updated to the latest Sirv Media Viewer sirv.js v7.
 * Shortened image URLs.
 * Skip sync of empty folders during sync.
@@ -804,7 +792,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 = 3.6.1 =
 * Removed unnecessary includes.
-* Optimized sync proccess.
+* Optimized sync process.
 * Small fixes and improvements.
 
 = 3.6.0 =
@@ -939,8 +927,8 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 = 2.0.9 =
-* Resolves rare issue of unexpected image crop.
-* Resolves issue with BOM UTF-8 characters.
+* Solve rare issue of unexpected image crop.
+* Solve issue with BOM UTF-8 characters.
 * Easy link for posting a review of the Sirv plugin.
 
 = 2.0.8 =
@@ -954,7 +942,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Fixed issue with synchronizing images from folders with spaces in their names.
 
 = 2.0.6 =
-* Fixed issue when spins and galleries doesn't shows without enable Sirv CDN.
+* Fixed issue when spins and galleries don't shows without enable Sirv CDN.
 
 = 2.0.5 =
 * Added option to use sirv.js on all pages if responsive images or spins are not loading.
@@ -1012,7 +1000,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Fixed issue with custom Wordpress path.
 
 = 1.4.21 =
-* Fixed issue with global profles.
+* Fixed issue with global profiles.
 
 = 1.4.20 =
 * New option to set profiles to your image, with profiles. Useful for adding watermarks, text overlays, image optimizations and otherwise changing the image style.
@@ -1028,7 +1016,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 = 1.4.17 =
 * Improved WordPress image hosting synchronization options.
-* Simpler instructions for emptying Sirv WordPress image CDN.
+* Simpler instructions for clearing cache of Sirv WordPress image CDN.
 * Bug fixes.
 
 = 1.4.16 =
@@ -1090,17 +1078,17 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Refined folder searching.
 
 = 1.3.8 =
-* Fix media library styles.
+* Fixed media library styles.
 
 = 1.3.7 =
 * Added CDN functionality for featured images.
 * Options page redesigned.
 
 = 1.3.6 =
-* Fix media library styles.
+* Fixed media library styles.
 
 = 1.3.5 =
-* Fix compatibility issue with Yoast SEO plugin.
+* Fixed compatibility issue with Yoast SEO plugin.
 * Updated logo.
 
 = 1.3.4 =
@@ -1110,10 +1098,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * New default style, without shadow around edge.
 
 = 1.3.2 =
-* Fix security issue.
+* Fixed security issue.
 
 = 1.3.1 =
-* Fix minor issues.
+* Fixed minor issues.
 
 = 1.3 =
 * Added ability for 3rd party plugin integrations.
@@ -1121,7 +1109,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 = 1.2 =
 * Better static images support.
-* Fix minor issues.
+* Fixed minor issues.
 
 = 1.1 =
 * Quick-access embed button "Add Sirv Media" right next to the standard WordPress "Add Media" button when you're editing a page/post.
