@@ -1,4 +1,14 @@
-<?php defined('ABSPATH') or die('No script kiddies please!'); ?>
+<?php
+/**
+ * Sirv Media Viewer for Single Product Image
+ *
+ * This template for displaying Sirv Media Viewer in WC product pages
+ *
+ * @version 9.0.0
+ */
+
+  defined('ABSPATH') or die('No script kiddies please!');
+?>
 
 <style>
   .sirv-skeleton-wrapper {

@@ -5,7 +5,7 @@ Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
 Tested up to: 6.7.1
-Stable tag: 7.4.1
+Stable tag: 7.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -222,6 +222,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 18. To upload images to your Sirv library, go to the Media Library page within the Sirv sub-menu (in the left navigation column).
 
 == Changelog ==
+
+= 7.4.2 (2024-12-11) =
+* Potentially fixed issue with critical error when saving posts.
+* Fixed issue with not being able to add Sirv Media for product gallery.
+* Added annotation to prevent showing outdated templates for WooCoomerce status.
 
 = 7.4.1 (2024-12-10) =
 * Updated plugin description for WordPress plugin directory.

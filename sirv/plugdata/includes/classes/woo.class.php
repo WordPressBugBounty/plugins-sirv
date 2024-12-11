@@ -322,7 +322,7 @@ class Woo
           }
         } else {
           $data = array('items' => array(), 'id' => $id);
-          $data_json_str = json_encode(array('items' => array(), 'id' => $id));
+          $gallery_json_str = json_encode(array('items' => array(), 'id' => $id));
         }
         ?>
       </ul>
@@ -393,24 +393,26 @@ class Woo
 
   protected static function save_sirv_data($product_id, $post_type = 'product')
   {
-    $isVariation = $post_type == 'variation' ? true : false;
+    if( (isset($_POST['post_type']) && $_POST['post_type'] == 'product') || isset($_POST['product-type'])){
+      $isVariation = $post_type == 'variation' ? true : false;
 
-    $product_id = (isset($_POST['post_ID']) &&  $post_type == 'product') ? $_POST['post_ID'] : $product_id;
+      $product_id = (isset($_POST['post_ID']) &&  $post_type == 'product') ? $_POST['post_ID'] : $product_id;
 
-    if (!empty($_REQUEST['action']) && ($_REQUEST['action'] == 'editpost' || $_REQUEST['action'] == 'woocommerce_save_variations')) {
-      //$gallery_data = isset($_POST['sirv_woo_gallery_data_' . $product_id]) ? json_decode(stripcslashes($_POST['sirv_woo_gallery_data_' . $product_id]), true)  : array();
-      $gallery_data = isset($_POST['sirv_woo_gallery_data_' . $product_id]) ? $_POST['sirv_woo_gallery_data_' . $product_id] : '';
-      $product_image = isset($_POST['sirv_woo_product_image_' . $product_id]) ? $_POST['sirv_woo_product_image_' . $product_id] : '';
-      //$previous_product_image = isset($_POST['sirv_woo_product_previous_image_' . $product_id]) ? $_POST['sirv_woo_product_previous_image_' . $product_id] : '';
-      $previous_attachment_id = isset($_POST['sirv_woo_product_image_attachment_id_' . $product_id]) ? $_POST['sirv_woo_product_image_attachment_id_' . $product_id] : -1;
-      self::set_post_sirv_data($product_id, '_sirv_woo_gallery_data', $gallery_data);
-      self::save_sirv_product_image($product_image, $product_id, $previous_attachment_id);
+      if (!empty($_REQUEST['action']) && ($_REQUEST['action'] == 'editpost' || $_REQUEST['action'] == 'woocommerce_save_variations')) {
+        //$gallery_data = isset($_POST['sirv_woo_gallery_data_' . $product_id]) ? json_decode(stripcslashes($_POST['sirv_woo_gallery_data_' . $product_id]), true)  : array();
+        $gallery_data = isset($_POST['sirv_woo_gallery_data_' . $product_id]) ? $_POST['sirv_woo_gallery_data_' . $product_id] : '';
+        $product_image = isset($_POST['sirv_woo_product_image_' . $product_id]) ? $_POST['sirv_woo_product_image_' . $product_id] : '';
+        //$previous_product_image = isset($_POST['sirv_woo_product_previous_image_' . $product_id]) ? $_POST['sirv_woo_product_previous_image_' . $product_id] : '';
+        $previous_attachment_id = isset($_POST['sirv_woo_product_image_attachment_id_' . $product_id]) ? $_POST['sirv_woo_product_image_attachment_id_' . $product_id] : -1;
+        self::set_post_sirv_data($product_id, '_sirv_woo_gallery_data', $gallery_data);
+        self::save_sirv_product_image($product_image, $product_id, $previous_attachment_id);
 
-      $parent_prod_id = $isVariation ? wp_get_post_parent_id($product_id) : $product_id;
-      if( !empty($parent_prod_id) ){
-        $instance = new self($parent_prod_id);
-        //get .view data on product save
-        $instance->get_sirv_remote_data($product_id, $isVariation);
+        $parent_prod_id = $isVariation ? wp_get_post_parent_id($product_id) : $product_id;
+        if (!empty($parent_prod_id)) {
+          $instance = new self($parent_prod_id);
+          //get .view data on product save
+          $instance->get_sirv_remote_data($product_id, $isVariation);
+        }
       }
     }
   }
