@@ -87,7 +87,7 @@ class ConflictPlugins{
     $notice .= "</ul>";
     $notice .= '<p>If you have any questions or need further help with the Sirv plugin, please <a target="_blank" href="https://sirv.com/help/support/#support">contact our support team</a>.</p>';
 
-    $notice .= '<p><button class="button-primary sirv-plugin-issues-noticed">Don\'t show this again</button></p>';
+    $notice .= '<p><button class="button-primary sirv-plugin-issues-noticed" data-sirv-dismiss-type="noticed" data-sirv-notice-id="sirv-conflict-plugins">Don\'t show this again</button></p>';
 
     echo sirv_get_wp_notice($notice, $notice_id, 'warning', true);
   }

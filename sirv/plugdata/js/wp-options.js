@@ -99,7 +99,7 @@ jQuery(function ($) {
         });
 
 
-        $('.nav-tab-wrapper > a').on('click', function (e) {
+        $('.sirv-wrapped-nav .nav-tab-wrapper > a').on('click', function (e) {
             changeTab(e, $(this));
         });
         $(".sirv-show-settings-tab").on("click", function (e) {
@@ -114,7 +114,7 @@ jQuery(function ($) {
         function changeTab(e, $object) {
             if (!!e) e.preventDefault();
             $('.sirv-tab-content').removeClass('sirv-tab-content-active');
-            $('.nav-tab-wrapper > a').removeClass('nav-tab-active');
+            $('.sirv-wrapped-nav .nav-tab-wrapper > a').removeClass('nav-tab-active');
             $('.sirv-tab-content' + $object.attr('href')).addClass('sirv-tab-content-active');
             $object.addClass("nav-tab-active").trigger("blur");
             $('#active_tab').val($object.attr('href'));
