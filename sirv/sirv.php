@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           7.4.3
+ * Version:           7.4.4
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '7.4.3');
+define('SIRV_PLUGIN_VERSION', '7.4.4');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -113,6 +113,15 @@ function sirv_global_logo_fix(){
     }
   </style>';
 }
+
+
+/* add_filter('wpsso_og', 'sirv_wpsso_og_filter', 10, 2);
+function sirv_wpsso_og_filter($og, $mod){
+  sirv_qdebug($og, '$og');
+  sirv_qdebug($mod, '$mod');
+
+  return $og;
+} */
 
 
 /*---------------------------------WooCommerce--------------------------------*/
@@ -805,6 +814,18 @@ function sirv_upgrade_plugin(){
       update_option('SIRV_RESPONSIVE_PLACEHOLDER', $new_type);
     //}
 
+    //7.4.4
+    $option = get_option('SIRV_WP_MEDIA_LIBRARY_SIZE');
+    if( $option ){
+      $option = json_decode($option, true);
+
+      if( $option['date'] == 'No checked yet' ){
+        $option['date'] = 'Not checked yet';
+      }
+
+      update_option('SIRV_WP_MEDIA_LIBRARY_SIZE', json_encode($option), 'no');
+    }
+
   }
 }
 
@@ -956,7 +977,7 @@ function sirv_fill_empty_options(){
   if (!get_option('SIRV_HTTP_AUTH_PASS')) update_option('SIRV_HTTP_AUTH_PASS', '');
 
   if (!get_option('SIRV_WP_MEDIA_LIBRARY_SIZE')) update_option('SIRV_WP_MEDIA_LIBRARY_SIZE', json_encode(array(
-    'date' => "No checked yet",
+    'date' => "Not checked yet",
     'size' => "No data yet",
     'img_count' => 0,
     'all_images_count' => 0,
@@ -1519,7 +1540,7 @@ function sirv_admin_scripts(){
   $account_page = SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/account.php';
   $help_page = SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/help.php';
   $feedback_page = SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/feedback.php';
-  $troubleshooting_page = SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/troubleshooting.php';
+  //$troubleshooting_page = SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/troubleshooting.php';
 
   global $pagenow;
 
@@ -1574,6 +1595,7 @@ function sirv_admin_scripts(){
     }
   }
 
+
   if ( isset($_GET['page']) && ( $_GET['page'] == $option_page || $_GET['page'] == $help_page ) ) {
     wp_register_style('sirv_options_style', SIRV_PLUGIN_SUBDIR_URL_PATH . 'css/wp-options.css');
     wp_enqueue_style('sirv_options_style');
@@ -1593,7 +1615,24 @@ function sirv_admin_scripts(){
     wp_enqueue_script('sirv_options');
   }
 
-  if ( isset($_GET['page']) && ( $_GET['page'] == $feedback_page || $_GET['page'] == $account_page || $_GET['page'] = $troubleshooting_page) ) {
+  /* if( isset($_GET['page']) && $_GET['page'] = $troubleshooting_page ){
+    sirv_qdebug($_GET['page']);
+    wp_register_style('sirv_troubleshooting_style', SIRV_PLUGIN_SUBDIR_URL_PATH . 'css/wp-sirv-troubleshooting.css');
+    wp_enqueue_style('sirv_troubleshooting_style');
+
+    wp_register_style('sirv_toast_style', SIRV_PLUGIN_SUBDIR_URL_PATH . 'css/vendor/toastr.css');
+    wp_enqueue_style('sirv_toast_style');
+    wp_enqueue_script('sirv_toast_js', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/vendor/toastr.min.js', array('jquery'), false);
+
+    wp_register_script('sirv_troubleshooting', SIRV_PLUGIN_SUBDIR_URL_PATH . 'js/wp-sirv-troubleshooting-page.js', array('jquery', 'sirv_toast_js'), false, true);
+    wp_localize_script('sirv_troubleshooting', 'sirv_options_data', array(
+      'ajaxurl' => admin_url('admin-ajax.php'),
+      'ajaxnonce' => wp_create_nonce('ajax_validation_nonce'),
+    ));
+    wp_enqueue_script('sirv_troubleshooting');
+  } */
+
+  if ( isset($_GET['page']) && ( $_GET['page'] == $feedback_page || $_GET['page'] == $account_page) ) {
     wp_register_style('sirv_options_style', SIRV_PLUGIN_SUBDIR_URL_PATH . 'css/wp-options.css');
     wp_enqueue_style('sirv_options_style');
 
@@ -3451,12 +3490,6 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
   if ($image && $image['status'] == 'NEW') {
 
     if (!isset($image['img_file_path'])) {
-      /* $paths = sirv_get_cached_wp_img_file_path($attachment_id);
-
-      $image['img_file_path'] = $paths['img_file_path'];
-      $image['sirv_full_path'] = $sirv_folder . $image['sirv_path'];
-      $image['image_full_url'] = $paths['url_images_path'] . $image['img_path']; */
-
       $image['img_file_path'] = $paths['img_file_path'];
       $image['sirv_full_path'] = $paths['sirv_full_path'];
       $image['sirv_full_path_encoded'] = $paths['sirv_full_path_encoded'];
@@ -3472,6 +3505,17 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
     $fetch_max_file_size = empty((int)get_option('SIRV_FETCH_MAX_FILE_SIZE')) ? 1000000000 : (int)get_option('SIRV_FETCH_MAX_FILE_SIZE');
     $isFetchUpload = (int) $image['size'] < $fetch_max_file_size ? true : false;
     $isFetchUpload = $isFetchUrl ? true : $isFetchUpload;
+
+    $sirv_check_url = sirv_get_full_sirv_url_path($sirv_url_path, $image);
+
+    if( sirv_checkIfImageExists($sirv_check_url) ){
+      $wpdb->update($sirv_images_t, array(
+        'timestamp_synced' => date("Y-m-d H:i:s"),
+        'status' => 'SYNCED'
+      ), array('attachment_id' => $attachment_id));
+
+      return $sirv_check_url;
+    }
 
     $file = sirv_uploadFile($image['sirv_full_path'], $image['sirv_full_path_encoded'], $image['img_file_path'], $img_data, $image['image_full_url'], $wait, $is_synchronious);
 
@@ -3555,7 +3599,7 @@ function sirv_generate_sirv_item_db_data($url, $attachment_id){
   if (sirv_is_sirv_item_http_status_ok($headers)) {
     $data['status'] = 'SYNCED';
     $data['timestamp_synced'] = date("Y-m-d H:i:s");
-    $data['size'] = $headers['Content-Length'] ? $headers['Content-Length'] : NULL;
+    $data['size'] = isset($headers['download_content_length']) ? (int) $headers['download_content_length'] : NULL;
 
     $response = $url;
   } else {
@@ -3573,7 +3617,7 @@ function sirv_get_sirv_path_from_url($url){
 
 
 function sirv_is_sirv_item_http_status_ok($headers){
-  return ( empty($headers) || !isset($headers['HTTP_code']) || isset($headers['error']) ) ? false : (int) $headers['HTTP_code'] === 200;
+  return ( empty($headers) || !isset($headers['http_code']) || isset($headers['error']) ) ? false : (int) $headers['http_code'] === 200;
 }
 
 
@@ -4185,12 +4229,12 @@ function sirv_parse_fetch_data($res, $wait, $APIClient){
 }
 
 
-function sirv_checkIfImageExists($filename){
-  $APIClient = sirv_getAPIClient();
+function sirv_checkIfImageExists($sirv_url){
+  $headers = array();
 
-  $stat = $APIClient->getFileStat($filename);
+  $headers = Utils::get_head_request($sirv_url);
 
-  return ($stat && !empty($stat->size));
+  return (empty($headers) || !isset($headers['http_code']) || isset($headers['error'])) ? false : (int) $headers['http_code'] === 200;
 }
 
 
@@ -5792,10 +5836,11 @@ function sirv_get_error_data(){
   $error_id = intval($_POST['error_id']);
   $report_type = $_POST['report_type'];
 
-  $results = $wpdb->get_results("SELECT  img_path, checks, timestamp_synced, timestamp_checks, size, attachment_id FROM $table_name WHERE status = 'FAILED' AND error_type = $error_id ORDER BY attachment_id", ARRAY_A);
+  $results = $wpdb->get_results("SELECT  img_path, checks, timestamp_synced, timestamp_checks, size, attachment_id, sirv_path FROM $table_name WHERE status = 'FAILED' AND error_type = $error_id ORDER BY attachment_id", ARRAY_A);
 
   $uploads_dir = wp_get_upload_dir();
   $url_images_path = $uploads_dir['baseurl'];
+  //sirv_get_sirv_path
 
   $err_msgs = array('File name/path missing from WordPress media library', 'Empty attachment');
 
@@ -5806,20 +5851,11 @@ function sirv_get_error_data(){
     $fimages = array();
 
     foreach ($results as $row) {
-/*       $row['error'] = in_array($row['img_path'], $err_msgs) ? true : false;
-      $row['img_path'] = ( $row['error'] || stripos($row['img_path'], 'http') !== false ) ? $row['img_path'] : $url_images_path . $row['img_path'];
       $size = Utils::getFormatedFileSize((int) $row['size']);
-      $row['size'] = $size == '-' ? '' : $size;
-      //$row['timestamp_checks'] = !is_null($row['timestamp_cheks']) ? date('F j, Y, h:i A', (int)$row['timestamp_checks']) : 'Not available';
-      $row['timestamp_checks'] = sirv_get_failed_image_date($row['timestamp_synced'], $row['timestamp_checks']); */
-
-      $isError = in_array($row['img_path'], $err_msgs) ? true : false;
-      $size = Utils::getFormatedFileSize((int) $row['size']);
-      $full_path = $url_images_path . $row['img_path'];
 
       $record = array();
 
-      $record['img_path'] = ($isError || stripos($row['img_path'], 'http') !== false) ? "{$row['img_path']}" : "<a href=\"{$full_path}\" target=\"_blank\">{$full_path}</a>";
+      $record['img_path'] = sirv_get_correct_img_path($row['img_path'], $row['sirv_path'], $url_images_path);
       $record['attempts'] = $row['checks'];
       $record['last_attempt_date'] = sirv_get_failed_image_date($row['timestamp_synced'], $row['timestamp_checks']);
       $record['filesize'] = $size == '-' ? '' : $size;
@@ -5840,6 +5876,22 @@ function sirv_get_error_data(){
   }
 
   wp_die();
+}
+
+
+function sirv_get_correct_img_path($img_path, $sirv_path, $url_images_path){
+  $err_msgs = array('File name/path missing from WordPress media library', 'Empty attachment');
+
+  if( $img_path == 'sirv_item'){
+    $sirv_url = !empty($sirv_path) ? sirv_get_sirv_path($sirv_path) : "sirv path does not exists";
+
+    return "(sirv product/variation item) <a href=\"{$sirv_url}\" target=\"_blank\">{$sirv_url}</a>";
+  }
+
+  $isError = in_array($img_path, $err_msgs) ? true : false;
+  $full_path = $url_images_path . $img_path;
+
+  return ($isError || stripos($img_path, 'http') !== false) ? $img_path : "<a href=\"{$full_path}\" target=\"_blank\">{$full_path}</a>";
 }
 
 

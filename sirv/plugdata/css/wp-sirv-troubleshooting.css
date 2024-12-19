@@ -1,0 +1,16 @@
+.sirv-troubleshooting-container ul li ul{
+    list-style: decimal;
+    margin-left: 30px;
+}
+
+.sirv-troubleshooting-container > ul > li{
+    background-color: #fff;
+    padding: 5px;
+    margin-right: 10px;
+    margin-bottom: 0;
+    border-bottom: 1px dashed rgb(189, 187, 187);
+}
+
+.sirv-troubleshooting-container > ul > li > p{
+    margin-top: 0;
+}

@@ -155,7 +155,7 @@ class Woo
         [$this, 'render_sirv_gallery_metabox'],
         'product',
         'side',
-        'low'
+        'default'
       );
     }
   }
@@ -171,7 +171,7 @@ class Woo
         [$this, 'render_sirv_product_image_metabox'],
         'product',
         'side',
-        'low'
+        'default'
       );
     }
   }

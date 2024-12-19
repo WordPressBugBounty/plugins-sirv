@@ -41,7 +41,7 @@ $storageInfo = sirv_getStorageInfo();
             <span>Date checked</span>
           </div>
           <div class="sirv-calc-library-size-view-column sirv-calc-library-size-view-data">
-            <div class="sirv-calc-library-size-show-analizing"><span class="sirv-traffic-loading-ico"></span>Analizing...&nbsp<span class="sirv-calc-library-size-analizing-progress">0%</span></div>
+            <div class="sirv-calc-library-size-show-analizing"><span class="sirv-traffic-loading-ico"></span>Checking...&nbsp<span class="sirv-calc-library-size-analizing-progress">0%</span></div>
             <div class="sirv-calc-media-size-data">
               <span class="sirv-calc-media-size-approx_symbol"><?php echo $approximately_symbol; ?></span>
               <span class="sirv-calc-library-size-show-size"><?php echo $wp_media_library_size_txt ?></span>

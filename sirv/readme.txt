@@ -5,7 +5,7 @@ Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
 Tested up to: 6.7.1
-Stable tag: 7.4.3
+Stable tag: 7.4.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -222,6 +222,12 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 18. To upload images to your Sirv library, go to the Media Library page within the Sirv sub-menu (in the left navigation column).
 
 == Changelog ==
+
+= 7.4.4 (2024-12-19) =
+* Fixed an issue that could cause problems with some third-party plugin settings.
+* Improved cache creation.
+* Improved error reporting for caching items.
+* Improved text for 443 port error.
 
 = 7.4.3 (2024-12-13) =
 * Fixed issue with plugin affecting switching tabs for WooCommerce options etc.
