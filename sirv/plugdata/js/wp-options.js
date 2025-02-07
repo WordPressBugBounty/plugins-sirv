@@ -7,6 +7,7 @@ jQuery(function ($) {
         let isThumbsAjax = false;
         let preventedSizes = '';
         let sirvJsCompressedSizes = {};
+        let isStopViewSyncing = false;
         //--------------------------------------------
 
         function Validator(){};
@@ -787,11 +788,26 @@ jQuery(function ($) {
         //sanitize folder name on sirv
         $('#sirv-save-options').on('submit', function () {
             let folderOnSirv = $("[name='SIRV_FOLDER']").val();
-            let sanitizedFolderOnSirv = folderOnSirv == '' ? 'WP_SirvMediaLibrary' : folderOnSirv.replace(/^[\/]*(.*?)[\/]*$/ig, '$1');
+            let sanitizedFolderOnSirv = folderOnSirv == '' ? 'WP_' + get_current_domain() : folderOnSirv.replace(/^[\/]*(.*?)[\/]*$/ig, '$1');
+            if(sanitizedFolderOnSirv == '') sanitizedFolderOnSirv = 'WP_' + get_current_domain();
             $("[name='SIRV_FOLDER']").val(sanitizedFolderOnSirv);
 
             return true;
         });
+
+
+        function get_current_domain(){
+            const url = window.location.href;
+
+            return get_domain(url);
+        }
+
+
+        function get_domain(url){
+            const urlData = new URL(url);
+
+            return urlData.hostname || "";
+        }
 
 
         $('input[name=SIRV_USE_SIRV_RESPONSIVE]').on('change', showResponsiveWarning);
@@ -822,58 +838,19 @@ jQuery(function ($) {
 
         $(".sirv-sync-images").on("click", initializeMassSync);
         function initializeMassSync(){
-            $.ajax({
-                url: ajaxurl,
-                data: {
-                    action: 'sirv_initialize_process_sync_images',
-                    _ajax_nonce: sirv_options_data.ajaxnonce,
-                    sirv_initialize_sync: true,
-                },
-                type: 'POST',
-                dataType: "json",
-                beforeSend: function () {
-                    isSyncing = true;
-                    $('.sirv-sync-messages').empty();
-                    //manageElement('input[name=sirv-sync-images]', disableFlag = true, text = 'Syncing', button = true);
-                    setButtonSyncState('syncing');
-                    $('.sirv-progress__bar--line-complited').addClass('sirv-progress-bar-animated');
-                    $('.sirv-queue').html('Processing (1/3): calculating folders...');
-                    $('.sirv-processing-message').show();
-                    $('.sync-errors').hide();
-                    $(".sirv-synced-clear-cache-action").hide();
-                    $(".sirv-failed-clear-cache-action").hide();
-                    $('.failed-images-block').hide();
-                    $('.failed-images-block a').hide();
-                },
-            }).done(function (data) {
-                //debug
-                //console.log(data);
-                if(!!data && !!data.error){
-                    showMessage('.sirv-sync-messages', data.error, 'sirv-sync-message', 'error');
-                }
+            isSyncing = true;
+            $('.sirv-sync-messages').empty();
+            setButtonSyncState('syncing');
+            $('.sirv-progress__bar--line-complited').addClass('sirv-progress-bar-animated');
+            $('.sirv-queue').html('Processing (1/2): calculating images in queue...');
+            $('.sirv-processing-message').show();
+            $('.sync-errors').hide();
+            $(".sirv-synced-clear-cache-action").hide();
+            $(".sirv-failed-clear-cache-action").hide();
+            $('.failed-images-block').hide();
+            $('.failed-images-block a').hide();
 
-                if (!!data && data.folders_calc_finished){
-                    $('.sirv-queue').html('Processing (2/3): calculating images in queue...');
-                    massSyncImages();
-                }else{
-                    showMessage('.sirv-sync-messages', "Please reload this page and try again.", 'sirv-sync-message', 'warning');
-                    $('.sirv-processing-message').hide();
-                    $('.sirv-progress__bar--line-complited').removeClass('sirv-progress-bar-animated');
-                    //manageElement('input[name=sirv-sync-images]', disableFlag = false, text = 'Sync images', button = true);
-                    setButtonSyncState("syncing");
-                    isSyncing = false;
-                }
-
-            }).fail(function (jqXHR, status, error) {
-                console.error("Error during ajax request: " + error);
-                showMessage('.sirv-sync-messages', "Error during ajax request: " + error, 'sirv-sync-message');
-                showMessage('.sirv-sync-messages', "Please reload this page and try again.", 'sirv-sync-message', 'warning');
-                $('.sirv-processing-message').hide();
-                $('.sirv-progress__bar--line-complited').removeClass('sirv-progress-bar-animated');
-                //manageElement('input[name=sirv-sync-images]', disableFlag = false, text = 'Sync images', button = true);
-                setButtonSyncState("syncing");
-                isSyncing = false;
-            });
+            massSyncImages();
         }
 
 
@@ -914,7 +891,7 @@ jQuery(function ($) {
 
                     //let processing_q = data.total_count * 1 - data.q * 1 - data.FAILED.count * 1;
                     //$('.sirv-queue').html('Images in queue: ' + processing_q);
-                    $('.sirv-queue').html('Processing (3/3): syncing images...');
+                    $('.sirv-queue').html('Processing (2/2): syncing images...');
 
                     if(!!data && !isSyncing){
                         setButtonSyncState('sync');
@@ -1512,9 +1489,17 @@ jQuery(function ($) {
             $(this).attr('data-status', !status);
         }
 
-        $('.sirv-clear-view-cache').on('click', emptyViewCache);
-        function emptyViewCache(){
-            let type = $('input:radio[name=empty-view-cache]:checked').val();
+
+        $(".sirv-clear-view-cache").on("click", emptyViewCacheTable);
+        function emptyViewCacheTable(e){
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            let type = $(this).attr('data-type');
+            const $spinner = $(this).siblings("span.sirv-traffic-loading-ico");
+
+            //const $spinnerText = $('.empty-view-cache-option-toolbar-right-spinner span.sirv-show-empty-view-result');
 
             $.ajax({
                 url: ajaxurl,
@@ -1526,109 +1511,162 @@ jQuery(function ($) {
                 type: 'POST',
                 dataType: "json",
                 beforeSend: function () {
-                    //hideMessage('sirv-sync-message');
-                    $('.sirv-clear-view-cache').siblings('span.sirv-show-empty-view-result').text('');
-                    $('.sirv-clear-view-cache').siblings('span.sirv-show-empty-view-result').hide();
-                    $('.sirv-clear-view-cache').siblings('span.sirv-traffic-loading-ico').show();
+                    /* $spinnerText.text('');
+                    $spinnerText.hide(); */
+                    $spinner.show();
                 }
             }).done(function (data) {
                 //debug
                 //console.log(data);
 
-                if(data.error){
-                    showMessage('.sirv-sync-messages', data.error, 'sirv-sync-message', 'error');
+                $spinner.hide();
+
+                if(!!data?.error){
+                    showMessage('.sirv-show-view-cache-messages', data.error, 'sirv-show-view-cache-message-id');
                 }
 
-                //showMessage('.sirv-sync-messages', getMessage(type), 'sirv-sync-message', 'ok');
-                $('.sirv-clear-view-cache').siblings('span.sirv-traffic-loading-ico').hide();
-
                 if(!!data){
-                    if (!!data.result && Number.isInteger(data.result)){
+                    /* if (!!data.result && Number.isInteger(data.result)){
                         let msg = (data.result / 2) + ' items deleted';
-                        $('.sirv-clear-view-cache').siblings('span.sirv-show-empty-view-result').text(msg);
-                        $('.sirv-clear-view-cache').siblings('span.sirv-show-empty-view-result').show();
+                        //$spinnerText.text(msg);
+                        //$spinnerText.show();
 
-                        setTimeout(function () { $('.sirv-clear-view-cache').siblings('span.sirv-show-empty-view-result').hide();}, 3000);
-                    }
+                        //setTimeout(function () { $spinnerText.hide();}, 2000);
+                    } */
 
-                    if (!!data.cache_data && typeof data.cache_data == 'object'){
-                        let cacheData = data.cache_data;
-
-                        for(let type in cacheData){
-                            $('.empty-view-cache-'+ type).text(cacheData[type]);
-                        }
+                    if (!!data?.sync_data){
+                        updateViewSyncData(data.sync_data);
                     }
 
                 }
 
             }).fail(function (jqXHR, status, error) {
-                console.log("Error during ajax request: " + error);
-                //showMessage('.sirv-sync-messages', "Error during ajax request: " + error, 'sirv-sync-message');
-                $('.sirv-clear-view-cache').siblings('span.sirv-traffic-loading-ico').hide();
-                $('.sirv-clear-view-cache').siblings('span.sirv-show-empty-view-result').text("Error during ajax request: " + error);
-                $('.sirv-clear-view-cache').siblings('span.sirv-show-empty-view-result').show();
+                console.error("status: ", status);
+                console.error("Error message: " + error);
+                console.error("http code", `${jqXHR.status} ${jqXHR.statusText}`);
+
+                showAjaxErrorMessage(jqXHR, status, error, '.sirv-show-view-cache-messages', 'sirv-show-view-cache-message-id');
+
+                $spinner.hide();
+                /* $spinnerText.text("Error during ajax request: " + error);
+                $spinnerText.show(); */
             });
         }
 
 
-        $('.sirv-clear-view-cache-table').on('click', emptyViewCacheTable);
-        function emptyViewCacheTable(){
+        function updateEmptyViewCacheData(syncData){
+            const content = syncData.view_cache["SUCCESS"] * 1;
+            const noContent = (syncData.view_cache["EMPTY"] * 1) + (syncData.view_cache["FAILED"] * 1);
+            const total = syncData.total * 1;
+            const unsynced = total - (syncData.synced * 1);
 
-            let type = $('input:radio[name=empty-view-cache-table]:checked').val();
+            $(".sirv-view-data-content").text(content);
+            $(".sirv-view-data-no-content").text(noContent);
+            $(".sirv-view-data-content-unsynced").text(unsynced);
+            $(".sirv-view-data-content-total").text(total);
+        }
 
+
+        $(".sync-all-view-data-show-dialog").on('click', showSyncSyncViewFilesDialog);
+        function showSyncSyncViewFilesDialog(){
+            $("#sirv-sync-view-files").show();
+        }
+
+
+        $(".sync-all-view-data-hide-dialog-action").on('click', hideSyncSyncViewFilesDialog);
+        function hideSyncSyncViewFilesDialog(){
+            $("#sirv-sync-view-files").hide();
+        }
+
+
+        $("body").on("click", '.sirv-sync-view-files-action__start', initializeMassViewSync);
+        function initializeMassViewSync(){
+            $("#sirv-sync-view-files .sync-all-view-data-hide-dialog-action").prop('disabled', true);
+            $("#sirv-sync-view-files .sirv-sync-view-files-show-status").text("Processing: syncing...");
+            $("#sirv-sync-view-files .sirv-sync-view-files-status").show();
+            $("#sirv-sync-view-files .sirv-progress-bar-component-line__complited").addClass("sirv-progress-bar-animated");
+            manageElement(".sirv-sync-view-files-action", disableFlag = false, text = 'Stop');
+            $(".sirv-sync-view-files-action").removeClass('sirv-sync-view-files-action__start').addClass('sirv-sync-view-files-action__stop');
+
+            massViewSync();
+        }
+
+
+        $("body").on("click", '.sirv-sync-view-files-action__stop', stopMassViewSync);
+        function stopMassViewSync(){
+            isStopViewSyncing = true;
+            $("#sirv-sync-view-files .sirv-sync-view-files-show-status").text("Processing: stopping...");
+            manageElement(".sirv-sync-view-files-action", disableFlag = true, text = 'Stopping...');
+            $(".sirv-sync-view-files-action").removeClass('sirv-sync-view-files-action__stop');
+        }
+
+
+        function massViewSync(){
             $.ajax({
                 url: ajaxurl,
                 data: {
-                    action: 'sirv_empty_view_cache',
+                    action: 'sirv_sync_view_files',
                     _ajax_nonce: sirv_options_data.ajaxnonce,
-                    type: type,
                 },
                 type: 'POST',
                 dataType: "json",
                 beforeSend: function () {
-                    $('.sirv-clear-view-cache-table').siblings('span.sirv-show-empty-view-result').text('');
-                    $('.sirv-clear-view-cache-table').siblings('span.sirv-show-empty-view-result').hide();
-                    $('.sirv-clear-view-cache-table').siblings('span.sirv-traffic-loading-ico').show();
+                    //$("#sirv-sync-view-files .sirv-sync-view-files-show-status").text("Processing: syncing...");
                 }
-            }).done(function (data) {
+            }).done(function (response) {
                 //debug
-                //console.log(data);
+                //console.log(response);
 
-                if(data.error){
-                    showMessage('.sirv-sync-messages', data.error, 'sirv-sync-message', 'error');
+                if(!!response?.error){
+                    showMessage('.sirv-sync-view-files-messages', response.error, 'sirv-sync-view-files-message-id', 'error');
                 }
 
-                //showMessage('.sirv-sync-messages', getMessage(type), 'sirv-sync-message', 'ok');
-                $('.sirv-clear-view-cache-table').siblings('span.sirv-traffic-loading-ico').hide();
+                if(isStopViewSyncing){
+                    isStopViewSyncing = false;
 
-                if(!!data){
-                    if (!!data.result && Number.isInteger(data.result)){
-                        let msg = (data.result / 2) + ' items deleted';
-                        $('.sirv-clear-view-cache-table').siblings('span.sirv-show-empty-view-result').text(msg);
-                        $('.sirv-clear-view-cache-table').siblings('span.sirv-show-empty-view-result').show();
+                    updateViewSyncData(response);
+                    setViewSyncToInitialState();
 
-                        setTimeout(function () { $('.sirv-clear-view-cache-table').siblings('span.sirv-show-empty-view-result').hide();}, 3000);
-                    }
+                    return;
+                }
 
-                    if (!!data.cache_data && typeof data.cache_data == 'object'){
-                        let cacheData = data.cache_data;
-
-                        withoutCache = (cacheData['empty'] * 1) + (cacheData['missing'] * 1);
-                        withCache = (cacheData['all'] * 1) - withoutCache;
-
-                        $('.empty-view-cache-table-with_prods').text(withCache);
-                        $('.empty-view-cache-table-without_prods').text(withoutCache);
-                    }
-
+                if(response.progress === 100){
+                    updateViewSyncData(response);
+                    setViewSyncToInitialState();
+                }else{
+                    updateViewSyncData(response);
+                    massViewSync();
                 }
 
             }).fail(function (jqXHR, status, error) {
-                console.log("Error during ajax request: " + error);
-                //showMessage('.sirv-sync-messages', "Error during ajax request: " + error, 'sirv-sync-message');
-                $('.sirv-clear-view-cache-table').siblings('span.sirv-traffic-loading-ico').hide();
-                $('.sirv-clear-view-cache-table').siblings('span.sirv-show-empty-view-result').text("Error during ajax request: " + error);
-                $('.sirv-clear-view-cache-table').siblings('span.sirv-show-empty-view-result').show();
+                console.error("status: ", status);
+                console.error("Error message: " + error);
+                console.error("http code", `${jqXHR.status} ${jqXHR.statusText}`);
+
+                showAjaxErrorMessage(jqXHR, status, error, '.sirv-sync-view-files-messages', 'sirv-sync-view-files-message-id');
+
+                setViewSyncToInitialState();
             });
+        }
+
+
+        function updateViewSyncData(data){
+            $("#sirv-sync-view-files .sirv-progress-bar-component-text__percents").text(`${data.progress}%`);
+            $("#sirv-sync-view-files .sirv-progress-bar-component-text__complited span").text(`${data.synced} of ${data.total}`);
+            $("#sirv-sync-view-files .sirv-progress-bar-component-line__complited").css({'width': `${data.progress}%`});
+
+            updateEmptyViewCacheData(data);
+        }
+
+
+        function setViewSyncToInitialState(){
+            $("#sirv-sync-view-files .sync-all-view-data-hide-dialog-action").prop('disabled', false);
+            $("#sirv-sync-view-files .sirv-sync-view-files-status").hide();
+            $("#sirv-sync-view-files .sirv-sync-view-files-show-status").text("Processing: syncing...");
+            $("#sirv-sync-view-files .sirv-progress-bar-component-line__complited").removeClass("sirv-progress-bar-animated");
+
+            manageElement(".sirv-sync-view-files-action", disableFlag = false, text = 'Sync Sirv folders');
+            $(".sirv-sync-view-files-action").removeClass('sirv-sync-view-files-action__stop').addClass('sirv-sync-view-files-action__start');
         }
 
 

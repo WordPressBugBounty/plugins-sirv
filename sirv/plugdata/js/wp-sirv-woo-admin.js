@@ -430,7 +430,7 @@ jQuery( function($){
     function updateVariation(){
       $('.woocommerce_variation').each(function () {
         let $optionsBlock = $(this).find('.options:first');
-        let $galleryBlock = $(this).find('.sirv-woo-gallery-container');
+        let $galleryBlock = $(this).find(".sirv-gallery-wrapper");
 
         let id = $galleryBlock.attr('data-id');
 
@@ -439,6 +439,7 @@ jQuery( function($){
         imageSortable(id);
       });
     }
+
 
     function variationChanged($el){
       $($el).closest('.woocommerce_variation').addClass('variation-needs-update');
@@ -454,6 +455,72 @@ jQuery( function($){
         reCalcGalleryData(id);
         imageSortable(id);
     }
+
+
+    $("body").on("click", ".sirv-woo-admin-update-smv-cache", updateSmvCache);
+    function updateSmvCache(){
+      const product_id = $(this).attr('data-product-id');
+      const type = $(this).attr('data-type');
+
+      $.ajax({
+        url: ajaxurl,
+        data: {
+          action: "sirv_update_smv_cache",
+          _ajax_nonce: sirv_woo_admin_data.ajaxnonce,
+          product_id,
+          type,
+        },
+        dataType: "json",
+        type: "POST",
+        beforeSend: function () {
+          $("#sirv-view-gallery-" + product_id).addClass("sirv-loading");
+        },
+      })
+        .done(function (response) {
+          $("#sirv-view-gallery-" + product_id).removeClass("sirv-loading");
+
+          if(!!response.error){
+            toastr.error(`Error: ${response.error}`, "", {
+              preventDuplicates: true,
+              timeOut: 4000,
+              positionClass: "toast-top-center",
+            });
+          }
+
+          if(!!response?.cache?.items){
+            const itemsPattern = "?thumbnail=78&image";
+            const $viewGalleryUL = $("#sirv-view-images-ul-" + product_id);
+
+            let documentFragment = $(document.createDocumentFragment());
+            const items = response.cache.items;
+
+
+            for (const item of items) {
+              documentFragment.append(
+                `<li class="sirv-view-gallery-item" data-type="${item.type}">
+                  <div class="sirv-view-gallery-item-img-wrap">
+                    <img class="sirv-view-gallery-item-img" src="${getGalleryItemUrl(item.type, item.url, itemsPattern)}">
+                  </div>
+                </li>`
+              );
+            }
+
+
+            $viewGalleryUL.empty();
+            $viewGalleryUL.append(documentFragment);
+          }
+        })
+        .fail(function (jqXHR, status, error) {
+          $("#sirv-view-gallery-" + product_id).removeClass("sirv-loading");
+          console.error("Error during ajax request: " + error);
+          toastr.error(`Ajax error: ${error}`, "", {
+            preventDuplicates: true,
+            timeOut: 4000,
+            positionClass: "toast-top-center",
+          });
+        });
+    }
+
 
     //---------------initialization---------------------
     imageSortable();

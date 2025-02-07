@@ -29,6 +29,7 @@ class SirvAPIClient
     private $connected = false;
     private $lastResponse;
     private $userAgent;
+    private $baseURL = "https://api.sirv.com/";
 
     public function __construct(
         $clientId,
@@ -960,9 +961,10 @@ class SirvAPIClient
 
     private function sendRequest($url, $data, $method = 'POST', $token = '', $headers = null, $isFile = false)
     {
+        $error = NULL;
 
         if ($this->isMuted()) {
-            $this->curlInfo = array('http_code' => 429);
+            //$this->curlInfo = array('http_code' => 429);
             return false;
         }
 
@@ -983,17 +985,17 @@ class SirvAPIClient
 
         $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://api.sirv.com/" . $url,
+            CURLOPT_URL => $this->baseURL . $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_CONNECTTIMEOUT => 0.1,
-            CURLOPT_TIMEOUT => 0.1,
             CURLOPT_USERAGENT => $this->userAgent,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_NONE,
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_POSTFIELDS => (!$isFile) ? json_encode($data) : $data,
             CURLOPT_HTTPHEADER => $headers,
+            //CURLOPT_MAXREDIRS => 10,
+            //CURLOPT_CONNECTTIMEOUT => 2,
+            //CURLOPT_TIMEOUT => 30,
             //CURLOPT_SSL_VERIFYPEER => false,
             //CURLOPT_VERBOSE => true,
             //CURLOPT_STDERR => $fp,
@@ -1001,12 +1003,22 @@ class SirvAPIClient
 
         $result = curl_exec($curl);
         $info = curl_getinfo($curl);
+        $error = curl_error($curl);
+
+        if($error){
+            global $sirv_logger;
+
+            $sirv_logger->error($this->baseURL . $url, 'request url')->filename('network_errors.log')->write();
+            $sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
+            $sirv_logger->error('')->filename('network_errors.log')->write();
+        }
 
         if(IS_DEBUG){
-            global $logger;
+            global $sirv_logger;
 
-            $logger->info($result, '$result')->filename('network.log')->write();
-            $logger->info($info, '$info')->filename('network.log')->write();
+            $sirv_logger->info($result, '$result')->filename('network.log')->write();
+            $sirv_logger->info($info, '$info')->filename('network.log')->write();
+            $sirv_logger->info('')->filename('network.log')->write();
         }
 
         $res_object = json_decode($result);
@@ -1029,7 +1041,7 @@ class SirvAPIClient
 
         //TODO: if result html then return result_txt or empty
         $response->result_txt = trim($result);
-        $response->error = curl_error($curl);
+        $response->error = $error;
 
         $this->lastResponse = $response;
 

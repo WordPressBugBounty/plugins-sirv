@@ -5,7 +5,7 @@ Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
 Tested up to: 6.7.1
-Stable tag: 7.4.4
+Stable tag: 7.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -222,6 +222,17 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 18. To upload images to your Sirv library, go to the Media Library page within the Sirv sub-menu (in the left navigation column).
 
 == Changelog ==
+
+= 7.5.0 (2025-02-07) =
+* Added option to use Sirv smart gallery to populate WooCommerce product media (before worked automatically). Enabled by default. If you don't use it, please disable it for best optimization.
+* Added showing of Sirv product folder content on WooCommerce product admin pages.
+* Added option for mass sync of product folder .view files.
+* Optimized how .view files are used, to reduce requests.
+* Reduced database requests during image synchronization, for lower MySQL load.
+* Fixed issue when WooCommerce features may be enabled when WooCommerce is not installed.
+* Optimized the process of checking if image exists on Sirv when the placeholder image feature is enabled on the Sirv account.
+* Improved bounding errors.
+* Many small fixes and optimizations.
 
 = 7.4.4 (2024-12-19) =
 * Fixed an issue that could cause problems with some third-party plugin settings.

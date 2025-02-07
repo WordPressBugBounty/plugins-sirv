@@ -113,6 +113,41 @@
     </table>
   </div>
 </div>
+
+<h2>Add Sirv media to posts & pages</h2>
+<p class="sirv-options-desc">
+  Easily add Sirv media to your pages, posts or products. A great alternative to using the WordPress media library. You can add galleries, with images, zoomable images, videos, GLB models or spins.
+</p>
+<div class="sirv-optiontable-holder" id="sirv-add-media-on-pages">
+  <table class="sirv-woo-settings optiontable form-table">
+    <tbody>
+      <?php
+      $sirv_add_media_option = get_option('SIRV_WOO_SHOW_ADD_MEDIA_BUTTON');
+      $sirv_add_media_option_status_class = $sirv_add_media_option == 'show' ? 'sirv-status--enabled' : 'sirv-status--disabled';
+
+      ?>
+      <tr>
+        <th>
+          <label>Sirv Add Media</label>
+        </th>
+        <td>
+          <label><input type="radio" value="show" <?php checked('show', $sirv_add_media_option); ?> name="SIRV_WOO_SHOW_ADD_MEDIA_BUTTON">Enable</label><br>
+          <label><input type="radio" value="hide" <?php checked('hide', $sirv_add_media_option); ?> name="SIRV_WOO_SHOW_ADD_MEDIA_BUTTON">Disable</label><br>
+          <span class="sirv-option-responsive-text">Show button above product description/summary, to add Sirv images, zooms, spins, videos, models or galleries.</span>
+        </td>
+        <td>
+          <span class="sirv-status <?php echo $sirv_add_media_option_status_class;  ?>"></span>
+        </td>
+      </tr>
+      <tr>
+        <th>
+        </th>
+        <td><input type="submit" name="submit" class="button-primary sirv-save-settings" value="<?php _e('Save Settings') ?>" /></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
 <div class="sirv-profiles-wrapper">
   <!-- profiles options-->
   <h2>Image settings</h2>
@@ -423,7 +458,7 @@ var SirvOptions = {
   ExampleAltTag
   ExampleID"><?php echo get_option('SIRV_EXCLUDE_RESPONSIVE_FILES'); ?></textarea>
             <span class="sirv-option-responsive-text">
-              Enter full URLs or use * to apply on all files with a certain path/name.
+              Enter file path or use * to apply on all files with a certain path/name.
               You can also exclude images via their img alt, class or data attribute. <a href="https://sirv.com/help/articles/using-sirv-wordpress/#disable-lazy-loading-and-responsive-scaling">Learn more</a>.
             </span>
           </td>

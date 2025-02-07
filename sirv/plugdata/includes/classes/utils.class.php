@@ -5,6 +5,7 @@
   class Utils{
 
     protected static $headers;
+    protected static $user_agent = 'Sirv/Wordpress';
 
     public static function getFormatedFileSize($bytes, $decimal = 2, $bytesInMM = 1000){
       $sign = ($bytes >= 0) ? '' : '-';
@@ -76,6 +77,8 @@
 
 
     public static function clean_uri_params($url){
+      if ( empty($url) ) return $url;
+
       return preg_replace('/\?.*/i', '', $url);
     }
 
@@ -166,9 +169,10 @@
     }
 
 
-    public static function get_head_request($url, $protocol_version = 1){
+    public static function get_head_request($url){
       $headers = array();
       $error = NULL;
+      $user_agent = 'Sirv/Wordpress';
 
       $site_url = get_site_url();
       $request_headers = array(
@@ -178,11 +182,12 @@
       $ch = curl_init();
       curl_setopt_array($ch, array(
         CURLOPT_URL => $url,
-        CURLOPT_HTTP_VERSION => $protocol_version === 1 ? CURL_HTTP_VERSION_1_1 : CURL_HTTP_VERSION_2_0,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_NONE,
         CURLOPT_RETURNTRANSFER => 1,
         CURLOPT_HTTPHEADER => $request_headers,
         CURLOPT_NOBODY => 1,
         CURLOPT_CUSTOMREQUEST => 'HEAD',
+        CURLOPT_USERAGENT => $user_agent,
         //CURLOPT_HEADER => 1, //get headers in result
         //CURLINFO_HEADER_OUT => true,
         //CURLOPT_HEADERFUNCTION => [Utils::class, 'header_callback'],
@@ -190,7 +195,6 @@
         //CURLOPT_NOBODY => 0,
         //CURLOPT_CONNECTTIMEOUT => 1,
         //CURLOPT_TIMEOUT => 1,
-        //CURLOPT_CUSTOMREQUEST => 'HEAD',
         //CURLOPT_ENCODING => "",
         //CURLOPT_MAXREDIRS => 10,
         //CURLOPT_USERAGENT => $userAgent,
@@ -209,6 +213,151 @@
       if( $error ) $headers['error'] = $error;
 
       return $headers;
+    }
+
+
+    public static function get_sirv_item_info_curl($url){
+
+      $response = array(
+        'result' => '',
+        'headers' => array(),
+        'error' => NULL,
+      );
+
+      if( empty($url) ){
+        $response['error'] = 'Empty sirv url';
+        return $response;
+      }
+
+      $headers = array();
+      $error = NULL;
+      $user_agent = 'Sirv/Wordpress';
+
+      $site_url = get_site_url();
+      $request_headers = array(
+        "Accept" => 'Accept: application/json',
+        "Content-Type" => 'Content-Type: application/json',
+        "Referer" => "Referer: $site_url",
+      );
+
+      $request_url = $url . '?info';
+
+      $ch = curl_init();
+      curl_setopt_array($ch, array(
+        CURLOPT_URL => $request_url,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_NONE,
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_HTTPHEADER => $request_headers,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+        CURLOPT_USERAGENT => $user_agent,
+        //CURLOPT_MAXREDIRS => 5,
+        //CURLOPT_CONNECTTIMEOUT => 2,
+        //CURLOPT_TIMEOUT => 5,
+        //CURLOPT_SSL_VERIFYPEER => false,
+        //CURLOPT_VERBOSE => true,
+        //CURLOPT_STDERR => $fp,
+      ));
+
+      $result = curl_exec($ch);
+      $headers = curl_getinfo($ch);
+      $error = curl_error($ch);
+
+      curl_close($ch);
+
+      if ($error) {
+        global $sirv_logger;
+
+        $sirv_logger->error($url, 'request url')->filename('network_errors.log')->write();
+        $sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
+        $sirv_logger->error('')->filename('network_errors.log')->write();
+      }
+
+      $response['result'] = $result;
+      $response['headers'] = $headers;
+      $response['error'] = $error;
+
+      return $response;
+    }
+
+
+    public static function  get_headers_curl($url){
+      self::$headers = array();
+      $error = NULL;
+
+      $site_url = get_site_url();
+      $request_headers = array(
+        "Referer" => "Referer: $site_url",
+      );
+
+      $ch = curl_init();
+      curl_setopt_array($ch, array(
+        CURLOPT_URL => $url,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_NONE,
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_HTTPHEADER => $request_headers,
+        CURLOPT_HEADERFUNCTION => [Utils::class, 'header_callback'],
+        CURLOPT_NOBODY => 1,
+        CURLOPT_CUSTOMREQUEST => 'HEAD',
+        CURLOPT_USERAGENT => self::$user_agent,
+        //CURLOPT_MAXREDIRS => 5,
+        //CURLOPT_CONNECTTIMEOUT => 2,
+        //CURLOPT_TIMEOUT => 8,
+      ));
+
+      $result = curl_exec($ch);
+      $error = curl_error($ch);
+
+      curl_close($ch);
+
+    if ($error) {
+      global $sirv_logger;
+
+      $sirv_logger->error($url, 'request url')->filename('network_errors.log')->write();
+      $sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
+      $sirv_logger->error('')->filename('network_errors.log')->write();
+
+      self::$headers['error'] = $error;
+    }
+
+      return self::$headers;
+    }
+
+
+    protected static function header_callback($ch, $header){
+      $len = strlen($header);
+
+      if (self::startsWith($header, 'HTTP')) {
+        $header_data = explode(' ', $header, 3);
+        self::$headers['HTTP_protocol'] = $header_data[0];
+        self::$headers['HTTP_code'] = $header_data[1];
+        self::$headers['HTTP_code_text'] = trim($header_data[2]);
+
+        return $len;
+      }
+
+      $header = explode(':', $header, 2);
+      if (count($header) < 2) return $len;
+
+      list($h_name, $h_value) = $header;
+      $h_name = trim($h_name);
+      $h_value = trim($h_value);
+
+
+      if (isset(self::$headers[$h_name])) {
+        if (is_array(self::$headers[$h_name])) {
+          self::$headers[$h_name][] = $h_value;
+        } else {
+          self::$headers[$h_name] = array(
+            self::$headers[$h_name],
+            $h_value,
+          );
+        }
+        return $len;
+      }
+
+      self::$headers[$h_name] = $h_value;
+
+      return $len;
     }
 
   }

@@ -186,9 +186,9 @@ $storageInfo = sirv_getStorageInfo();
     ?>
       <tr class="sirv-processing-message" style='display: none;'>
         <td colspan="2">
-          <span class="sirv-traffic-loading-ico"></span><span class="sirv-queue">Processing (1/3): calculating folders...</span>
+          <span class="sirv-traffic-loading-ico"></span><span class="sirv-queue">Processing (1/2): calculating images in queue...</span>
           <p style="margin: 10px 0 !important; font-weight: bold; color: #8a6d3b;">
-            Keep this page open until synchronisation reaches 100%. Your account can sync <?php echo $fetch_limit; ?> images per hour (<a target="_blank" href="admin.php?page=<?php echo SIRV_PLUGIN_RELATIVE_SUBDIR_PATH ?>submenu_pages/account.php">check current usage</a>).
+            Keep this page open until synchronisation reaches 100%. Your account can sync <?php echo $fetch_limit; ?> images per hour (<a target="_blank" href="admin.php?page=<?php echo SIRV_PLUGIN_RELATIVE_SUBDIR_PATH ?>submenu_pages/account.php">check usage</a>).
             If sync stops, refresh this page and resume the sync.
             </?php>
         </td>

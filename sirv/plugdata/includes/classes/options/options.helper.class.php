@@ -9,13 +9,21 @@ class OptionsHelper {
 
 
   public static function register_settings(){
+    self::prepareOptionsData();
 
     foreach (self::$options as $option_name => $option_data) {
       if (stripos($option_name, 'unreg_') !== false) continue;
       register_setting('sirv-settings-group', $option_name);
-      if (!get_option($option_name)) update_option($option_name, $option_data['default']);
     }
+  }
 
+
+  public static function fill_empty_options(){
+    self::prepareOptionsData();
+
+    foreach (self::$options as $option_name => $option_data) {
+      if (false === get_option($option_name)) update_option($option_name, $option_data['default']);
+    }
   }
 
 

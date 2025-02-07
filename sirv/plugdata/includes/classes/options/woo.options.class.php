@@ -10,9 +10,11 @@ class Woo_options extends Options_generator{
     $with_content = 0;
 
     if (isset($option['data_provider']) && !empty($option['data_provider'])) {
-      $cache_data = call_user_func($option['data_provider']);
-      $without_content = (int) $cache_data['empty'] + (int) $cache_data['missing'];
-      $with_content = (int) $cache_data['all'] - $without_content;
+      $sync_data = call_user_func($option['data_provider']);
+      $content = (int) $sync_data['view_cache']['SUCCESS'];
+      $no_content = (int) $sync_data['view_cache']['EMPTY'] + (int) $sync_data['view_cache']['FAILED'];
+      $total = (int) $sync_data['total'];
+      $unsynced = $total - (int) $sync_data['synced'];
 
       $option['values'][0]['label'] = $option['values'][0]['label'] . ' (<span class="' . $option['option_name'] . '-' . $option['values'][0]['attrs']['value'] . '">' . $with_content . '</span>)';
       $option['values'][1]['label'] = $option['values'][1]['label'] . ' (<span class="' . $option['option_name'] . '-' . $option['values'][1]['attrs']['value'] . '">' . $without_content . '</span>)';
@@ -23,23 +25,42 @@ class Woo_options extends Options_generator{
     <tr>
       ' . self::render_option_title($option['label']) . '
       <td>
-        ' . self::render_radio_component($option) . '
-      </td>
-    </tr>
-    <tr>
-      <th></th>
-      <td>
-        <input type="button" name="' . $option['option_name'] . '" class="button-primary ' . $option['button_class'] . '" value="' . $option['button_val'] . '">&nbsp;
-        <span class="sirv-traffic-loading-ico" style="display: none;"></span>
-        <span class="sirv-show-empty-view-result" style="display: none;"></span>
+        <div class="sirv-show-view-cache-messages"></div>
+        <div class="sirv-show-view-cache-table">
+          <div class="sirv-show-view-cache-row">
+            <div class="sirv-show-view-cache-col">Products with content</div>
+            <div class="sirv-show-view-cache-col sirv-view-data-content">'. $content . '</div>
+            <div class="sirv-show-view-cache-col">
+              <a href="#" class="sirv-clear-view-cache" data-type="content">Clear cache</a>
+              <span class="sirv-traffic-loading-ico" style="display: none;"></span>
+              </div>
+          </div>
+          <div class="sirv-show-view-cache-row">
+            <div class="sirv-show-view-cache-col">Products without content</div>
+            <div class="sirv-show-view-cache-col sirv-view-data-no-content">'. $no_content .'</div>
+            <div class="sirv-show-view-cache-col">
+              <a href="#" class="sirv-clear-view-cache" data-type="no-content">Clear cache</a>
+              <span class="sirv-traffic-loading-ico" style="display: none;"></span>
+            </div>
+          </div>
+          <div class="sirv-show-view-cache-row">
+            <div class="sirv-show-view-cache-col">Unsynced</div>
+            <div class="sirv-show-view-cache-col sirv-view-data-content-unsynced">'. $unsynced .'</div>
+          </div>
+          <div class="sirv-show-view-cache-row">
+            <div class="sirv-show-view-cache-col">Total</div>
+            <div class="sirv-show-view-cache-col sirv-view-data-content-total">'. $total . '</div>
+          </div>
+        </div>
+        <div class="sirv-view-cache-option-toolbar">
+          <button type="button" class="button button-primary sync-all-view-data-show-dialog">Sync all products</button>
+        </div>
       </td>
     </tr>
     <tr>
     <th></th>
       <td style="color: #666666;">
-          Content found in your Sirv folders is cached.
-          If you see outdated content in a product
-          gallery, clear the cache.
+          The filenames of content in your Sirv folders is cached. If you see any outdated content, clear the cache and also your page cache.
       </td>
     </tr>';
 

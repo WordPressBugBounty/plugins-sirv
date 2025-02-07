@@ -5,24 +5,24 @@ defined('ABSPATH') or die('No script kiddies please!');
 /*
 * $excluded_path need to do logs more short. Log line show path to file. Without exclude it will show full physical path to file that can be quite long.
 *
-* $logger = new SirvLogger($path_to_plugin_dir, $excluded_path, $log_filename = null, $dir_to_logs = null, $is_append_logs_to_file = true)
+* $sirv_logger = new SirvLogger($path_to_plugin_dir, $excluded_path, $log_filename = null, $dir_to_logs = null, $is_append_logs_to_file = true)
 *
 * Default logs path: sirv/logs/
 * Default log filename: debug.log
 *
 * Possible methods: debug, error, warning, info
 *
-* $logger->debug($msg, $var_name ='')->print($is_die=false);
-* $logger->error($msg, $var_name = '')->write();
+* $sirv_logger->debug($msg, $var_name ='')->print($is_die=false);
+* $sirv_logger->error($msg, $var_name = '')->write();
 *
 *
 * Possible to use chaining style. Possible chaining methods: filename, mode, dir, dir_path, filepath
 *
-* $logger->debug($array_var, '$array_var')->filename('test.log')->write();
-* $logger->debug($array_var, '$array_var')->filename('test.log')->mode('a+')->write();
-* $logger->info($object_var, '$object_var')->dir('another_logs')->filename('info.log')->write();
-* $logger->warning('Some text')->dir_path('/var/www/site/wp-content/plugins/plugin/somelogs')->write();
-* $logger->warning($bool_var)->filepath('/var/www/site/wp-content/plugins/plugin/somelogs/log_name.log')->write();
+* $sirv_logger->debug($array_var, '$array_var')->filename('test.log')->write();
+* $sirv_logger->debug($array_var, '$array_var')->filename('test.log')->mode('a+')->write();
+* $sirv_logger->info($object_var, '$object_var')->dir('another_logs')->filename('info.log')->write();
+* $sirv_logger->warning('Some text')->dir_path('/var/www/site/wp-content/plugins/plugin/somelogs')->write();
+* $sirv_logger->warning($bool_var)->filepath('/var/www/site/wp-content/plugins/plugin/somelogs/log_name.log')->write();
 *
 * Quick methods. Write log in to main plugin folder
 *
@@ -32,11 +32,11 @@ defined('ABSPATH') or die('No script kiddies please!');
 *
 * Performance methods
 *
-* $logger->time_start($timer_name);
+* $sirv_logger->time_start($timer_name);
 * //some code
-* $logger->time_chunk($timer_name, $chunk_name = null);
+* $sirv_logger->time_chunk($timer_name, $chunk_name = null);
 * //some code
-* $logger->time_end($timer_name, $decimals = 6);
+* $sirv_logger->time_end($timer_name, $decimals = 6);
 *
 * Possible to use multiple time mesuarments with diff $timer_name.
 *

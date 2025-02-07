@@ -33,6 +33,7 @@ $smv_options = array(
     'enabled_option' => true,
     'option_name' => 'SIRV_WOO_IS_ENABLE',
     'label' => 'Sirv Media Viewer',
+    'below_text' => 'Replace your product page gallery with Sirv Media Viewer.',
     //'desc' => 'Some text here',
     'type' => 'radio',
     'func' => 'render_radio_option',
@@ -60,10 +61,106 @@ $smv_options = array(
     'default_type' => 'str',
     'show_status' => true,
     'enabled_value' => '2',
-  )
+  ),
+  'SIRV_WOO_SHOW_SIRV_GALLERY' => array(
+    'enabled_option' => true,
+    'option_name' => 'SIRV_WOO_SHOW_SIRV_GALLERY',
+    'label' => 'Sirv gallery block',
+    'below_text' => 'Show block on right side of WooCommerce product admin, to add extra assets to the media gallery and product variations.',
+    'type' => 'radio',
+    'is_new_line' => true,
+    'func' => 'render_radio_option',
+    'value' => '',
+    'values' => array(
+      array(
+        'label' => 'Enable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'show',
+        ),
+      ),
+      array(
+        'label' => 'Disable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'hide',
+        ),
+      ),
+    ),
+    'default' => 'show',
+    'default_type' => 'str',
+    'show_status' => true,
+    'enabled_value' => 'show',
+  ),
+  'SIRV_WOO_SHOW_MAIN_IMAGE' => array(
+    'enabled_option' => true,
+    'option_name' => 'SIRV_WOO_SHOW_MAIN_IMAGE',
+    'label' => 'Sirv featured image block',
+    'below_text' => 'Show block in right column of WooCommerce product admin, to set a Sirv image as the Featured image.',
+    'type' => 'radio',
+    'is_new_line' => true,
+    'func' => 'render_radio_option',
+    'value' => '',
+    'values' => array(
+      array(
+        'label' => 'Enable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'show',
+        ),
+      ),
+      array(
+        'label' => 'Disable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'hide',
+        ),
+      ),
+    ),
+    'default' => 'show',
+    'default_type' => 'str',
+    'show_status' => true,
+    'enabled_value' => 'show',
+  ),
 );
 
 $content_options = array(
+  'SIRV_WOO_IS_USE_VIEW_FILE' => array(
+    'enabled_option' => true,
+    'option_name' => 'SIRV_WOO_IS_USE_VIEW_FILE',
+    'label' => 'Sirv folder content',
+    'below_text' => 'Automatically add your Sirv folder contents to your product page gallery.',
+    'type' => 'radio',
+    'func' => 'render_radio_option',
+    'is_new_line' => true,
+    'value' => '',
+    'values' => array(
+      array(
+        'label' => 'Enable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'on',
+        ),
+      ),
+      array(
+        'label' => 'Disable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'off',
+        ),
+      ),
+    ),
+    'default' => 'off',
+    'default_type' => 'str',
+    'show_status' => true,
+    'enabled_value' => 'on',
+  ),
   'SIRV_WOO_VIEW_FOLDER_STRUCTURE' => array(
     'enabled_option' => true,
     'option_name' => 'SIRV_WOO_VIEW_FOLDER_STRUCTURE',
@@ -129,21 +226,6 @@ $content_options = array(
     'show_status' => false,
     'enabled_value' => 'on',
   ),
-/*   'SIRV_WOO_TTL' => array(
-    'enabled_option' => true,
-    'option_name' => 'SIRV_WOO_TTL',
-    'label' => 'Cache TTL',
-    'type' => 'input',
-    'func' => 'render_text_option',
-    'value' => '',
-    'below_text' => 'Time (in minutes) after which the cache entry expires.',
-    'default' => '1440',
-    'attrs' => array(
-      'type' => 'text',
-      'placeholder' => 'If input 0 TTL will be disable',
-      'value' => ''
-    ),
-  ), */
   'SIRV_WOO_TTL' => array(
     'enabled_option' => true,
     'option_name' => 'SIRV_WOO_TTL',
@@ -295,15 +377,15 @@ $order_options = array(
   'SIRV_WOO_SHOW_MAIN_VARIATION_IMAGE' => array(
     'enabled_option' => true,
     'option_name' => 'SIRV_WOO_SHOW_MAIN_VARIATION_IMAGE',
-    'label' => 'Main variation image',
-    'below_text' => "If variation has no image, show main product image.",
+    'label' => 'Empty variations',
+    'below_text' => "If variation has no image, show image of the main product.",
     'type' => 'radio',
     'is_new_line' => true,
     'func' => 'render_radio_option',
     'value' => '',
     'values' => array(
       array(
-        'label' => 'Show',
+        'label' => 'Show main image',
         'check_data_type' => 'checked',
         'attrs' => array(
           'type' => 'radio',
@@ -311,7 +393,7 @@ $order_options = array(
         ),
       ),
       array(
-        'label' => 'Hide',
+        'label' => 'Don\'t show main image',
         'check_data_type' => 'checked',
         'attrs' => array(
           'type' => 'radio',
@@ -407,12 +489,12 @@ $design_options = array(
   'SIRV_WOO_MV_CUSTOM_OPTIONS' => array(
     'enabled_option' => true,
     'option_name' => 'SIRV_WOO_MV_CUSTOM_OPTIONS',
-    'label' => 'Script options',
+    'label' => 'Gallery options',
     //'desc' => 'Some text here',
     'type' => 'textarea',
     'func' => 'render_textarea_option',
     'value' => '',
-    'above_text' => 'Go to the <a href="https://sirv.com/help/viewer/" target="_blank">Sirv Media Viewer designer</a> to create the perfect experience for your store. Paste code from the "Script" tab:',
+    'above_text' => 'Choose from 80+ settings in the <a href="https://sirv.com/help/viewer/" target="_blank">Sirv Media Viewer designer</a> to create the perfect experience for your store. Paste code from the "Script" tab:',
     'below_desc' => 'Change the zoom, spin, video and thumbnail options with JavaScript. See <a href="https://sirv.com/help/articles/sirv-media-viewer/#options">list of options</a>.',
     'default' => '',
     'default_type' => 'str',
@@ -436,7 +518,7 @@ var SirvOptions = {
     'type' => 'textarea',
     'func' => 'render_textarea_option',
     'value' => '',
-    'above_text' => 'Paste &lt;style&gt; code from the "Inline" tab:',
+    'above_text' => 'If you changed the styles with the <a href="https://sirv.com/help/viewer/" target="_blank">Sirv Media Viewer designer</a>, paste the &lt;style&gt; code from the "Inline" tab:',
     'below_desc' => '',
     'default' => '',
     'default_type' => 'str',
@@ -1003,7 +1085,7 @@ $tools_options = array(
 
 $options = array(
   "SMV" => array(
-    "title" => 'Sirv Media Viewer for WooCommerce',
+    "title" => 'Product page gallery',
     "description" => 'Image zoom, 360 spin and product videos to make your products look glorious. Replaces your existing media gallery with <a target="_blank" href="https://sirv.com/help/articles/sirv-media-viewer/">Sirv Media Gallery</a> on your product pages.',
     "id" => 'woo-sirv-media-viewer',
     "show_save_button" => true,
@@ -1019,11 +1101,18 @@ Upload files at <a href="https://my.sirv.com/" target="_blank">my.sirv.com</a> o
     "options" => $content_options
   ),
   "ORDER" => array(
-    "title" => 'Order of content',
+    "title" => 'Gallery content',
     "description" => 'Choose which items to show and what order thumbnails should appear in.',
     "id" => 'woo-order',
     "show_save_button" => true,
     "options" => $order_options
+  ),
+  "DESIGN" => array(
+    "title" => 'Gallery settings',
+    "description" => 'Go to the <a href="https://sirv.com/help/viewer/" target="_blank">Sirv Media Viewer designer</a> to create the perfect experience for your store. ',
+    "id" => 'woo-design',
+    "show_save_button" => true,
+    "options" => $design_options
   ),
   "CATEGORIES" => array(
     "title" => "Category page images<sup><span style=\"color: orange;\">beta</span></sup></h3>",
@@ -1031,20 +1120,6 @@ Upload files at <a href="https://my.sirv.com/" target="_blank">my.sirv.com</a> o
     "id" => "woo-categories",
     "show_save_button" => true,
     "options" => $cat_options
-  ),
-  "DESIGN" => array(
-    "title" => 'Design and experience',
-    "description" => 'Go to the <a href="https://sirv.com/help/viewer/" target="_blank">Sirv Media Viewer designer</a> to create the perfect experience for your store. ',
-    "id" => 'woo-design',
-    "show_save_button" => true,
-    "options" => $design_options
-  ),
-  "ADMIN_LAYOUT" => array(
-    "title" => 'Admin layout',
-    "description" => 'Choose which Sirv blocks to show in WordPress admin.',
-    "id" => 'woo-admin-layout',
-    "show_save_button" => true,
-    "options" => $admin_layout_options
   ),
   "TOOLS" => array(
     "title" => 'Additional tools',
