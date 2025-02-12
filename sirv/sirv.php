@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           7.5.0
+ * Version:           7.5.1
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '7.5.0');
+define('SIRV_PLUGIN_VERSION', '7.5.1');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -1849,32 +1849,37 @@ function sirv_register_settings(){
 
 add_action('pre_update_option_SIRV_FOLDER', 'sirv_set_folder_config', 10, 3);
 function sirv_set_folder_config($new_value, $old_value, $option_name){
-  $isCreated = false;
 
-  $new_value = trim(basename($new_value));
+  if ( $old_value != $new_value) {
+    $isCreated = false;
 
-  if( empty($new_value) ){
-    $domain = empty($_SERVER['HTTP_HOST']) ? 'MediaLibrary' : $_SERVER['HTTP_HOST'];
-    $new_value = 'WP_' . $domain;
+    $new_value = trim($new_value, '/');
+
+    if (empty($new_value)) {
+      $domain = empty($_SERVER['HTTP_HOST']) ? 'MediaLibrary' : $_SERVER['HTTP_HOST'];
+      $new_value = 'WP_' . $domain;
+    }
+
+    $sirvAPIClient = sirv_getAPIClient();
+    $isRenamed = $sirvAPIClient->renameFile('/' . $old_value, '/' . $new_value);
+
+    if (!$isRenamed) {
+      $isCreated = $sirvAPIClient->createFolder($new_value . '/');
+    }
+
+
+    if ($isRenamed || $isCreated) {
+      $sirvAPIClient->setFolderOptions($new_value, array('scanSpins' => false));
+
+      global $wpdb;
+      $images_t = $wpdb->prefix . 'sirv_images';
+      $delete = $wpdb->query("TRUNCATE TABLE $images_t");
+    }
+
+    return $new_value;
   }
 
-  $sirvAPIClient = sirv_getAPIClient();
-  $isRenamed = $sirvAPIClient->renameFile('/' . $old_value, '/' . $new_value);
-
-  if(!$isRenamed){
-    $isCreated = $sirvAPIClient->createFolder($new_value . '/');
-  }
-
-
-  if($isRenamed || $isCreated){
-    $sirvAPIClient->setFolderOptions($new_value, array('scanSpins' => false));
-
-    global $wpdb;
-    $images_t = $wpdb->prefix . 'sirv_images';
-    $delete = $wpdb->query("TRUNCATE TABLE $images_t");
-  }
-
-  return $new_value;
+  return $old_value;
 }
 
 //clear all cache if disable ttl
@@ -3566,7 +3571,7 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
       } else {
         $wpdb->update($sirv_images_t, array(
           'status' => 'FAILED',
-          'error_type' => $file['error_type'],
+          'error_type' => isset($file['error_type']) ? $file['error_type'] : null,
         ), array('attachment_id' => $attachment_id));
 
         return '';
@@ -7099,9 +7104,13 @@ function sirv_update_smv_cache(){
 function sirv_get_view_cache_info(){
   global $wpdb;
 
+  $query_statuses = "'" . implode("', '", array('publish', 'draft', 'private', 'future', 'pending')) . "'";
+  $excluded_statuses = "'" . implode("', '", array('trash', 'auto-draft')) . "'";
+
+
   //$prod_count = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->posts WHERE `post_type`='product' AND `post_status` IN ('publish', 'draft')");
   //$variation_count = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->posts WHERE `post_type`='product_variation' AND `post_status` IN ('publish', 'draft')");
-  $total_products = (int) $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->posts WHERE `post_type` IN ('product','product_variation') AND `post_status` IN ('publish', 'draft')");
+  $total_products = (int) $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->posts WHERE `post_type` IN ('product','product_variation') AND `post_status` NOT IN ($excluded_statuses)");
   $view_cache_data = $wpdb->get_results("SELECT meta_value as status, COUNT(*) as count FROM $wpdb->postmeta WHERE `meta_key` = '_sirv_woo_viewf_status' GROUP BY `meta_value`", ARRAY_A);
   //$synced = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->postmeta WHERE `meta_key` = '_sirv_woo_viewf_status'");
 
@@ -7169,8 +7178,45 @@ function sirv_sync_view_files(){
   }
 
 
-  echo json_encode(sirv_get_view_cache_info() );
+  echo json_encode(sirv_get_view_cache_info());
   wp_die();
 }
+
+
+add_action('wp_ajax_sirv_clear_old_view_files_cache', 'sirv_clear_old_view_files_cache');
+function sirv_clear_old_view_files_cache(){
+  if (!(is_array($_POST) && defined('DOING_AJAX') && DOING_AJAX)) {
+    echo json_encode(array('error' => 'Action denied'));
+    wp_die();
+  }
+
+  if (!sirv_is_allow_ajax_connect('ajax_validation_nonce', 'manage_options')) {
+    echo json_encode(array('error' => 'Access to the requested resource is forbidden'));
+    wp_die();
+  }
+
+  global $wpdb;
+  $response = array();
+
+  $query = "DELETE FROM $wpdb->postmeta WHERE post_id NOT IN (SELECT ID FROM $wpdb->posts WHERE `post_type` IN ('product','product_variation') AND `post_status` IN ('publish','draft','private','future','pending')) AND meta_key IN ('_sirv_woo_viewf_data', '_sirv_woo_viewf_status');";
+
+  $result = $wpdb->query($query);
+
+  if ( $result === false ) {
+    $response['error'] = $wpdb->last_error;
+    echo json_encode($response);
+    wp_die();
+  }
+
+  if ( $result > 0 ) {
+    $response['cache_data'] = sirv_get_view_cache_info();
+  }
+
+  $response['rows_affected'] = $result;
+
+  echo json_encode($response);
+  wp_die();
+}
+
 
 ?>

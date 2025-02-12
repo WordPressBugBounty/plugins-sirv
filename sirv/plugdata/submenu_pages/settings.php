@@ -88,20 +88,29 @@
         <input type="hidden" id="sirv-choose-domain-hidden" name="SIRV_CDN_URL" value="<?php echo $sirvCDNurl; ?>">
       <?php } ?>
       <tr>
+        <?php
+          $sirv_folder = get_option('SIRV_FOLDER');
+        ?>
         <th>
           <label>Folder name on Sirv</label>
         </th>
-        <td colspan="2" style="padding: 0;">
-          <?php
-          $sirv_folder = get_option('SIRV_FOLDER');
-          ?>
-          <p class="sirv-viewble-option"><span class="sirv--grey"><?php echo htmlspecialchars($sirvCDNurl); ?>/</span><?php echo htmlspecialchars($sirv_folder); ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="sirv-option-edit" href="#">Change</a></p>
-          <p class="sirv-editable-option" style="display: none;">
-            <span class="sirv--grey"><?php echo htmlspecialchars($sirvCDNurl); ?>/</span><input class="regular-text" type="text" name="SIRV_FOLDER" value="<?php echo htmlspecialchars($sirv_folder); ?>">
-          </p>
-          <br>
-          <div class="sirv-message warning-message sirv-hide sirv-warning-on-folder-change">
-            <span style="font-size: 15px;font-weight: 800;">Important!</span><br>Changing folder name will clear the image cache, so images will re-synchronize on first request or use <a class="sirv-show-sync-tab">Sync Images</a> to pre-sync entire library.
+        <td style="padding-top:0;">
+          <div class="sirv-text-to-input-option">
+            <div class="sirv-text-to-input-option-option">
+              <div class="sirv-text-to-input-option-text-part">
+                <div>
+                  <span class="sirv--grey"><?php echo htmlspecialchars($sirvCDNurl); ?>/</span><?php echo htmlspecialchars($sirv_folder); ?>
+                </div>
+                <a class="sirv-option-edit" href="#">Change</a>
+              </div>
+              <div class="sirv-text-to-input-option-input-part" style="display: none;">
+                <span class="sirv--grey"><?php echo htmlspecialchars($sirvCDNurl); ?>/</span>
+                <input class="regular-text" type="text" name="SIRV_FOLDER" value="<?php echo htmlspecialchars($sirv_folder); ?>">
+              </div>
+            </div>
+            <div class="sirv-message warning-message sirv-hide sirv-warning-on-folder-change">
+              <span style="font-size: 15px;font-weight: 800;">Important!</span><br>Changing folder name will clear the image cache, so images will re-synchronize on first request or use <a class="sirv-show-sync-tab">Sync Images</a> to pre-sync entire library.
+            </div>
           </div>
         </td>
       </tr>
@@ -148,9 +157,8 @@
   </table>
 </div>
 
-<div class="sirv-profiles-wrapper">
-  <!-- profiles options-->
-  <h2>Image settings</h2>
+<div class="sirv-lazy-loading-wrapper">
+  <h2>Lazy loading & image scaling</h2>
   <?php
   $useSirvResponsiveOption = get_option('SIRV_USE_SIRV_RESPONSIVE');
   $isShowPlaceholder = $useSirvResponsiveOption == '1' ? true : false;
@@ -160,7 +168,7 @@
     <table class="optiontable form-table">
       <tr>
         <th>
-          <label style="padding-bottom: 10px;">Lazy loading</label>
+          <label style="padding-bottom: 10px;">Lazy loading & image scaling</label>
         </th>
         <td>
           <label>
@@ -186,6 +194,38 @@
           <span class="sirv-option-responsive-text">Display background while image loads.</span>
         </td>
       </tr>
+      <tr>
+        <th>
+          <label>Disable lazy loading & image scaling</label>
+        </th>
+        <td>
+          <span>Disable lazy loading & responsive scaling on specific images, such as your website logo:</span>
+          <textarea class="sirv-font-monospace" name="SIRV_EXCLUDE_RESPONSIVE_FILES" value="<?php echo get_option('SIRV_EXCLUDE_RESPONSIVE_FILES'); ?>" rows="6" placeholder="e.g.
+  /wp-content/uploads/2021/04/Logo.jpg
+  /wp-content/plugins/a-plugin/*.png
+  ExampleClass
+  ExampleAltTag
+  ExampleID"><?php echo get_option('SIRV_EXCLUDE_RESPONSIVE_FILES'); ?></textarea>
+          <span class="sirv-option-responsive-text">
+            Enter file path starting with /wp-content/or use * to apply on all files with a certain path/name.
+            You can also exclude images via their img alt, class or data attribute. <a href="https://sirv.com/help/articles/using-sirv-wordpress/#disable-lazy-loading-and-responsive-scaling">Learn more</a>.
+          </span>
+        </td>
+      </tr>
+      <tr>
+        <th>
+        </th>
+        <td><input type="submit" name="submit" class="button-primary sirv-save-settings" value="<?php _e('Save Settings') ?>" /></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div class="sirv-profiles-wrapper">
+  <!-- profiles options-->
+  <h2>Image settings</h2>
+  <div class="sirv-optiontable-holder">
+    <table class="optiontable form-table">
       <tr>
         <th>
           <label>Image profile</label>
@@ -442,24 +482,6 @@ var SirvOptions = {
             <span class="sirv-option-responsive-text">
               You can enter full URLs and the domain will be stripped.<br>
               Use * to specify all pages at a certain path.
-            </span>
-          </td>
-        </tr>
-        <tr>
-          <th>
-            <label>Exclude lazy/scaled images</label>
-          </th>
-          <td>
-            <span>Disable lazy loading & responsive scaling on specific images, such as your website logo:</span>
-            <textarea class="sirv-font-monospace" name="SIRV_EXCLUDE_RESPONSIVE_FILES" value="<?php echo get_option('SIRV_EXCLUDE_RESPONSIVE_FILES'); ?>" rows="5" placeholder="e.g.
-  /wp-content/uploads/2021/04/Logo.jpg
-  /wp-content/plugins/a-plugin/*.png
-  ExampleClass
-  ExampleAltTag
-  ExampleID"><?php echo get_option('SIRV_EXCLUDE_RESPONSIVE_FILES'); ?></textarea>
-            <span class="sirv-option-responsive-text">
-              Enter file path or use * to apply on all files with a certain path/name.
-              You can also exclude images via their img alt, class or data attribute. <a href="https://sirv.com/help/articles/using-sirv-wordpress/#disable-lazy-loading-and-responsive-scaling">Learn more</a>.
             </span>
           </td>
         </tr>

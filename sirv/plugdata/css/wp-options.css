@@ -70,7 +70,10 @@ nav.nav-tab-wrapper {
     display: inline-block;
 }
 
-.sirv-miscellaneous-wrapper label, .sirv-profiles-wrapper label, .sirv-network-wrapper label {
+.sirv-miscellaneous-wrapper label,
+.sirv-lazy-loading-wrapper label,
+.sirv-profiles-wrapper label,
+.sirv-network-wrapper label {
     display: block;
 }
 
@@ -618,28 +621,8 @@ input.cmn-toggle-round:checked+label+span:before {
 }
 
 .sirv--grey{
+    font-size: 15px;
     color: #a1a1a1;
-}
-
-.sirv-viewble-option{
-    font-size: 15px !important;
-}
-
-.sirv-editable-option input[type="text"]{
-    width: auto !important;
-}
-
-.sirv-viewble-option, .sirv-editable-option{
-    margin: 0 !important;
-    /* line-height: 14px; */
-}
-
-.sirv-viewble-option{
-    padding: 7px;
-}
-
-.sirv-editable-option{
-    padding: 5px;
 }
 
 .sirv-sync-images-progress-text {
@@ -1153,6 +1136,7 @@ p.sirv-options-desc {
 .sirv-network-wrapper label,
 .sirv-miscellaneous-wrapper label,
 .sirv-profiles-wrapper label,
+.sirv-lazy-loading-wrapper label,
 .sirv-woo-settings label {
     padding-bottom: 5px;
 }
@@ -2232,7 +2216,7 @@ input[name=SIRV_EMAIL]:focus::placeholder {
     background-color: #F37152;
 }
 
-/*------------------Sirv progress bar component END--------------------------*/
+/*-----------------------------Sirv progress bar component END---------------------------------------*/
 
 /*--------------------------------empty-view-cache-option--------------------------------------------*/
 .sirv-view-cache-option-toolbar {
@@ -2244,6 +2228,7 @@ input[name=SIRV_EMAIL]:focus::placeholder {
     display: flex;
     flex-direction: column;
     gap: 5px;
+    margin-top: 10px;
 }
 
 .sirv-show-view-cache-row {
@@ -2253,3 +2238,28 @@ input[name=SIRV_EMAIL]:focus::placeholder {
     height: 20px;
 }
 /*--------------------------------empty-view-cache-option END----------------------------------------*/
+
+/*--------------------------------sirv-text-to-input-option------------------------------------------*/
+.sirv-text-to-input-option {
+    display: flex;
+    flex-direction: column;
+}
+
+.sirv-text-to-input-option-text-part {
+    display: flex;
+    gap: 10px;
+    line-height: 38px;
+}
+
+.sirv-text-to-input-option-input-part {
+    display: flex;
+    align-content: center;
+    align-items: center;
+    flex-direction: row;
+    line-height: 38px;
+}
+
+.sirv-text-to-input-option-input-part input {
+    padding-left: 2px;
+}
+/*----------------------------sirv-text-to-input-option EMD------------------------------------------*/

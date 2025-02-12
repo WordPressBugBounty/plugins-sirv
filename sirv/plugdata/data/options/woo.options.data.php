@@ -28,6 +28,8 @@ $ttl = array(
   '1 month' => 30 * 24 * 60 * 60,
 );
 
+$sirvCDNurl = get_option('SIRV_CDN_URL');
+
 $smv_options = array(
   'SIRV_WOO_IS_ENABLE' => array(
     'enabled_option' => true,
@@ -164,12 +166,13 @@ $content_options = array(
   'SIRV_WOO_VIEW_FOLDER_STRUCTURE' => array(
     'enabled_option' => true,
     'option_name' => 'SIRV_WOO_VIEW_FOLDER_STRUCTURE',
-    'label' => 'Product folders',
-    'type' => 'input',
-    'func' => 'render_text_option',
+    'label' => 'Sirv folder for products',
+    'type' => 'custom',
+    'func' => 'render_text_to_input_option',
     'value' => '',
     'below_text' => 'Possible variables: {product-sku}, {product-id}',
     'default' => 'products/{product-sku}',
+    'const_text' => $sirvCDNurl .'/',
     'default_type' => 'str',
     'attrs' => array(
       'type' => 'text',
@@ -180,51 +183,19 @@ $content_options = array(
   'SIRV_WOO_VIEW_FOLDER_VARIATION_STRUCTURE' => array(
     'enabled_option' => true,
     'option_name' => 'SIRV_WOO_VIEW_FOLDER_VARIATION_STRUCTURE',
-    'label' => 'Variation folders',
-    'type' => 'input',
-    'func' => 'render_text_option',
+    'label' => 'Sirv folder for variations',
+    'type' => 'custom',
+    'func' => 'render_text_to_input_option',
     'value' => '',
     'below_text' => 'Possible variables: {product-sku}, {product-id}, {variation-sku}, {variation-id}',
     'default' => 'products/{product-sku}-{variation-sku}',
+    'const_text' => $sirvCDNurl . '/',
     'default_type' => 'str',
     'attrs' => array(
       'type' => 'text',
       'placeholder' => 'products/{product-sku}-{variation-sku}',
       'value' => ''
     ),
-  ),
-  'SIRV_WOO_MAIN_PRODUCT_IMAGE_FROM_VIEW_FILE' => array(
-    'enabled_option' => true,
-    'option_name' => 'SIRV_WOO_MAIN_PRODUCT_IMAGE_FROM_VIEW_FILE',
-    'label' => 'Auto-map primary image',
-    //'desc' => 'Some text here',
-    'below_text' => 'Save time by uploading images to Sirv - the plugin can add them to your WooCommerce products and variants by matching the SKU to the folder name.',
-    'type' => 'radio',
-    'func' => 'render_radio_option',
-    'is_new_line' => true,
-    'value' => '',
-    'values' => array(
-      array(
-        'label' => 'Enable',
-        'check_data_type' => 'checked',
-        'attrs' => array(
-          'type' => 'radio',
-          'value' => 'on',
-        ),
-      ),
-      array(
-        'label' => 'Disable',
-        'check_data_type' => 'checked',
-        'attrs' => array(
-          'type' => 'radio',
-          'value' => 'off',
-        ),
-      ),
-    ),
-    'default' => 'off',
-    'default_type' => 'str',
-    'show_status' => false,
-    'enabled_value' => 'on',
   ),
   'SIRV_WOO_TTL' => array(
     'enabled_option' => true,
@@ -276,6 +247,42 @@ $content_options = array(
     'button_val' => 'Empty cache',
     'button_class' => 'sirv-clear-view-cache-table',
     'data_provider' => 'sirv_get_view_cache_info',
+  ),
+);
+
+$view_files_options = array(
+  'SIRV_WOO_MAIN_PRODUCT_IMAGE_FROM_VIEW_FILE' => array(
+    'enabled_option' => true,
+    'option_name' => 'SIRV_WOO_MAIN_PRODUCT_IMAGE_FROM_VIEW_FILE',
+    'label' => 'Host product images on Sirv only<sup><span style="color: orange;">beta</span></sup>',
+    //'desc' => 'Some text here',
+    'below_text' => 'Save time by uploading images to Sirv - the plugin can add them to your WooCommerce products and variants by matching the SKU to the folder name.',
+    'type' => 'radio',
+    'func' => 'render_radio_option',
+    'is_new_line' => true,
+    'value' => '',
+    'values' => array(
+      array(
+        'label' => 'Enable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'on',
+        ),
+      ),
+      array(
+        'label' => 'Disable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'off',
+        ),
+      ),
+    ),
+    'default' => 'off',
+    'default_type' => 'str',
+    'show_status' => false,
+    'enabled_value' => 'on',
   ),
 );
 
@@ -1092,13 +1099,20 @@ $options = array(
     "options" => $smv_options
   ),
   "CONTENT" => array(
-    "title" => 'Content from Sirv',
+    "title" => 'Product folders on Sirv',
     "description" => 'Easily add images, videos and 360 spins to your gallery - simply upload them to your Sirv account, in folders named after your product SKUs or IDs.
 
 Upload files at <a href="https://my.sirv.com/" target="_blank">my.sirv.com</a> or by <a href="https://my.sirv.com/#/account/settings/api" target="_blank">FTP</a>.',
     "id" => 'woo-content',
     "show_save_button" => true,
     "options" => $content_options
+  ),
+  "VIEW_FILES" => array(
+    "id" => 'woo-view-files',
+    "title" => 'Upload to Sirv only',
+    "description" => 'For a fast workflow, upload all your product images to Sirv, instead of WooCommerce. It\'s easy to upload and manage all your images, videos, spins and models on Sirv either at my.sirv.com or by FTP, S3 or our API. The Sirv plugin will automatically show the images on your website and in WooCommerce admin.',
+    "show_save_button" => true,
+    "options" => $view_files_options,
   ),
   "ORDER" => array(
     "title" => 'Gallery content',

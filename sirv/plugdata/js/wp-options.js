@@ -832,7 +832,7 @@ jQuery(function ($) {
 
             $p = $(this).parent();
             $p.hide();
-            $p.next('p').show();
+            $p.siblings().show();
         }
 
 
@@ -1667,6 +1667,55 @@ jQuery(function ($) {
 
             manageElement(".sirv-sync-view-files-action", disableFlag = false, text = 'Sync Sirv folders');
             $(".sirv-sync-view-files-action").removeClass('sirv-sync-view-files-action__stop').addClass('sirv-sync-view-files-action__start');
+        }
+
+
+        $(".sirv-clean-old-view-cache").on('click', clearOldViewFilesCache);
+        function clearOldViewFilesCache(e){
+            e.preventDefault();
+
+            $button = $(this);
+
+
+            $.ajax({
+                url: ajaxurl,
+                data: {
+                    action: 'sirv_clear_old_view_files_cache',
+                    _ajax_nonce: sirv_options_data.ajaxnonce,
+                },
+                type: 'POST',
+                dataType: "json",
+                beforeSend: function (){
+                    $button.prop('disabled', true);
+                    $button.html('<span class="sirv-traffic-loading-ico"></span>Deleting...');
+                },
+            }).done(function (res) {
+                //debug
+                //console.log(res);
+
+                if(!!res.error){
+                    $(".sirv-show-view-cache-messages").empty();
+                    showMessage(".sirv-show-view-cache-messages", res.error, 'sirv-show-view-cache-message-id');
+                    return;
+                }
+
+                if(!!res.rows_affected){
+                    $(".sirv-show-view-cache-messages").empty();
+                    showMessage(".sirv-show-view-cache-messages", `${res.rows_affected} record(s) has been deleted`, 'sirv-show-view-cache-message-id', 'ok');
+
+                    if(!!res.cache_data){
+                        updateViewSyncData(res.cache_data);
+                    }
+                }
+
+            }).fail(function (jqXHR, status, error) {
+                console.error("status: ", status);
+                console.error("Error message: " + error);
+                console.error("http code", `${jqXHR.status} ${jqXHR.statusText}`);
+
+                $(".sirv-show-view-cache-messages").empty();
+                showAjaxErrorMessage(jqXHR, status, error, '.sirv-show-view-cache-messages', 'sirv-show-view-cache-message-id');
+            });
         }
 
 
@@ -2678,10 +2727,6 @@ jQuery(function ($) {
                     $(".sirv-compressed-js-val").text(`${res.compressed_s} (unzipped ${res.uncompressed_s})`);
                     sirvJsCompressedSizes[modules] = {compressed_s: res.compressed_s, uncompressed_s: res.uncompressed_s};
                 }
-
-
-
-
             }).fail(function (jqXHR, status, error) {
                 $(".sirv-compressed-js-spinner").hide();
 

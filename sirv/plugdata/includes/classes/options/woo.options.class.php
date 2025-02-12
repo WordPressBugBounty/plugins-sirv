@@ -9,12 +9,21 @@ class Woo_options extends Options_generator{
     $without_content = 0;
     $with_content = 0;
 
+    $old_cache_msg = '';
+
     if (isset($option['data_provider']) && !empty($option['data_provider'])) {
       $sync_data = call_user_func($option['data_provider']);
       $content = (int) $sync_data['view_cache']['SUCCESS'];
       $no_content = (int) $sync_data['view_cache']['EMPTY'] + (int) $sync_data['view_cache']['FAILED'];
       $total = (int) $sync_data['total'];
       $unsynced = $total - (int) $sync_data['synced'];
+
+      if ( $unsynced < 0 ){
+        $unsynced  = 0;
+
+        $old_cache_msg = '<div id="sirv-show-view-cache-message-id" class="sirv-message warning-message">The plugin detected cached URLs from old products. You may wish to clear them: <button class="button-primary sirv-clean-old-view-cache">Clear old cache</button></div>';
+      }
+
 
       $option['values'][0]['label'] = $option['values'][0]['label'] . ' (<span class="' . $option['option_name'] . '-' . $option['values'][0]['attrs']['value'] . '">' . $with_content . '</span>)';
       $option['values'][1]['label'] = $option['values'][1]['label'] . ' (<span class="' . $option['option_name'] . '-' . $option['values'][1]['attrs']['value'] . '">' . $without_content . '</span>)';
@@ -25,7 +34,7 @@ class Woo_options extends Options_generator{
     <tr>
       ' . self::render_option_title($option['label']) . '
       <td>
-        <div class="sirv-show-view-cache-messages"></div>
+        <div class="sirv-show-view-cache-messages">'. $old_cache_msg .'</div>
         <div class="sirv-show-view-cache-table">
           <div class="sirv-show-view-cache-row">
             <div class="sirv-show-view-cache-col">Products with content</div>
@@ -60,7 +69,7 @@ class Woo_options extends Options_generator{
     <tr>
     <th></th>
       <td style="color: #666666;">
-          The filenames of content in your Sirv folders is cached. If you see any outdated content, clear the cache and also your page cache.
+          The content of your Sirv folders is cached (file URLs only). If you see outdated content, clear this cache, then your page cache.
       </td>
     </tr>';
 

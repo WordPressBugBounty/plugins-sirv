@@ -94,6 +94,42 @@ class Options_components extends HTML_form_components{
   }
 
 
+  protected static function render_text_to_input_option($option){
+    $above_text = (isset($option['above_text']) && $option['above_text']) ? self::render_above_text($option['above_text']) : '';
+    $below_text = (isset($option['below_text']) && $option['below_text']) ? self::render_below_text($option['below_text']) : '';
+    $html = '
+      <tr>
+        ' . self::render_option_title($option['label']) . '
+        <td style="padding-top:0;">
+          <div class="sirv-text-to-input-option">
+            <div class="sirv-text-to-input-option_above-text">
+              ' . $above_text . '
+            </div>
+            <div class="sirv-text-to-input-option-option">
+              <div class="sirv-text-to-input-option-text-part">
+                <div>
+                  <span class="sirv--grey">' . htmlspecialchars($option['const_text']) . '</span>' . htmlspecialchars($option['value']) . '
+                </div>
+                <a class="sirv-option-edit" href="#">Change</a>
+              </div>
+              <div class="sirv-text-to-input-option-input-part" style="display: none;">
+                <span class="sirv--grey">' . htmlspecialchars($option['const_text']) . '</span>
+                ' . self::render_text_component($option) . '
+              </div>
+            </div>
+            <div class="sirv-text-to-input-option_below-text">
+              ' . $below_text . '
+            </div>
+          </div>
+        </td>
+        ' . PHP_EOL . self::render_tooltip($option) . '
+      </tr>
+    ';
+
+    return $html;
+  }
+
+
   /* protected static function get_dependence($option){
     $dep_html = array('hide' => '', 'disable' => '');
     if (
