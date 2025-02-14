@@ -1115,14 +1115,14 @@ Upload files at <a href="https://my.sirv.com/" target="_blank">my.sirv.com</a> o
     "options" => $view_files_options,
   ),
   "ORDER" => array(
-    "title" => 'Gallery content',
+    "title" => 'Product page gallery content',
     "description" => 'Choose which items to show and what order thumbnails should appear in.',
     "id" => 'woo-order',
     "show_save_button" => true,
     "options" => $order_options
   ),
   "DESIGN" => array(
-    "title" => 'Gallery settings',
+    "title" => 'Product page gallery settings',
     "description" => 'Go to the <a href="https://sirv.com/help/viewer/" target="_blank">Sirv Media Viewer designer</a> to create the perfect experience for your store. ',
     "id" => 'woo-design',
     "show_save_button" => true,

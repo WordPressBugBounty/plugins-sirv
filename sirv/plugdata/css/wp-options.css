@@ -2263,3 +2263,7 @@ input[name=SIRV_EMAIL]:focus::placeholder {
     padding-left: 2px;
 }
 /*----------------------------sirv-text-to-input-option EMD------------------------------------------*/
+
+label sup, h2 sup {
+    margin-left: 5px;
+}

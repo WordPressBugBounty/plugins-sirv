@@ -5,7 +5,7 @@ Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
 Tested up to: 6.7.2
-Stable tag: 7.5.1
+Stable tag: 7.5.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -223,11 +223,16 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 == Changelog ==
 
+= 7.5.2 (2025-02-14) =
+* Fixed an issue where Sirv Media Viewer could not be activated for category pages.
+* Optimized parsing logic for mass-synchronization of folders.
+* Small visual improvements to WooCommerce settings.
+
 = 7.5.1 (2025-02-12) =
 * Tested with the latest WordPress version 6.7.2.
-* Fixed issue with incorrect saving of additional path for "Folder name on Sirv". Please check that the path is correct.
-* Imroved calculating for "Sirv content cache" option.
-* Improved plugin settings page.
+* Fixed issue with incorrect saving of "Folder name on Sirv". Please check that your path is correct.
+* Improved calculation of total products in "Sirv content cache" option.
+* Improved plugin settings page layout.
 
 = 7.5.0 (2025-02-07) =
 * Added option to use Sirv smart gallery to populate WooCommerce product media (before worked automatically). Enabled by default. If you don't use it, please disable it for best optimization.

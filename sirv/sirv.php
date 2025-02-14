@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           7.5.1
+ * Version:           7.5.2
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '7.5.1');
+define('SIRV_PLUGIN_VERSION', '7.5.2');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -168,7 +168,7 @@ function sirv_wc_init(){
   global $sirv_woo_cat_is_enable;
   global $pagenow;
 
-  $sirv_woo_cat_is_enable = sirv_is_enable_option('SIRV_WOO_IS_ENABLE', 'enable');
+  $sirv_woo_cat_is_enable = sirv_is_enable_option('SIRV_WOO_CAT_IS_ENABLE', 'enabled');
 
   if (in_array($pagenow, array('post-new.php', 'post.php'))) {
     $woo = new Woo;
@@ -7138,10 +7138,12 @@ function sirv_get_view_cache_info(){
 function sirv_get_view_files_unsynced_products($limit=10){
   global $wpdb;
 
+  $excluded_statuses = "'" . implode("', '", array('trash', 'auto-draft')) . "'";
+
   $get_not_synced_products_ids = $wpdb->get_results(
     "SELECT id, post_type FROM $wpdb->posts WHERE id
     NOT IN (SELECT post_id FROM $wpdb->postmeta WHERE `meta_key` = '_sirv_woo_viewf_status')
-    AND `post_type` IN ('product','product_variation') AND `post_status` IN ('publish', 'draft')
+    AND `post_type` IN ('product','product_variation') AND `post_status` NOT IN ($excluded_statuses)
     LIMIT $limit",
     ARRAY_A
   );
@@ -7167,6 +7169,8 @@ function sirv_sync_view_files(){
     wp_die();
   }
 
+  $error = null;
+
   $unsynced_products = sirv_get_view_files_unsynced_products();
 
   if ( !empty($unsynced_products) ) {
@@ -7175,10 +7179,17 @@ function sirv_sync_view_files(){
     foreach ($unsynced_products as $product) {
       $woo->get_sirv_remote_data($product['id'], $product['post_type'] == 'product_variation');
     }
+  } else {
+    $error = 'Some products could not be found. If progress does not reach 100%, please <a href="https://sirv.com/help/support/#support" target="_blank">tell the Sirv support team</a>';
   }
 
+  $response = sirv_get_view_cache_info();
 
-  echo json_encode(sirv_get_view_cache_info());
+  if ( $error ) {
+    $response['error'] = $error;
+  }
+
+  echo json_encode($response);
   wp_die();
 }
 

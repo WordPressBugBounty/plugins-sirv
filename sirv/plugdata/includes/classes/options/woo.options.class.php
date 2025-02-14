@@ -69,7 +69,7 @@ class Woo_options extends Options_generator{
     <tr>
     <th></th>
       <td style="color: #666666;">
-          The content of your Sirv folders is cached (file URLs only). If you see outdated content, clear this cache, then your page cache.
+          The URLs of Sirv content are cached. If you see outdated content, clear this cache, then your page cache.
       </td>
     </tr>';
 
