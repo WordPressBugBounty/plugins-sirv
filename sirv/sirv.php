@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           7.5.2
+ * Version:           7.5.3
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '7.5.2');
+define('SIRV_PLUGIN_VERSION', '7.5.3');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -33,7 +33,6 @@ define("IS_DEBUG", false);
 
 require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/logger.class.php');
 require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/error.class.php');
-require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/woo.class.php');
 require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/wc.product.helper.class.php');
 require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/options-service.class.php');
 require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/exclude.class.php');
@@ -2137,7 +2136,7 @@ function sirv_builder_render_css($css, $nodes, $global_settings){
 }
 
 
-add_filter('rest_request_before_callbacks', 'sirv_rest_request_before_callbacks', 10, 4);
+add_filter('rest_request_before_callbacks', 'sirv_rest_request_before_callbacks', 10, 3);
 function sirv_rest_request_before_callbacks($response, $handler, $request){
   global $sirv_is_rest_rejected;
 
@@ -2835,7 +2834,7 @@ function sirv_get_parametrized_url($sirv_url, $size = null, $isCrop=false){
   $url_images_path = $uploads_dir_info['baseurl'] . '/';
   //$sirv_url = preg_replace('/(^[^\s]*?)\-([0-9]{1,}(?:x|&#215;)[0-9]{1,})(\.[a-z]{3,4})/i', "$1$3", $sirv_url);
   $sirv_image = str_replace($url_images_path, '', $sirv_url);
-  $sirv_image = htmlentities($sirv_image);
+  $sirv_image = htmlentities(html_entity_decode($sirv_image));
 
   $sirv_image = sirv_clean_get_params($sirv_image);
   $sirv_item_type_data = SirvProdImageHelper::get_sirv_item_type($sirv_image);
@@ -3666,10 +3665,6 @@ function sirv_generate_sirv_item_db_data($sirv_url, $attachment_id){
     $error = $response["error"];
 
     $error_num = sirv_get_error_num($error, 7);
-
-    sirv_qdebug("Error during checking if sirv( wc product/variation) exists on the Sirv server");
-    sirv_qdebug($sirv_url, 'sirv url:');
-    sirv_qdebug($error, 'Error message:');
   }
 
   if ($response["result"] && !$error) {
@@ -4312,10 +4307,6 @@ function sirv_is_item_exist_on_sirv_server($sirv_url){
 
   if ( !empty($response["error"]) ) {
     $error = $response["error"];
-
-    sirv_qdebug("Error during checking if image exist on the Sirv server");
-    sirv_qdebug($sirv_url, 'sirv url:');
-    sirv_qdebug($error, 'Error message:');
   }
 
   if( $response["result"] && !$error ){
@@ -4435,11 +4426,23 @@ function sirv_getGarbage(){
 }
 
 
+function sirv_convert_errors_to_assoc_array($errors){
+  $assoc_errors = array();
+
+  foreach ($errors as $error) {
+    $assoc_errors[$error["id"]] = $error["error_msg"];
+  }
+
+  return $assoc_errors;
+}
+
+
 add_action('wp_ajax_sirv_get_errors_info', 'sirv_getErrorsInfo');
 function sirv_getErrorsInfo(){
 
   if (!(defined('DOING_AJAX') && DOING_AJAX)) {
-    return;
+    echo json_encode(array('error' => 'Ajax action did not start'));
+    wp_die();
   }
 
   if (!sirv_is_allow_ajax_connect('ajax_validation_nonce', 'manage_options')) {
@@ -4448,31 +4451,28 @@ function sirv_getErrorsInfo(){
   }
 
   $errors = FetchError::get_errors_from_db();
-  //$file_size_fetch_limit = empty((int) get_option('SIRV_FETCH_MAX_FILE_SIZE')) ?  '' : ' (' . Utils::getFormatedFileSize(get_option('SIRV_FETCH_MAX_FILE_SIZE')) . ')';
-  //$file_size_fetch_limit = ' (' . Utils::getFormatedFileSize(32000000) . ')';
-  $file_size_fetch_limit = ' (32 MB)';
+  $errors = sirv_convert_errors_to_assoc_array($errors);
   $errData = array();
 
   global $wpdb;
 
-  $t_error = $wpdb->prefix . 'sirv_images';
+  $sirv_table = $wpdb->prefix . 'sirv_images';
 
   $errors_desc = FetchError::get_errors_desc();
 
+  $failed_images_count_by_error = $wpdb->get_results("SELECT error_type, count(*) as count FROM $sirv_table WHERE status = 'FAILED' GROUP BY error_type", ARRAY_A);
 
+  foreach ($failed_images_count_by_error as $error) {
+    $error_id = (int) $error['error_type'];
+    $error_msg = isset($errors[$error_id]) ? $errors[$error_id] : 'Unknown error';
 
-  foreach ($errors as $error) {
-    if ((int)$error['id'] == 2) {
-      $error['error_msg'] .= $file_size_fetch_limit;
+    if ( $error_id == 2) {
+      $error_msg .= ' (32 MB)';
     }
-    $count = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $t_error WHERE status = 'FAILED' AND error_type = %d", $error['id']));
-    $errData[$error['error_msg']]['count'] =  (int)$count;
-    $errData[$error['error_msg']]['error_id'] =  (int)$error['id'];
-    try {
-      $errData[$error['error_msg']]['error_desc'] = $errors_desc[(int) $error['id']];
-    } catch (Exception $e) {
-      continue;
-    }
+
+    $errData[$error_msg]['count'] = $error['count'];
+    $errData[$error_msg]['error_id'] = $error_id;
+    $errData[$error_msg]['error_desc'] = isset($errors_desc[$error_id]) ? $errors_desc[$error_id] : '';
   }
 
   echo json_encode($errData);
@@ -4485,12 +4485,16 @@ function sirv_getStorageInfo($force_update = false){
 
   $cached_stat = get_option('SIRV_STAT');
 
-  if (!empty($cached_stat) && !$force_update) {
+  if ( !empty($cached_stat) && !$force_update ) {
     $storageInfo = @unserialize($cached_stat);
     if (is_array($storageInfo) && time() - $storageInfo['time'] < 60 * 60) {
       $storageInfo['data']['lastUpdate'] = date("H:i:s e", $storageInfo['time']);
 
-      $storageInfo["data"]["limits"] = sirv_filter_limits_info($storageInfo["data"]["limits"], $hided_apies);
+      if ( isset($storageInfo["data"]["limits"]) ) {
+        $storageInfo["data"]["limits"] = sirv_filter_limits_info($storageInfo["data"]["limits"], $hided_apies);
+      } else {
+        $storageInfo["data"]["limits"] = array();
+      }
 
       return $storageInfo['data'];
     }
@@ -4508,8 +4512,12 @@ function sirv_getStorageInfo($force_update = false){
 
   $storageInfo['lastUpdate'] = date("H:i:s e",  $lastUpdateTime);
 
-  //remove hided apies
-  $storageInfo["limits"] = sirv_filter_limits_info($storageInfo["limits"], $hided_apies);
+  if ( isset($storageInfo["limits"]) ) {
+    //remove hided apies
+    $storageInfo["limits"] = sirv_filter_limits_info($storageInfo["limits"], $hided_apies);
+  } else {
+    $storageInfo["limits"] = array();
+  }
 
   update_option('SIRV_STAT', serialize(array(
     'time'  => $lastUpdateTime,
@@ -5982,7 +5990,10 @@ function sirv_get_correct_img_path($img_path, $sirv_path, $url_images_path){
   $isError = in_array($img_path, $err_msgs) ? true : false;
   $full_path = $url_images_path . $img_path;
 
-  return ($isError || stripos($img_path, 'http') !== false) ? $img_path : "<a href=\"{$full_path}\" target=\"_blank\">{$full_path}</a>";
+
+  $link_tag = stripos($img_path, 'http') !== false ? "<a href=\"{$img_path}\" target=\"_blank\">{$img_path}</a>" : "<a href=\"{$full_path}\" target=\"_blank\">{$full_path}</a>";
+
+  return $isError ? $img_path : $link_tag;
 }
 
 
@@ -6887,7 +6898,7 @@ function sirv_thumbs_process(){
   global $wpdb;
   $images_t = $wpdb->prefix . 'sirv_images';
 
-  $results = $wpdb->get_results($wpdb->prepare("SELECT id, attachment_id FROM $images_t WHERE id > %d AND status = 'SYNCED' ORDER BY id ASC LIMIT $limit", $thumbs_data['last_id']), ARRAY_A);
+  $results = $wpdb->get_results($wpdb->prepare("SELECT id, attachment_id FROM $images_t WHERE id > %d AND status = 'SYNCED' AND img_path != 'sirv_item' ORDER BY id ASC LIMIT $limit", $thumbs_data['last_id']), ARRAY_A);
 
   $synced_cache_count = sirv_get_synced_count();
 
@@ -7017,15 +7028,23 @@ function sirv_get_js_module_size(){
 function sirv_get_js_compressed_size($url){
   $sizes = array("compressed" => null, "uncompressed" => null, 'error' => null);
 
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  curl_setopt($ch, CURLOPT_ENCODING, '');
-  curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+  $cache = sirv_get_transient_cache('sirv_js_compressed_sizes');
+
+  if ( isset($cache[$url]) ) return $cache[$url];
+
+  $curl = curl_init($url);
+  //curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+
+  curl_setopt_array($curl, array(
+    CURLOPT_URL => $url,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_ENCODING => "",
+    CURLOPT_ACCEPT_ENCODING => "",
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_NONE,
+  ));
 
   try {
-    curl_exec($ch);
-
-    $data = curl_exec($ch);
+    $data = curl_exec($curl);
     if (extension_loaded('mbstring')) {
       $sizes['uncompressed'] = mb_strlen($data, 'utf-8');
       $sizes['uncompressed_s'] = Utils::getFormatedFileSize($sizes['uncompressed']);
@@ -7034,23 +7053,63 @@ function sirv_get_js_compressed_size($url){
       $sizes['uncompressed_s'] = Utils::getFormatedFileSize($sizes['uncompressed']);
     }
 
-    $sizes['compressed'] = (int) curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD);
+    $sizes['compressed'] = (int) curl_getinfo($curl, CURLINFO_SIZE_DOWNLOAD);
     $sizes['compressed_s'] = Utils::getFormatedFileSize($sizes['compressed']);
 
   } catch (Exception $e) {
     $sizes['error'] = $e;
   }finally{
-    curl_close($ch);
+    curl_close($curl);
+
+    sirv_set_transient_cache_data('sirv_js_compressed_sizes', $url, $sizes, $cache, WEEK_IN_SECONDS);
+
     return $sizes;
   }
 
 
 }
 
+
 function sirv_get_js_uncomressed_size($url){
   $headers_data = get_headers($url, true);
 
   return $headers_data['Content-Length'];
+}
+
+
+function sirv_get_transient_cache($transient_key){
+  $cache = array();
+
+  $cache_json_str = get_transient($transient_key);
+
+  if ($cache_json_str != false) {
+    $cache = json_decode($cache_json_str, true);
+  }
+
+  return $cache;
+}
+
+
+function sirv_get_transient_cache_by_key($transient_key, $cache_key){
+  $data_in_cache = null;
+
+  $cache = sirv_get_transient_cache($transient_key);
+
+  if( isset($cache[$cache_key]) ){
+    $data_in_cache = $cache[$cache_key];
+  }
+
+  return $data_in_cache;
+}
+
+
+function sirv_set_transient_cache_data($transient_key, $cache_key, $cache_data, $cache_object, $time_in_sec){
+  $cache_object[$cache_key] = $cache_data;
+
+  $encoded_cache = json_encode($cache_object);
+
+  set_transient($transient_key, $encoded_cache, $time_in_sec);
+
 }
 
 

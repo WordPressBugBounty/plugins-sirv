@@ -427,106 +427,6 @@ input.cmn-toggle-round:checked+label+span:before {
     display: none;
 }
 
-.error-message::before,
-.ok-message::before,
-.warning-message::before,
-.info-message::before{
-    margin-right: 5px;
-    font-family: dashicons;
-    font-size: 20px;
-    line-height: 1;
-    width: 20px;
-    height: 20px;
-    display: inline-block;
-    font-style: normal;
-    text-decoration: inherit;
-    text-transform: none;
-    text-rendering: auto;
-    vertical-align: top;
-    text-align: center;
-    border-radius: 50%;
-}
-
-.sirv-message{
-    padding: 12px;
-    margin-bottom: 2px;
-    border-radius: 3px;
-    font-weight: 500;
-    font-size: 15px;
-}
-
-.sirv-message b{
-    font-weight: bold;
-}
-
-.sirv-message p:last-child {
-    margin-bottom: 0;
-}
-
-.sirv-message a{
-    text-decoration: underline !important;
-    color: inherit;
-    cursor: pointer;
-}
-
-.sirv-message.error-message a::after{
-    filter: invert(1);
-}
-
-.sirv-message a:hover{
-    text-decoration: none !important;
-    font-weight: bold;
-}
-
-.error-message::before {
-    content: "\f153";
-}
-
-.error-message {
-    background: #ffe2e4;
-    color: #bf6b6b !important;
-    border-left: 3px solid #eab3b7;
-}
-
-.error-message a{
-    color: inherit;
-}
-
-.error-message a:hover{
-    /* color: #7a7b7c; */
-    color: #b76262;
-}
-
-.warning-message::before{
-    content: "\f348";
-}
-
-.warning-message {
-    background: #f2d99e;
-    color: #c87a16 !important;
-    border-left: 3px solid #f2ad28;
-}
-
-.info-message::before{
-    content: "\f348";
-}
-
-.info-message {
-    background: #97d3ef;
-    color: #0b72a5 !important;
-    border-left: 3px solid #1396e2;
-}
-
-.ok-message::before{
-    content: "\f12a";
-}
-
-.ok-message {
-    background: #ddf0de;
-    color: #0b7307 !important;
-    border-left: 3px solid #92d097;
-}
-
 .sirv-responsive-msg{
     display: none;
 }
@@ -720,7 +620,7 @@ input.cmn-toggle-round:checked+label+span:before {
 }
 
 .sirv-hide {
-    display: none;
+    display: none !important;
 }
 
 .sirv-failed-imgs-bar {
@@ -2267,3 +2167,128 @@ input[name=SIRV_EMAIL]:focus::placeholder {
 label sup, h2 sup {
     margin-left: 5px;
 }
+
+.sirv-show-view-cache-messages .sirv-message {
+    font-size: 14px;
+}
+
+/* .sirv-show-view-cache-messages button {
+    margin-top: 8px !important;
+} */
+
+/*-------------------------------------------------------------push messages-----------------------------------------*/
+.sirv-push-message::before{
+    font-family: dashicons;
+    font-size: 20px;
+    line-height: 1;
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    font-style: normal;
+    text-decoration: inherit;
+    text-transform: none;
+    text-rendering: auto;
+    vertical-align: top;
+    text-align: center;
+    border-radius: 50%;
+}
+
+.sirv-push-message-container{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    margin-bottom: 2px;
+    border-radius: 3px;
+    font-weight: 500;
+    font-size: 15px;
+}
+
+.sirv-push-message b{
+    font-weight: bold;
+}
+
+.sirv-push-message p {
+    margin: 1em 0 !important;
+}
+
+.sirv-push-message p:last-child {
+    margin-bottom: 0 !important;
+}
+
+.sirv-push-message a{
+    text-decoration: underline !important;
+    color: inherit;
+    cursor: pointer;
+}
+
+.sirv-push-message a::after{
+    filter: invert(1);
+}
+
+.sirv-push-message a:hover{
+    text-decoration: none !important;
+    font-weight: bold;
+}
+
+.sirv-push-message-error-icon::before {
+    content: "\f153";
+}
+
+.sirv-push-message-error {
+    background: #ffe2e4;
+    color: #bf6b6b !important;
+    border-left: 3px solid #eab3b7;
+}
+
+.sirv-push-message-error a{
+    color: inherit;
+}
+
+.sirv-push-message-error a:hover{
+    color: #b76262;
+}
+
+.sirv-push-message-warning-icon::before{
+    content: "\f348";
+}
+
+.sirv-push-message-warning {
+    background: #f2d99e;
+    color: #c87a16 !important;
+    border-left: 3px solid #f2ad28;
+}
+
+.sirv-push-message-info-icon::before{
+    content: "\f348";
+}
+
+.sirv-push-message-info {
+    background: #a7ddf5;
+    color: #0b72a5 !important;
+    border-left: 3px solid #1396e2;
+}
+
+.sirv-push-message-success-icon::before{
+    content: "\f12a";
+}
+
+.sirv-push-message-success {
+    background: #ddf0de;
+    color: #0b7307 !important;
+    border-left: 3px solid #92d097;
+}
+
+.sirv-push-message-close{
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: inherit;
+
+}
+
+.sirv-push-message-close:hover {
+    opacity: 0.7;
+}
+/*--------------------------------------------------------push messages  END-----------------------------------------*/

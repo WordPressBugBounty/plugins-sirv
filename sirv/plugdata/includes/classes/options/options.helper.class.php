@@ -22,7 +22,7 @@ class OptionsHelper {
     self::prepareOptionsData();
 
     foreach (self::$options as $option_name => $option_data) {
-      if (false === get_option($option_name)) update_option($option_name, $option_data['default']);
+      if (false === get_option($option_name) && stripos($option_name, 'unreg_') === false) update_option($option_name, $option_data['default']);
     }
   }
 

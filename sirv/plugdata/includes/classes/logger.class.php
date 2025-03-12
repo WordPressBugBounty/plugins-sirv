@@ -142,6 +142,12 @@ class SirvLogger
   }
 
 
+  public function delimiter($delimiter=' ', $len=50){
+    $this->current_msg = str_pad('', $len, $delimiter, STR_PAD_LEFT);
+    return $this;
+  }
+
+
   public function qdebug( $msg, $var_name = '', $mode = 'a+', $func_lvl = 2 ){
     $this->debug($msg, $var_name, $func_lvl)->dir_path($this->plugin_dir_path)->mode($mode)->write();
   }

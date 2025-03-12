@@ -9,15 +9,13 @@ $storageInfo = sirv_getStorageInfo();
     <?php if (get_option('SIRV_ENABLE_CDN') != 1) { ?>
       <tr>
         <th class="no-padding" colspan="2">
-          <div class="sirv-message warning-message">
-            <span style="font-size: 15px;font-weight: 800;">Note:</span> <a class="sirv-show-settings-tab">network status</a> is currently Disabled.
-          </div>
+          <?php echo Utils::showMessage('<span style="font-size: 15px;font-weight: 800;">Note:</span> <a class="sirv-show-settings-tab">network status</a> is currently Disabled.', 'warning') ?>
         </th>
       </tr>
     <?php } ?>
     <tr>
       <th class="sirv-sync-messages no-padding" colspan="2">
-        <?php if ($error) echo '<div id="sirv-sync-message" class="sirv-message error-message">' . $error . '</div>'; ?>
+        <?php if ($error) echo Utils::showMessage($error); ?>
       </th>
     </tr>
     <tr>
@@ -198,11 +196,13 @@ $storageInfo = sirv_getStorageInfo();
       ?>
       <tr class="sirv-discontinued-images" <?php echo $g_show; ?>>
         <td class="no-padding" colspan="2">
-          <div class="sirv-message warning-message">
-            <span style="font-size: 15px;font-weight: 800;">Recommendation:</span> <span class="sirv-old-cache-count"><?php echo $cacheInfo['garbage_count'] ?></span> images in plugin database no longer exist.&nbsp;&nbsp;
+          <?php
+            $message = '<span style="font-size: 15px;font-weight: 800;">Recommendation:</span> <span class="sirv-old-cache-count">'. $cacheInfo['garbage_count'] .'</span> images in plugin database no longer exist.&nbsp;&nbsp;
             <input type="button" name="optimize_cache" class="button-primary sirv-clear-cache" data-type="garbage" value="Clean up" />&nbsp;
-            <span class="sirv-traffic-loading-ico" style="display: none;"></span>
-          </div>
+            <span class="sirv-traffic-loading-ico" style="display: none;"></span>';
+
+            echo Utils::showMessage($message, 'warning')
+          ?>
         </td>
       </tr>
       <tr>
@@ -392,14 +392,15 @@ $storageInfo = sirv_getStorageInfo();
 
       <tr class="sirv-processing-thumb-images-msg" <?php echo $contunue_msg_show ?>>
         <td class="no-padding" colspan="2">
-          <div class="sirv-message warning-message">
-            <span style="font-size: 15px;font-weight: 800;">Notice:</span> Plugin detect that you did not finish <?php echo $thumbs_data['type']; ?> operation. You may continue it or cancel.<br>
+          <?php
+            $message = '<span style="font-size: 15px;font-weight: 800;">Notice:</span> Plugin detect that you did not finish '. $thumbs_data['type'] .' operation. You may continue it or cancel.<br>
             <div style="padding-top: 10px;">
-              <input type="button" name="sirv-thumbs-continue-processing" class="button-primary sirv-thumbs-continue-processing" data-type="<?php echo $thumbs_data['type']; ?>" value="Continue operation" />&nbsp;
+              <input type="button" name="sirv-thumbs-continue-processing" class="button-primary sirv-thumbs-continue-processing" data-type="'. $thumbs_data['type'] .'" value="Continue operation" />&nbsp;
               <input type="button" name="sirv-thumbs-cancel-processing" class="button-primary sirv-thumbs-cancel-processing" value="Cancel" />&nbsp;
-            </div>
-            <!-- <span class="sirv-traffic-loading-ico" style="display: none;"></span> -->
-          </div>
+            </div>';
+
+            echo Utils::showMessage($message, 'warning');
+          ?>
         </td>
       </tr>
       <tr>

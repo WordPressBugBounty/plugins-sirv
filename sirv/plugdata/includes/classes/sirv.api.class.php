@@ -988,6 +988,7 @@ class SirvAPIClient
             CURLOPT_URL => $this->baseURL . $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
+            CURLOPT_ACCEPT_ENCODING => "",
             CURLOPT_USERAGENT => $this->userAgent,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_NONE,
             CURLOPT_CUSTOMREQUEST => $method,
@@ -1010,7 +1011,7 @@ class SirvAPIClient
 
             $sirv_logger->error($this->baseURL . $url, 'request url')->filename('network_errors.log')->write();
             $sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
-            $sirv_logger->error('')->filename('network_errors.log')->write();
+            $sirv_logger->delimiter()->filename('network_errors.log')->write();
         }
 
         if(IS_DEBUG){
@@ -1018,7 +1019,7 @@ class SirvAPIClient
 
             $sirv_logger->info($result, '$result')->filename('network.log')->write();
             $sirv_logger->info($info, '$info')->filename('network.log')->write();
-            $sirv_logger->info('')->filename('network.log')->write();
+            $sirv_logger->delimiter()->filename('network.log')->write();
         }
 
         $res_object = json_decode($result);

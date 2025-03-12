@@ -21,7 +21,7 @@ class Woo_options extends Options_generator{
       if ( $unsynced < 0 ){
         $unsynced  = 0;
 
-        $old_cache_msg = '<div id="sirv-show-view-cache-message-id" class="sirv-message warning-message">The plugin detected cached URLs from old products. You may wish to clear them: <button class="button-primary sirv-clean-old-view-cache">Clear old cache</button></div>';
+        $old_cache_msg = Utils::showMessage('<span style="font-size: 14px;">The plugin detected cached URLs from old products. Consider clearing them:</span> <button class="button-primary sirv-clean-old-view-cache" style="margin-top: 8px;">Clear old cache</button>', 'warning');
       }
 
 

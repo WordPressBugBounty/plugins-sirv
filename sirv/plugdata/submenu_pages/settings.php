@@ -12,7 +12,7 @@
   ?>
 
   <div class="sirv-optiontable-holder">
-    <div class="sirv-error"><?php if ($error) echo '<div id="sirv-settings-messages" class="sirv-message error-message">' . $error . '</div>'; ?></div>
+    <div class="sirv-error"><?php if ($error) echo Utils::showMessage($error); ?></div>
     <table class="optiontable form-table">
       <tr>
         <th>
@@ -108,8 +108,10 @@
                 <input class="regular-text" type="text" name="SIRV_FOLDER" value="<?php echo htmlspecialchars($sirv_folder); ?>">
               </div>
             </div>
-            <div class="sirv-message warning-message sirv-hide sirv-warning-on-folder-change">
-              <span style="font-size: 15px;font-weight: 800;">Important!</span><br>Changing folder name will clear the image cache, so images will re-synchronize on first request or use <a class="sirv-show-sync-tab">Sync Images</a> to pre-sync entire library.
+            <div class="sirv-push-message-container sirv-push-message-warning sirv-hide sirv-warning-on-folder-change">
+              <div class="sirv-push-message sirv-push-message-warning-icon">
+                <span style="font-size: 15px;font-weight: 800;">Important!</span><br>Changing folder name will clear the image cache, so images will re-synchronize on first request or use <a class="sirv-show-sync-tab">Sync Images</a> to pre-sync entire library.
+              </div>
             </div>
           </div>
         </td>
@@ -178,10 +180,8 @@
             <input type="radio" name="SIRV_USE_SIRV_RESPONSIVE" value='2' "<?php checked('2', $useSirvResponsiveOption);  ?>">Disable
           </label>
           <span class="sirv-option-responsive-text">Load images on demand & scale them perfectly.</span>
-          <div class="sirv-responsive-msg sirv-message warning-message">
-            <div>
-              Deactivate any other lazy loading plugins. After saving, check that your images display as expected.
-            </div>
+          <div class="sirv-responsive-msg">
+            <?php echo Utils::showMessage("Deactivate any other lazy loading plugins. After saving, check that your images display as expected.", 'warning'); ?>
           </div>
         </td>
       </tr>

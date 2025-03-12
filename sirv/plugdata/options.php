@@ -67,7 +67,7 @@ $sirvStatus = $sirvAPIClient->preOperationCheck();
 
 if ($sirvStatus) {
   $isWoocommerce = isWoocommerce();
-  /* $isMultiCDN = false; */
+
   $domains = array();
   /* $is_direct = get_option('SIRV_NETWORK_TYPE') == "2" ? true : false; */
   $sirvCDNurl = get_option('SIRV_CDN_URL');
@@ -75,9 +75,6 @@ if ($sirvStatus) {
   $accountInfo = $sirvAPIClient->getAccountInfo();
 
   if (!empty($accountInfo)) {
-
-    /* $isMultiCDN = count((array) $accountInfo->aliases) > 1 ? true : false;
-    $is_direct = (isset($accountInfo->aliases->{$accountInfo->alias}->cdn) && $accountInfo->aliases->{$accountInfo->alias}->cdn) ? false : true; */
 
     if (!empty($accountInfo->cdnTempURL)) {
       $domains[$accountInfo->cdnTempURL] = $accountInfo->cdnTempURL;
@@ -93,13 +90,6 @@ if ($sirvStatus) {
         $domains[$domain] = $domain;
       }
     }
-
-    /* if ($isMultiCDN) {
-        foreach ($accountInfo->aliases as $a =>$alias) {
-        $customCDN = !empty($alias->customDomain) ? $alias->customDomain : $a . '.sirv.com';
-        $domains[$customCDN] = $customCDN;
-      }
-    } */
   }
 
   $cacheInfo = sirv_getCacheInfo();
@@ -117,7 +107,6 @@ if ($sirvStatus) {
 
   $isAllSynced = ((int) $cacheInfo['q'] + (int) $cacheInfo['FAILED']['count'] + (int) $cacheInfo['PROCESSING']['count']) == (int) $cacheInfo['total_count'];
   $is_sync_button_disabled = $isAllSynced ? 'disabled' : '';
-  //$sync_button_text = $isAllSynced ? ( (int) $cacheInfo['FAILED']['count'] == 0 && (int) $cacheInfo['PROCESSING']['count'] == 0 ) ? '100% synced' : 'Synced' : 'Sync images';
   $sync_button_text = sirv_get_sync_button_text($isAllSynced, $cacheInfo);
   $is_show_resync_block = (int) $cacheInfo['q'] > 0 || $cacheInfo['FAILED']['count'] > 0 ? '' : 'display: none';
   $is_show_failed_block = (int) $cacheInfo['FAILED']['count'] > 0 ? '' : 'display: none';
@@ -153,11 +142,6 @@ if ($sirvStatus) {
   $active_tab = (isset($_POST['active_tab'])) ? $_POST['active_tab'] : '#sirv-settings';
   ?>
   <div class="sirv-wrapped-nav">
-    <!-- <h1 class="sirv-options-title sirv-logo-background">Welcome to Sirv</h1>
-    <div class="sirv-version-wrap">
-      <div class="sirv-version"><span>v<?php echo SIRV_PLUGIN_VERSION; ?></span></div>
-    </div> -->
-
     <div class="sirv-options-title-wrap">
       <div class="sirv-options-title">
         <h1 class="sirv-options-title-h1">Welcome to Sirv</h1>
@@ -183,7 +167,7 @@ if ($sirvStatus) {
   if ($isMuted) {
   ?>
     <div class="sirv-optiontable-holder">
-      <div class="sirv-error"><?php if ($error) echo '<div id="sirv-settings-messages" class="sirv-message error-message">' . $error . '</div>'; ?></div>
+      <div class="sirv-error"><?php if ($error) echo Utils::showMessage($error); ?></div>
     </div>
 
   <?php } ?>

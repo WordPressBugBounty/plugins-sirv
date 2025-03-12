@@ -232,7 +232,7 @@ class Woo
   protected static function render_sirv_product_image_html($product_id, $item_pattern)
   {
 
-    $saved_img_url = htmlentities(self::get_post_sirv_data($product_id, 'sirv_woo_product_image', false, false));
+    $saved_img_url = htmlentities(html_entity_decode(self::get_post_sirv_data($product_id, 'sirv_woo_product_image', false, false)));
     $attachment_id = self::get_post_sirv_data($product_id, 'sirv_woo_product_image_attachment_id', false, false);
 
     $no_image_placeholder = plugin_dir_url(__FILE__) . "../../assets/no_thumb.png";
@@ -259,9 +259,11 @@ class Woo
           <span class="dashicons dashicons-trash"></span>
         </button>
       </div>
-      <?php if (self::isFIFUActive() && self::isFIFUProductImage($product_id)) { ?>
-        <div id="sirv-thumbs-message" class="sirv-message warning-message">Choose either Sirv or FIFU for product image, not both.</div>
-      <?php } ?>
+      <?php
+        if (self::isFIFUActive() && self::isFIFUProductImage($product_id)) {
+          echo Utils::showMessage("Choose either Sirv or FIFU for product image, not both.", 'warning');
+        }
+      ?>
     </div>
   <?php
   }
@@ -337,7 +339,7 @@ class Woo
           <ul class="sirv-view-images" id="sirv-view-images-ul-<?php echo $id; ?>">
             <?php
             foreach ($view_data as $view_item) {
-              $url = htmlentities($view_item->url);
+              $url = htmlentities(html_entity_decode($view_item->url));
               $thumb_url = self::get_gallery_item_url($view_item->type, $url, $item_pattern);
               echo '<li class="sirv-view-gallery-item" data-type="' . $view_item->type . '">
                 <div class="sirv-view-gallery-item-img-wrap">
@@ -376,7 +378,7 @@ class Woo
           $gallery_json_str = self::get_post_sirv_data($id, '_sirv_woo_gallery_data', false);
 
           if ($type == 'variation') {
-            $saved_img_url = htmlentities(self::get_post_sirv_data($id, 'sirv_woo_product_image', false, false));
+            $saved_img_url = htmlentities(html_entity_decode(self::get_post_sirv_data($id, 'sirv_woo_product_image', false, false)));
             $variation_main_image_attachment_id = self::get_post_sirv_data($id, 'sirv_woo_product_image_attachment_id', false, false);
 
             if (empty($saved_img_url)) {
@@ -395,7 +397,7 @@ class Woo
               $video_link = isset($item['videoLink']) ? ' data-video-link="' . $item['videoLink'] . '" ' : '';
               $video_data  = $video_id . $video_link;
               //$thumb_url = empty($video_id) ?  $item['url'] . $item_pattern : $item['url'];
-              $url = htmlentities($item['url']);
+              $url = htmlentities(html_entity_decode($item['url']));
               $thumb_url = self::get_gallery_item_url($item['type'], $url, $item_pattern);
               $caption = isset($item['caption']) ? urldecode($item['caption']) : '';
 
@@ -426,7 +428,7 @@ class Woo
             <a class="button button-primary button-large sirv-woo-delete-all" data-id="<?php echo $id; ?>">Delete all items</a>
           </div>
         <?php } ?>
-        <input type="hidden" id="sirv_woo_gallery_data_<?php echo $id; ?>" name="sirv_woo_gallery_data_<?php echo $id; ?>" value="<?php echo htmlentities($gallery_json_str); ?>" />
+        <input type="hidden" id="sirv_woo_gallery_data_<?php echo $id; ?>" name="sirv_woo_gallery_data_<?php echo $id; ?>" value="<?php echo htmlentities(html_entity_decode($gallery_json_str)); ?>" />
         <div class="sirv-woo-gallery-toolbar hide-if-no-js">
           <div class="sirv-woo-gallery-toolbar-main">
             <?php if ($type == 'variation') { ?>
@@ -592,10 +594,15 @@ class Woo
   }
 
 
-  protected function get_sirv_items_data($isVariation)
+  protected function get_sirv_items_data($isVariation, $isEnableCheck)
   {
     $sirv_local_data = (object) $this->get_sirv_local_data($this->product_id);
-    $sirv_remote_data = (object) $this->get_sirv_remote_data($this->product_id, $isVariation);
+
+    if ( $isEnableCheck ) {
+      $sirv_remote_data = (object) $this->get_sirv_remote_data($this->product_id, $isVariation);
+    } else {
+      $sirv_remote_data = (object) self::get_post_sirv_data($this->product_id, '_sirv_woo_viewf_data');
+    }
 
     if (!isset($sirv_local_data->items)) $sirv_local_data->items = array();
     if (!isset($sirv_remote_data->items)) $sirv_remote_data->items = array();
@@ -604,17 +611,15 @@ class Woo
   }
 
 
-  public function get_export_data_to_csv_column($isVariation)
+  public function get_export_data_to_csv_column($isVariation, $isEnableCheck=false)
   {
-    $sirv_gallery = $this->get_sirv_items_data($isVariation);
+    $sirv_gallery = $this->get_sirv_items_data($isVariation, $isEnableCheck);
     $sirv_item_urls = array();
 
-    if (!$isVariation && $this->isSirvMainImage($this->product_id)) {
-      $sirv_main_image_url = self::get_post_sirv_data($this->product_id, 'sirv_woo_product_image', false, false);
+    $sirv_main_image_url = self::get_post_sirv_data($this->product_id, 'sirv_woo_product_image', false, false);
 
-      if ($sirv_main_image_url) {
-        $sirv_item_urls[] = $sirv_main_image_url;
-      }
+    if ($sirv_main_image_url) {
+      $sirv_item_urls[] = $sirv_main_image_url;
     }
 
     foreach ($sirv_gallery as $sirv_item) {
@@ -651,7 +656,7 @@ class Woo
 
     $main_product_image_data = $this->get_main_image($this->product_id);
     if (isset($main_product_image_data->url)) {
-      $main_product_image_data->url = htmlentities($main_product_image_data->url);
+      $main_product_image_data->url = htmlentities(html_entity_decode($main_product_image_data->url));
     }
 
     $all_images = $this->get_all_cat_images_data($main_product_image_data, $sirv_data, $wc_gallery, $sirv_variations, $order);
@@ -1724,7 +1729,7 @@ class Woo
       if (empty($item->url)) continue;
 
       $is_item_disabled = $this->is_disable_item_str($item, $is_all_items_disabled);
-      $src = $item->type == 'online-video' ? $item->videoLink : htmlentities($item->url);
+      $src = $item->type == 'online-video' ? $item->videoLink : htmlentities(html_entity_decode($item->url));
       $zoom = self::get_zoom_class($item->type);
       $caption = isset($item->caption) ? urldecode($item->caption) : '';
       if ($caption) $isCaption = true;

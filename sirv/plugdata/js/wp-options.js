@@ -172,7 +172,7 @@ jQuery(function ($) {
 
         $('.sirv-init').on('click', sirvInitAccount);
         function sirvInitAccount(){
-            hideMessage('sirv-init-account', true);
+            hideMessages(".sirv-error");
 
             let name = $('input[name=SIRV_NAME]').val().trim().split(' ');
 
@@ -190,80 +190,80 @@ jQuery(function ($) {
             let validator = new Validator();
 
             if(validator.invalidValidate(data['email'], validator.empty)){
-                showMessage('.sirv-error', 'Please specify email.', 'sirv-init-account');
+                showMessage('.sirv-error', 'Please specify email.');
                 return;
             }
 
             if(validator.invalidValidate(data['pass'], validator.empty)){
-                showMessage('.sirv-error', 'Please specify password.', 'sirv-init-account');
+                showMessage('.sirv-error', 'Please specify password.');
                 return;
             }
 
             if(!!data['isNewAccount']){
                 if(validator.invalidValidate(data['email'], validator.email)){
-                    showMessage('.sirv-error', 'Please enter correct email.', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Please enter correct email.');
                     return;
                 }
 
                 let restirictedEmailDomains = ['mail.ru'];
                 if(validator.invalidValidate(data['email'], validator.equalString, restirictedEmailDomains)){
-                    showMessage('.sirv-error', 'Please use a company email address (not '+ restirictedEmailDomains.join(', ') +')', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Please use a company email address (not '+ restirictedEmailDomains.join(', ') +')');
                     return;
                 }
 
                 if(validator.invalidValidate(data['pass'], validator.upperCase)){
-                    showMessage('.sirv-error', 'Uppercase symbols does not permitted to use in the password.', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Uppercase symbols does not permitted to use in the password.');
                     return;
                 }
 
                 if(validator.invalidValidate(data['pass'], validator.lenghtBetween, {min: 8, max: 64})){
-                    showMessage('.sirv-error', 'Choose a password at least 8 characters long and less than 64 characters.', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Choose a password at least 8 characters long and less than 64 characters.');
                     return;
                 }
 
                 if(validator.invalidValidate(data['firstName'], validator.empty)){
-                    showMessage('.sirv-error', 'Please specify your first name.', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Please specify your first name.');
                     return;
                 }
 
                 if(validator.invalidValidate(data['firstName'], validator.name)){
-                    showMessage('.sirv-error', 'Please enter correct first name.', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Please enter correct first name.');
                     return;
                 }
 
                 if(validator.invalidValidate(data['firstName'], validator.lenghtBetween, {min: 2, max: 35})){
-                    showMessage('.sirv-error', 'First name must be 2-35 characters.', 'sirv-init-account');
+                    showMessage('.sirv-error', 'First name must be 2-35 characters.');
                     return;
                 }
 
                 if(validator.invalidValidate(data['lastName'], validator.empty)){
-                    showMessage('.sirv-error', 'Please specify your last name.', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Please specify your last name.');
                     return;
                 }
 
                 if(validator.invalidValidate(data['lastName'], validator.name)){
-                    showMessage('.sirv-error', 'Please enter correct last name.', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Please enter correct last name.');
                     return;
                 }
 
                 if(validator.invalidValidate(data['lastName'], validator.lenghtBetween, {min: 2, max: 35})){
-                    showMessage('.sirv-error', 'Last name must be 2-35 characters.', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Last name must be 2-35 characters.');
                     return;
                 }
 
                 if(validator.invalidValidate(data['accountName'], validator.empty)){
-                    showMessage('.sirv-error', 'Please specify account name.', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Please specify account name.');
                     return;
                 }
 
                 if(validator.invalidValidate(data['accountName'], validator.lenghtBetween, {min: 6, max: 30})){
-                    showMessage('.sirv-error', 'Account name must be 6-30 characters. It may contain letters, numbers or hyphens (no spaces).', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Account name must be 6-30 characters. It may contain letters, numbers or hyphens (no spaces).');
                     return;
                 }
 
                 if(validator.invalidValidate(data['accountName'], validator.accountSuffix)){
                     let accName = data['accountName'];
-                    showMessage('.sirv-error', 'Account name <b>' + accName + '</b> is not permitted. You could try <b>'+ accName.replace('-', '') +'</b> instead.', 'sirv-init-account');
+                    showMessage('.sirv-error', 'Account name <b>' + accName + '</b> is not permitted. You could try <b>'+ accName.replace('-', '') +'</b> instead.');
                     return;
                 }
             }
@@ -290,7 +290,7 @@ jQuery(function ($) {
                         error = "Port 443 (HTTPS) on your WordPress server is blocking requests to api.sirv.com. Check your firewall or other server settings to allow requests to api.sirv.com.";
                     }
 
-                    showMessage('.sirv-error', error, 'sirv-init-account');
+                    showMessage('.sirv-error', error);
                 }else if(!!res && !!res.isOtpToken){
                     showOtpInput();
                 }else if(!!res && !!res.allow_users){
@@ -300,7 +300,7 @@ jQuery(function ($) {
             }).fail(function (jqXHR, status, error) {
                 $('.sirv-connect-account-wrapper').removeClass('sirv-loading');
                 console.log("Error during ajax request: " + error);
-                showMessage('.sirv-error', "Error during ajax request: " + error, 'sirv-init-account');
+                showMessage('.sirv-error', "Error during ajax request: " + error);
             });
         }
 
@@ -355,7 +355,7 @@ jQuery(function ($) {
 
 
         function sirvOtp(){
-            hideMessage("sirv-init-account", true);
+            hideMessages(".sirv-error");
 
             let data = {};
 
@@ -366,17 +366,17 @@ jQuery(function ($) {
             data["otpToken"] = $("input[name=SIRV_OTP_TOKEN]").val().trim();
 
             if(data.otpToken.length < 6){
-                showMessage('.sirv-error', 'Not enough symbols', 'sirv-init-account');
+                showMessage('.sirv-error', 'Not enough symbols');
                 return;
             }
 
             if (data.otpToken.length > 6) {
-                showMessage('.sirv-error', 'To many symbols', 'sirv-init-account');
+                showMessage('.sirv-error', 'To many symbols');
                 return;
             }
 
             if (!Number.isInteger(+data.otpToken)){
-                showMessage('.sirv-error', 'Incorrect value. You can use only integers.', 'sirv-init-account');
+                showMessage('.sirv-error', 'Incorrect value. You can use only integers.');
                 return;
             }
 
@@ -386,7 +386,7 @@ jQuery(function ($) {
                 type: 'POST',
                 dataType: "json",
                 beforeSend: function(){
-                    hideMessage("sirv-init-account", true);
+                    hideMessages(".sirv-error");
                     $('.sirv-connect-account-wrapper').addClass('sirv-loading');
                 },
             }).done(function (res) {
@@ -396,20 +396,20 @@ jQuery(function ($) {
                 $('.sirv-connect-account-wrapper').removeClass('sirv-loading');
 
                 if( !!res && !!res.error ){
-                    showMessage('.sirv-error', res.error, 'sirv-init-account', 'error');
+                    showMessage('.sirv-error', res.error);
                 }else if(!!res && !!res.allow_users){
                     showUsersList(res);
                 }
             }).fail(function (jqXHR, status, error) {
                 $('.sirv-connect-account-wrapper').removeClass('sirv-loading');
                 console.log("Error during ajax request: " + error);
-                showMessage('.sirv-error', "Error during ajax request: " + error, 'sirv-init-account');
+                showMessage('.sirv-error', "Error during ajax request: " + error);
             });
         }
 
 
         function sirvLogin() {
-            hideMessage("sirv-init-account", true);
+            hideMessages(".sirv-error");
 
             const selectedValue= $('select[name="sirv_account"]').val();
             const selectedText = $('select[name=sirv_account] option:selected').text();
@@ -422,7 +422,7 @@ jQuery(function ($) {
             data['sirv_account'] = selectedValue;
 
             if( selectedValue == 'none'){
-                showMessage('.sirv-error', "Please choose account first", 'sirv-init-account');
+                showMessage('.sirv-error', "Please choose account first");
                 return;
             }
 
@@ -446,7 +446,7 @@ jQuery(function ($) {
                 $('.sirv-connect-account-wrapper').removeClass('sirv-loading');
 
                 if( !!res && !!res.error ){
-                    showMessage('.sirv-error', res.error, 'sirv-init-account');
+                    showMessage('.sirv-error', res.error);
                 }
 
                 window.location.href = window.location.href.replace(/\#.*/i, '');
@@ -454,23 +454,46 @@ jQuery(function ($) {
             }).fail(function (jqXHR, status, error) {
                 $('.sirv-connect-account-wrapper').removeClass('sirv-loading');
                 console.log("Error during ajax request: " + error);
-                showMessage('.sirv-error', "Error during ajax request: " + error, 'sirv-init-account');
+                showMessage('.sirv-error', "Error during ajax request: " + error);
             });
         }
 
-        //type: ok, error, warning, info
-        function showMessage(selector, message, msg_id, type='error'){
-            $(selector).append(`<div id="${msg_id}" class="sirv-message ${type}-message">${message}</div>`);
+
+        function hideMessages(selector_container) {
+            $(selector_container).empty();
         }
 
 
-        function hideMessage(selector, removeAll=false) {
-            if(removeAll){
-                $('#' + selector).parent().empty();
-            }else{
-                $('#' + selector).remove();
-            }
+        function showMessage(container_selector, message, type='error', isShowCloseButton=false){
+            //type: error, info, warning, success
+            const allowedTypesToClose = ['info','success'];
+            let $container = $(container_selector);
+
+            const closeButtonHTML = inArray(type, allowedTypesToClose) || isShowCloseButton ? `<div><button class="sirv-push-message-close" type="button">&times;</button></div>` : '';
+
+            const html = `
+                <div class="sirv-push-message-container sirv-push-message-${type}">
+                    <div class="sirv-push-message sirv-push-message-${type}-icon">
+                        ${message}
+                    </div>
+                    ${closeButtonHTML}
+                </div>
+            `;
+
+            $container.append(html);
         }
+
+
+        function inArray(val, arr) {
+            return arr.indexOf(val) !== -1;
+        }
+
+
+        $("body").on("click", ".sirv-push-message-close", pushMessageClose);
+        function pushMessageClose(e){
+            $(this).closest(".sirv-push-message-container").remove();
+        }
+
 
         $('.sirv-disconnect').on('click', disconnectAccount);
         function disconnectAccount(event){
@@ -485,7 +508,7 @@ jQuery(function ($) {
                 type: 'POST',
                 dataType: "json",
                 beforeSend: function(){
-                    hideMessage("sirv-init-account", removeAll = true);
+                    hideMessages(".sirv-error");
                     $('.sirv-connect-account-wrapper').addClass('sirv-loading');
 
                 },
@@ -494,7 +517,7 @@ jQuery(function ($) {
                 //console.log(res);
 
                 if(!!res.error){
-                    showMessage('.sirv-error', res.error, 'sirv-init-account');
+                    showMessage('.sirv-error', res.error);
                 }
 
                 $('.sirv-connect-account-wrapper').removeClass('sirv-loading');
@@ -506,7 +529,7 @@ jQuery(function ($) {
             }).fail(function(jqXHR, status, error){
                 $('.sirv-connect-account-wrapper').removeClass('sirv-loading');
                 console.log("Error during ajax request: " + error);
-                showMessage(".sirv-error", error, "sirv-init-account");
+                showMessage(".sirv-error", error);
             });
         }
 
@@ -548,7 +571,7 @@ jQuery(function ($) {
                 type: 'POST',
                 dataType: "json",
                 beforeSend: function () {
-                    hideMessage('sirv-sync-message');
+                    hideMessages(".sirv-sync-messages");
                     $('.sync-errors').hide();
                     $(spinnerSelector).show();
                 }
@@ -557,16 +580,16 @@ jQuery(function ($) {
                 //console.log(data);
 
                 if(!!data.error){
-                    showMessage('.sirv-sync-messages', data.error, 'sirv-sync-message', 'error');
+                    showMessage('.sirv-sync-messages', data.error);
                 }
 
                 updateCacheInfo(data);
-                showMessage('.sirv-sync-messages', getMessage(cacheType), 'sirv-sync-message', 'ok');
+                showMessage('.sirv-sync-messages', getMessage(cacheType), 'success');
                 $(spinnerSelector).hide();
 
             }).fail(function (jqXHR, status, error) {
                 console.log("Error during ajax request: " + error);
-                showMessage('.sirv-sync-messages', "Error during ajax request: " + error, 'sirv-sync-message');
+                showMessage('.sirv-sync-messages', "Error during ajax request: " + error);
                 $(spinnerSelector).hide();
             });
         }
@@ -761,13 +784,13 @@ jQuery(function ($) {
                 $(".sirv-show-result").hide();
 
                 if(data.error){
-                    showMessage(".sirv-feedback-msg", data.error, '.feedback-msg');
+                    showMessage(".sirv-feedback-msg", data.error);
                 }
 
                 if (data.result == '1') {
-                    showMessage(".sirv-feedback-msg", messageSent, '.feedback-msg', 'ok');
+                    showMessage(".sirv-feedback-msg", messageSent, 'success');
                 } else {
-                    showMessage(".sirv-feedback-msg", sendingError, '.feedback-msg');
+                    showMessage(".sirv-feedback-msg", sendingError);
                 }
 
                 //clear contact form fields
@@ -779,7 +802,7 @@ jQuery(function ($) {
             }).fail(function (jqXHR, status, error) {
                 $(".sirv-show-result").hide();
                 console.error("Error during ajax request: " + error);
-                showMessage(".sirv-feedback-msg", ajaxError + error, ".feedback-msg");
+                showMessage(".sirv-feedback-msg", ajaxError + error);
             });
 
         });
@@ -874,7 +897,7 @@ jQuery(function ($) {
 
                 if (!!data) {
                     if(!!data.error){
-                        showMessage('.sirv-sync-messages', data.error, 'sirv-sync-message', 'error');
+                        showMessage('.sirv-sync-messages', data.error);
                     }
 
                     $('.sirv-progress-data__complited--text').html(data.q_s);
@@ -908,7 +931,7 @@ jQuery(function ($) {
 
                     if (!!data.status && data.status.isStopSync){
                         manageElement('input[name=sirv-sync-images]', disableFlag = true, text = 'Can\'t sync', button = true);
-                        showMessage('.sirv-sync-messages', data.status.errorMsg, 'sirv-sync-message');
+                        showMessage('.sirv-sync-messages', data.status.errorMsg);
                         $('.sirv-processing-message').hide();
                         $('.sirv-progress__bar--line-complited').removeClass('sirv-progress-bar-animated');
                         return;
@@ -935,8 +958,8 @@ jQuery(function ($) {
                 console.error("Error message: " + error);
                 console.error("http code", `${jqXHR.status} ${jqXHR.statusText}`);
 
-                showAjaxErrorMessage(jqXHR, status, error, '.sirv-sync-messages', 'sirv-sync-message');
-                showMessage('.sirv-sync-messages', "Please reload this page and try again.", 'sirv-sync-message', 'warning');
+                showAjaxErrorMessage(jqXHR, status, error, '.sirv-sync-messages');
+                showMessage('.sirv-sync-messages', "Please reload this page and try again.", 'warning');
                 $('.sirv-processing-message').hide();
                 $('.sirv-progress__bar--line-complited').removeClass('sirv-progress-bar-animated');
                 //manageElement('input[name=sirv-sync-images]', disableFlag = false, text = 'Sync images', button = true);
@@ -946,7 +969,7 @@ jQuery(function ($) {
         }
 
 
-        function showAjaxErrorMessage(jqXHR, status, error, selector, selectorId) {
+        function showAjaxErrorMessage(jqXHR, status, error, selector_container) {
             const errorTitle = `<b>Error during ajax request</b>`;
 
             let errorText = !!error
@@ -959,7 +982,7 @@ jQuery(function ($) {
                 httpCodeText = `<p>HTTP CODE: ${jqXHR.status} ${jqXHR.statusText}</p>`;
             }
 
-            showMessage(selector, `${errorTitle}<br>${errorText}${httpCodeText}`, selectorId);
+            showMessage(selector_container, `${errorTitle}<br>${errorText}${httpCodeText}`);
         }
 
 
@@ -1041,7 +1064,7 @@ jQuery(function ($) {
 
                 if (!!data) {
                     if(!!data.error){
-                        showMessage('.sirv-sync-messages', data.error, 'sirv-get-failed-message', 'error');
+                        showMessage('.sirv-sync-messages', data.error);
                     }
 
                     if(reportType == 'html'){
@@ -1077,7 +1100,7 @@ jQuery(function ($) {
                 $ajaxAnimation.hide();
                 $link.text('An error occurred');
                 console.error("Error during ajax request: " + error);
-                showMessage('.sirv-sync-messages', "Error during ajax request: " + error, 'sirv-get-failed-message');
+                showMessage('.sirv-sync-messages', "Error during ajax request: " + error);
             });
         }
 
@@ -1105,7 +1128,7 @@ jQuery(function ($) {
 
                 if (!!data) {
                     if(!!data.error){
-                        showMessage('.sirv-sync-messages', data.error, 'sirv-get-failed-message', 'error');
+                        showMessage('.sirv-sync-messages', data.error);
                     }
 
                     let documentFragment = $(document.createDocumentFragment());
@@ -1128,7 +1151,7 @@ jQuery(function ($) {
                 }
             }).fail(function (jqXHR, status, error) {
                 console.error("Error during ajax request: " + error);
-                showMessage('.sirv-sync-messages', "Error during ajax request: " + error, 'sirv-get-failed-message');
+                showMessage('.sirv-sync-messages', "Error during ajax request: " + error);
             });
         }
 
@@ -1228,8 +1251,8 @@ jQuery(function ($) {
 
             let curPreventedSizes = $("#sirv-prevented-sizes-hidden").val();
             if(isPreventedSizesChanged(curPreventedSizes)){
-                hideMessage("sirv-thumbs-message");
-                showMessage('.sirv-thumb-messages', 'Please save your updated settings before trying to '+ $curButton.attr('data-type') +' operation.', 'sirv-thumbs-message', 'warning');
+                hideMessages(".sirv-thumb-messages");
+                showMessage('.sirv-thumb-messages', 'Please save your updated settings before trying to '+ $curButton.attr('data-type') +' operation.', 'warning');
                 return false;
             }
 
@@ -1238,8 +1261,8 @@ jQuery(function ($) {
 
             if($curButton.attr('data-type') === 'delete'){
                 if(Object.keys(preventedSizesObj).length === 0){
-                    hideMessage("sirv-thumbs-message");
-                    showMessage('.sirv-thumb-messages', 'No thumbnails available to delete. Choose which thumbs should be deleted.', 'sirv-thumbs-message', 'warning');
+                    hideMessages(".sirv-thumb-messages");
+                    showMessage('.sirv-thumb-messages', 'No thumbnails available to delete. Choose which thumbs should be deleted.', 'warning');
                     return false;
                 }
             }
@@ -1247,8 +1270,8 @@ jQuery(function ($) {
             if ($curButton.attr("data-type") === "regenerate"){
                 let sizesCount = $(".sirv-thumbs-sizes .sirv-crop-row__checkboxes").length;
                 if(Object.keys(preventedSizesObj).length === sizesCount){
-                    hideMessage("sirv-thumbs-message");
-                    showMessage('.sirv-thumb-messages', 'No thumbnails available to regenerate. Choose which thumbs should be created.', 'sirv-thumbs-message', 'warning');
+                    hideMessages(".sirv-thumb-messages");
+                    showMessage('.sirv-thumb-messages', 'No thumbnails available to regenerate. Choose which thumbs should be created.', 'warning');
                     return false;
                 }
             }
@@ -1297,7 +1320,7 @@ jQuery(function ($) {
                 type: 'POST',
                 dataType: "json",
                 beforeSend: function() {
-                    hideMessage("sirv-thumbs-message");
+                    hideMessages(".sirv-thumb-messages");
 
                     $button.val('Saving...');
                     $button.prop('disabled', true);
@@ -1307,7 +1330,7 @@ jQuery(function ($) {
                 //console.log(data);
 
                 if(!!data.error){
-                    showMessage('.sirv-thumb-messages', data.error, 'sirv-thumbs-message', 'error');
+                    showMessage('.sirv-thumb-messages', data.error);
                 }
 
                 if(data.status == 'saved'){
@@ -1315,13 +1338,13 @@ jQuery(function ($) {
                     $button.parent().hide();
                     $button.val("Save updated settings");
                     $button.prop("disabled", false);
-                    showMessage('.sirv-thumb-messages', 'Thumbnail settings saved. Now you can delete or regenerate thumbnails.', 'sirv-thumbs-message', 'ok');
+                    showMessage('.sirv-thumb-messages', 'Thumbnail settings saved. Now you can delete or regenerate thumbnails.', 'success');
                 }
 
 
             }).fail(function (jqXHR, status, error) {
                 console.log("Error during ajax request: " + error);
-                showMessage('.sirv-thumb-messages', "Error during ajax request: " + error, 'sirv-thumbs-message');
+                showMessage('.sirv-thumb-messages', "Error during ajax request: " + error);
                 $button.val("Save updated settings");
                 $button.prop("disabled", false);
             });
@@ -1339,7 +1362,7 @@ jQuery(function ($) {
                 type: 'POST',
                 dataType: "json",
                 beforeSend: function() {
-                    hideMessage("sirv-thumbs-message");
+                    hideMessages(".sirv-thumb-messages");
                     $('.sirv-thumbs-continue-processing').prop('disabled', true);
                     $(".sirv-thumbs-cancel-processing").prop("disabled", true);
                     $(".sirv-thumbs-cancel-processing").val("Canceling...");
@@ -1348,11 +1371,11 @@ jQuery(function ($) {
                 //debug
                 //console.log(data);
                 if(data.error){
-                    showMessage('.sirv-thumb-messages', data.error, 'sirv-thumbs-message', 'error');
+                    showMessage('.sirv-thumb-messages', data.error);
                 }
 
                 if(data.status == 'canceled'){
-                    showMessage('.sirv-thumb-messages', 'Operation '+ data.type +' was canceled', 'sirv-thumbs-message', 'ok');
+                    showMessage('.sirv-thumb-messages', 'Operation '+ data.type +' was canceled', 'success');
                     $(".sirv-processing-thumb-images-msg").hide();
 
                     $(".sirv-regenerate-wp-thumbs").prop('disabled', false);
@@ -1365,7 +1388,7 @@ jQuery(function ($) {
 
             }).fail(function (jqXHR, status, error) {
                 console.log("Error during ajax request: " + error);
-                showMessage('.sirv-thumb-messages', "Error during ajax request: " + error, 'sirv-thumbs-message');
+                showMessage('.sirv-thumb-messages', "Error during ajax request: " + error);
             });
         }
 
@@ -1394,7 +1417,7 @@ jQuery(function ($) {
                 type: 'POST',
                 dataType: "json",
                 beforeSend: function () {
-                    hideMessage("sirv-thumbs-message");
+                    hideMessages(".sirv-thumb-messages");
                     if(!isPause) $curButton.val("Pause");
 
                     let operationedTxt = type == 'delete'? 'Deleted' : 'Regenerated';
@@ -1412,7 +1435,7 @@ jQuery(function ($) {
                 //debug
                 //console.log(data);
                 if(data.error){
-                    showMessage('.sirv-thumb-messages', data.error, 'sirv-thumbs-message', 'error');
+                    showMessage('.sirv-thumb-messages', data.error);
                 }
 
                 if(data.status == 'processing'){
@@ -1446,7 +1469,7 @@ jQuery(function ($) {
                     let sizeTxt = data.type == 'delete' ? ' with total size '+ getFormatedFileSize(data.files_size): '';
                     let thumbsTxt = data.type == 'regenerate' ? ' (any existing thumbnails were skipped)' : '';
 
-                    showMessage('.sirv-thumb-messages', 'Completed: '+ data.files_count +' thumbnails have been ' + operationedTxt  + sizeTxt + thumbsTxt, 'sirv-thumbs-message', 'ok');
+                    showMessage('.sirv-thumb-messages', 'Completed: '+ data.files_count +' thumbnails have been ' + operationedTxt  + sizeTxt + thumbsTxt, 'success');
 
                     isThumbsAjax = false;
                 }
@@ -1456,7 +1479,7 @@ jQuery(function ($) {
                 isThumbsAjax = false;
 
                 console.log("Error during ajax request: " + error);
-                showMessage('.sirv-thumb-messages', "Error during ajax request: " + error, 'sirv-thumbs-message');
+                showMessage('.sirv-thumb-messages', "Error during ajax request: " + error);
 
             });
         }
@@ -1499,8 +1522,6 @@ jQuery(function ($) {
             let type = $(this).attr('data-type');
             const $spinner = $(this).siblings("span.sirv-traffic-loading-ico");
 
-            //const $spinnerText = $('.empty-view-cache-option-toolbar-right-spinner span.sirv-show-empty-view-result');
-
             $.ajax({
                 url: ajaxurl,
                 data: {
@@ -1511,8 +1532,6 @@ jQuery(function ($) {
                 type: 'POST',
                 dataType: "json",
                 beforeSend: function () {
-                    /* $spinnerText.text('');
-                    $spinnerText.hide(); */
                     $spinner.show();
                 }
             }).done(function (data) {
@@ -1522,18 +1541,10 @@ jQuery(function ($) {
                 $spinner.hide();
 
                 if(!!data?.error){
-                    showMessage('.sirv-show-view-cache-messages', data.error, 'sirv-show-view-cache-message-id');
+                    showMessage('.sirv-show-view-cache-messages', data.error);
                 }
 
                 if(!!data){
-                    /* if (!!data.result && Number.isInteger(data.result)){
-                        let msg = (data.result / 2) + ' items deleted';
-                        //$spinnerText.text(msg);
-                        //$spinnerText.show();
-
-                        //setTimeout(function () { $spinnerText.hide();}, 2000);
-                    } */
-
                     if (!!data?.sync_data){
                         updateViewSyncData(data.sync_data);
                     }
@@ -1545,11 +1556,9 @@ jQuery(function ($) {
                 console.error("Error message: " + error);
                 console.error("http code", `${jqXHR.status} ${jqXHR.statusText}`);
 
-                showAjaxErrorMessage(jqXHR, status, error, '.sirv-show-view-cache-messages', 'sirv-show-view-cache-message-id');
+                showAjaxErrorMessage(jqXHR, status, error, '.sirv-show-view-cache-messages');
 
                 $spinner.hide();
-                /* $spinnerText.text("Error during ajax request: " + error);
-                $spinnerText.show(); */
             });
         }
 
@@ -1576,6 +1585,7 @@ jQuery(function ($) {
         $(".sync-all-view-data-hide-dialog-action").on('click', hideSyncSyncViewFilesDialog);
         function hideSyncSyncViewFilesDialog(){
             $("#sirv-sync-view-files").hide();
+            $(".sirv-sync-view-files-messages").empty();
         }
 
 
@@ -1618,7 +1628,7 @@ jQuery(function ($) {
                 //console.log(response);
 
                 if(!!response?.error){
-                    showMessage('.sirv-sync-view-files-messages', response.error, 'sirv-sync-view-files-message-id', 'error');
+                    showMessage('.sirv-sync-view-files-messages', response.error);
                 }
 
                 if(isStopViewSyncing){
@@ -1643,7 +1653,7 @@ jQuery(function ($) {
                 console.error("Error message: " + error);
                 console.error("http code", `${jqXHR.status} ${jqXHR.statusText}`);
 
-                showAjaxErrorMessage(jqXHR, status, error, '.sirv-sync-view-files-messages', 'sirv-sync-view-files-message-id');
+                showAjaxErrorMessage(jqXHR, status, error, '.sirv-sync-view-files-messages');
 
                 setViewSyncToInitialState();
             });
@@ -1695,13 +1705,13 @@ jQuery(function ($) {
 
                 if(!!res.error){
                     $(".sirv-show-view-cache-messages").empty();
-                    showMessage(".sirv-show-view-cache-messages", res.error, 'sirv-show-view-cache-message-id');
+                    showMessage(".sirv-show-view-cache-messages", res.error);
                     return;
                 }
 
                 if(!!res.rows_affected){
                     $(".sirv-show-view-cache-messages").empty();
-                    showMessage(".sirv-show-view-cache-messages", `${res.rows_affected} record(s) has been deleted`, 'sirv-show-view-cache-message-id', 'ok');
+                    showMessage(".sirv-show-view-cache-messages", `${res.rows_affected} record(s) deleted`, 'success');
 
                     if(!!res.cache_data){
                         updateViewSyncData(res.cache_data);
@@ -1714,7 +1724,7 @@ jQuery(function ($) {
                 console.error("http code", `${jqXHR.status} ${jqXHR.statusText}`);
 
                 $(".sirv-show-view-cache-messages").empty();
-                showAjaxErrorMessage(jqXHR, status, error, '.sirv-show-view-cache-messages', 'sirv-show-view-cache-message-id');
+                showAjaxErrorMessage(jqXHR, status, error, '.sirv-show-view-cache-messages');
             });
         }
 
@@ -1772,7 +1782,7 @@ jQuery(function ($) {
 
             }).fail(function (jqXHR, status, error) {
                 console.log("Error during ajax request: " + error);
-                //showMessage('.sirv-sync-messages', "Error during ajax request: " + error, 'sirv-sync-message');
+                //showMessage('.sirv-sync-messages', "Error during ajax request: " + error);
                 $('.sync-css').siblings('span.sirv-traffic-loading-ico').hide();
                 $('.sync-css').siblings('span.sirv-show-empty-view-result').text("Error during ajax request: " + error);
                 $('.sync-css').siblings('span.sirv-show-empty-view-result').show();
@@ -1823,7 +1833,7 @@ jQuery(function ($) {
 
             }).fail(function (jqXHR, status, error) {
                 console.log("Error during ajax request: " + error);
-                //showMessage('.sirv-sync-messages', "Error during ajax request: " + error, 'sirv-sync-message');
+                //showMessage('.sirv-sync-messages', "Error during ajax request: " + error);
                 $('.sync-css').siblings('span.sirv-traffic-loading-ico').hide();
                 $('.sync-css').siblings('span.sirv-show-empty-view-result').text("Error during ajax request: " + error);
                 $('.sync-css').siblings('span.sirv-show-empty-view-result').show();
@@ -1867,7 +1877,7 @@ jQuery(function ($) {
 
             }).fail(function (jqXHR, status, error) {
                 console.log("Error during ajax request: " + error);
-                //showMessage('.sirv-sync-messages', "Error during ajax request: " + error, 'sirv-sync-message');
+                //showMessage('.sirv-sync-messages', "Error during ajax request: " + error);
                 $('.sync-css').siblings('span.sirv-traffic-loading-ico').hide();
                 $('.sync-css').siblings('span.sirv-show-empty-view-result').text("Error during ajax request: " + error);
                 $('.sync-css').siblings('span.sirv-show-empty-view-result').show();
@@ -1914,7 +1924,7 @@ jQuery(function ($) {
 
             }).fail(function (jqXHR, status, error) {
                 console.log("Error during ajax request: " + error);
-                //showMessage('.sirv-sync-messages', "Error during ajax request: " + error, 'sirv-sync-message');
+                //showMessage('.sirv-sync-messages', "Error during ajax request: " + error);
                 $('.sync-css').siblings('span.sirv-traffic-loading-ico').hide();
                 $('.sync-css').siblings('span.sirv-show-empty-view-result').text("Error during ajax request: " + error);
                 $('.sync-css').siblings('span.sirv-show-empty-view-result').show();
@@ -2043,7 +2053,7 @@ jQuery(function ($) {
                 $('.sirv-stats-container').removeClass('sirv-loading');
                 if (!!data) {
                     if(data.error){
-                        showMessage('.sirv-stats-messages', error, 'sirv-get-failed-message', error);
+                        showMessage('.sirv-stats-messages', error);
                     }
 
                     window.abc = data.traffic.traffic;
@@ -2054,7 +2064,7 @@ jQuery(function ($) {
                 }
             }).fail(function (jqXHR, status, error) {
                 console.error("Error during ajax request: " + error);
-                showMessage('.sirv-stats-messages', "Error during ajax request: " + error, 'sirv-get-failed-message');
+                showMessage('.sirv-stats-messages', "Error during ajax request: " + error);
                 $('.sirv-stats-container').removeClass('sirv-loading');
             });
         }
@@ -2523,7 +2533,7 @@ jQuery(function ($) {
 
         $('input[name=SIRV_FOLDER]').on('input', showWarningOnFolderChange);
         function showWarningOnFolderChange() {
-            $('.sirv-warning-on-folder-change').fadeIn(800);
+            $('.sirv-warning-on-folder-change').removeClass("sirv-hide");
         }
 
 
@@ -2551,7 +2561,7 @@ jQuery(function ($) {
                 type: 'POST',
                 dataType: "json",
                 beforeSend: function (){
-                    hideMessage("sirv-sync-messages", true);
+                    hideMessages(".sirv-sync-messages");
                     $(".sirv-calc-library-size-action").prop("disabled", true);
                     $(".sirv-calc-library-size-show-analizing").css({'display': 'flex',});
                     $(".sirv-calc-media-size-data").hide();
@@ -2561,7 +2571,7 @@ jQuery(function ($) {
                 //console.log(res);
 
                 if(res.error){
-                    showMessage(".sirv-sync-messages", res.error, 'calc_size', 'error');
+                    showMessage(".sirv-sync-messages", res.error);
                     console.error(res.error);
                 }
 
@@ -2584,7 +2594,7 @@ jQuery(function ($) {
 
             }).fail(function (jqXHR, status, error) {
                 console.log("Error during ajax request: " + error);
-                showMessage(".sirv-sync-messages", error, 'calc_size', 'error');
+                showMessage(".sirv-sync-messages", error);
 
                 $(".sirv-calc-library-size-action").prop("disabled", false);
                 $(".sirv-calc-library-size-show-analizing").hide();
@@ -2644,10 +2654,10 @@ jQuery(function ($) {
 
             if(activeModules.length === 0){
                 isNotAllActiveModules = true;
-                hideMessage("js-modules-warning", true);
-                showMessage('.js-modules-messages', 'Please select at least one feature', 'js-modules-warning', 'warning');
+                hideMessages(".js-modules-messages");
+                showMessage('.js-modules-messages', 'Please select at least one feature', 'warning');
             }else{
-                hideMessage("js-modules-warning");
+                hideMessages(".js-modules-messages");
             }
 
             manageAllState($all, activeModules);
@@ -2781,7 +2791,7 @@ jQuery(function ($) {
                 if(res.error){
                     $('.sirv-wai-bar-line-complited').removeClass('sirv-progress-bar-animated');
                     updateWAIProcessingStatus(res);
-                    showMessage('.sirv-migrate-wai-data-messages', res.error, 'sirv-migrate-wai-data-message', 'error');
+                    showMessage('.sirv-migrate-wai-data-messages', res.error);
                     return;
                 }
 
@@ -2802,7 +2812,7 @@ jQuery(function ($) {
                 $(".sirv-migrate-wai-data").prop("disabled", false);
                 $(".sirv-migrate-wai-data").text("Migrate");
 
-                showMessage('.sirv-migrate-wai-data-messages', error, 'sirv-migrate-wai-data-message', 'error');
+                showMessage('.sirv-migrate-wai-data-messages', error);
 
                 console.error("Error during ajax request: " + error);
             });

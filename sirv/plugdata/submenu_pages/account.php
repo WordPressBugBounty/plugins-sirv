@@ -41,8 +41,8 @@ if ($sirvStatus) {
   <?php if ($isMuted || $sirvStatus) { ?>
     <h1>Account info</h1>
     <div class="sirv-s3credentials-wrapper">
-      <div class="sirv-optiontable-holder" style="<?php if ($error) echo 'width: 700px;'; ?>">
-        <div class="sirv-error"><?php if ($error) echo '<div id="sirv-account" class="sirv-message error-message">' . $error . '</div>'; ?></div>
+      <div class="sirv-optiontable-holder">
+        <div class="sirv-error"><?php if ($error) echo Utils::showMessage($error); ?></div>
         <?php if ($sirvStatus) { ?>
           <table class="optiontable form-table">
             <tr>
@@ -67,41 +67,6 @@ if ($sirvStatus) {
                 <span><?php echo htmlspecialchars(get_option('SIRV_CDN_URL')); ?></span>
               </td>
             </tr>
-            <!--  <tr>
-              <th>Calc images storage size:</th>
-              <td>
-                <style>
-                  .div-flex {
-                    display: flex;
-                    flex-direction: column;
-                  }
-
-                  .tst-row {
-                    display: flex;
-                    flex-direction: row;
-                  }
-
-                  .tst-row .val {
-                    margin-left: 5px;
-                  }
-                </style>
-                <div class="div-flex">
-                  <div class="tst-row">
-                    <div class="lab">Time: </div>
-                    <div class="val v-time"></div>
-                  </div>
-                  <div class="tst-row">
-                    <div class="lab">Count: </div>
-                    <div class="val v-count"></div>
-                  </div>
-                  <div class="tst-row">
-                    <div class="lab">Size: </div>
-                    <div class="val v-size"></div>
-                  </div>
-                  <div style="width: 95px;" class="button-primary storage-size-test">Run calc size</div>
-                </div>
-              </td>
-            </tr> -->
           </table>
         <?php } ?>
       </div>

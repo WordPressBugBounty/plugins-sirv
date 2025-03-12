@@ -154,6 +154,26 @@
 
 
 
+    public static function showMessage($message, $type="error", $is_show_close_button=false){
+      //type: error, info, warning, success
+      $allowed_types_to_close = array('info','success');
+
+      $close_button_html = (in_array($type, $allowed_types_to_close) || $is_show_close_button) ? '<div><button class="sirv-push-message-close" type="button">&times;</button></div>' : '';
+
+      $html = '
+        <div class="sirv-push-message-container sirv-push-message-' . $type . '">
+          <div class="sirv-push-message sirv-push-message-' . $type . '-icon">
+            ' . $message . '
+          </div>
+          ' . $close_button_html . '
+        </div>
+      ';
+
+      return $html;
+
+    }
+
+
     public static function get_sirv_item_info($sirv_url){
       $context = stream_context_create(array('http' => array('method' => "GET")));
       $sirv_item_metadata = @json_decode(@file_get_contents($sirv_url . '?info', false, $context));
@@ -166,53 +186,6 @@
       $tag_attrs = self::join_tag_attrs($tag_metadata, $skip_attrs);
 
       return '<' . $tag_name . ' ' . $tag_attrs . '>';
-    }
-
-
-    public static function get_head_request($url){
-      $headers = array();
-      $error = NULL;
-      $user_agent = 'Sirv/Wordpress';
-
-      $site_url = get_site_url();
-      $request_headers = array(
-        "Referer" => "Referer: $site_url",
-      );
-
-      $ch = curl_init();
-      curl_setopt_array($ch, array(
-        CURLOPT_URL => $url,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_NONE,
-        CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_HTTPHEADER => $request_headers,
-        CURLOPT_NOBODY => 1,
-        CURLOPT_CUSTOMREQUEST => 'HEAD',
-        CURLOPT_USERAGENT => $user_agent,
-        //CURLOPT_HEADER => 1, //get headers in result
-        //CURLINFO_HEADER_OUT => true,
-        //CURLOPT_HEADERFUNCTION => [Utils::class, 'header_callback'],
-        //CURLOPT_HEADER => 1,
-        //CURLOPT_NOBODY => 0,
-        //CURLOPT_CONNECTTIMEOUT => 1,
-        //CURLOPT_TIMEOUT => 1,
-        //CURLOPT_ENCODING => "",
-        //CURLOPT_MAXREDIRS => 10,
-        //CURLOPT_USERAGENT => $userAgent,
-        //CURLOPT_POSTFIELDS => $data,
-        //CURLOPT_SSL_VERIFYPEER => false,
-        //CURLOPT_VERBOSE => true,
-        //CURLOPT_STDERR => $fp,
-      ));
-
-      $result = curl_exec($ch);
-      $headers = curl_getinfo($ch);
-      $error = curl_error($ch);
-
-      curl_close($ch);
-
-      if( $error ) $headers['error'] = $error;
-
-      return $headers;
     }
 
 
@@ -231,12 +204,10 @@
 
       $headers = array();
       $error = NULL;
-      $user_agent = 'Sirv/Wordpress';
 
       $site_url = get_site_url();
       $request_headers = array(
         "Accept" => 'Accept: application/json',
-        "Content-Type" => 'Content-Type: application/json',
         "Referer" => "Referer: $site_url",
       );
 
@@ -249,7 +220,9 @@
         CURLOPT_RETURNTRANSFER => 1,
         CURLOPT_HTTPHEADER => $request_headers,
         CURLOPT_CUSTOMREQUEST => 'GET',
-        CURLOPT_USERAGENT => $user_agent,
+        CURLOPT_USERAGENT => self::$user_agent,
+        CURLOPT_ENCODING => "",
+        CURLOPT_ACCEPT_ENCODING => "",
         //CURLOPT_MAXREDIRS => 5,
         //CURLOPT_CONNECTTIMEOUT => 2,
         //CURLOPT_TIMEOUT => 5,
@@ -269,7 +242,7 @@
 
         $sirv_logger->error($url, 'request url')->filename('network_errors.log')->write();
         $sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
-        $sirv_logger->error('')->filename('network_errors.log')->write();
+        $sirv_logger->delimiter()->filename('network_errors.log')->write();
       }
 
       $response['result'] = $result;
@@ -299,6 +272,8 @@
         CURLOPT_NOBODY => 1,
         CURLOPT_CUSTOMREQUEST => 'HEAD',
         CURLOPT_USERAGENT => self::$user_agent,
+        CURLOPT_ENCODING => "",
+        CURLOPT_ACCEPT_ENCODING => "",
         //CURLOPT_MAXREDIRS => 5,
         //CURLOPT_CONNECTTIMEOUT => 2,
         //CURLOPT_TIMEOUT => 8,
@@ -314,7 +289,7 @@
 
       $sirv_logger->error($url, 'request url')->filename('network_errors.log')->write();
       $sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
-      $sirv_logger->error('')->filename('network_errors.log')->write();
+      $sirv_logger->delimiter()->filename('network_errors.log')->write();
 
       self::$headers['error'] = $error;
     }
