@@ -4,8 +4,8 @@ Donate link: https://sirv.com/
 Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
-Tested up to: 6.7.2
-Stable tag: 7.5.3
+Tested up to: 6.8
+Stable tag: 7.5.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -222,6 +222,13 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 18. To upload images to your Sirv library, go to the Media Library page within the Sirv sub-menu (in the left navigation column).
 
 == Changelog ==
+
+= 7.5.4 (2025-04-14) =
+* Tested with the latest WordPress version 6.8.
+* Improved security for generating shortcodes.
+* Better detection of Sirv domains.
+* Improved option titles.
+* Minor improvements.
 
 = 7.5.3 (2025-03-12) =
  * Optimized "sirv" field parsing for WooCommerce CSV product exports.

@@ -23,6 +23,12 @@ if ($sirvStatus) {
     //$is_direct = (isset($accountInfo->aliases->{$accountInfo->alias}->cdn) && $accountInfo->aliases->{$accountInfo->alias}->cdn) ? false : true;
     $sirvCDNurl = get_option('SIRV_CDN_URL');
 
+    $domains = sirv_get_domains($accountInfo);
+    update_option('SIRV_CUSTOM_DOMAINS', json_encode(array(
+      "domains" => array_values($domains),
+      "expired_at" => time() + 60 * 60 * 24,
+    )));
+
 
     update_option('SIRV_ACCOUNT_NAME', $accountInfo->alias);
     //update_option('SIRV_NETWORK_TYPE', (isset($accountInfo->aliases->{$accountInfo->alias}->cdn) && $accountInfo->aliases->{$accountInfo->alias}->cdn) ? 1 : 2);

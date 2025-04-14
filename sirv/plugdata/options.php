@@ -74,23 +74,11 @@ if ($sirvStatus) {
 
   $accountInfo = $sirvAPIClient->getAccountInfo();
 
-  if (!empty($accountInfo)) {
-
-    if (!empty($accountInfo->cdnTempURL)) {
-      $domains[$accountInfo->cdnTempURL] = $accountInfo->cdnTempURL;
-    }
-
-    if (!empty($accountInfo->alias)) {
-      $domains[$accountInfo->alias . '.sirv.com'] = $accountInfo->alias . '.sirv.com';
-    }
-
-    if (!empty($accountInfo->aliases)) {
-      foreach ($accountInfo->aliases as $a => $alias) {
-        $domain = !empty($alias->customDomain) ? $alias->customDomain : $a . '.sirv.com';
-        $domains[$domain] = $domain;
-      }
-    }
-  }
+  $domains = sirv_get_domains($accountInfo);
+  update_option('SIRV_CUSTOM_DOMAINS', json_encode(array(
+    "domains" => array_values($domains),
+    "expired_at" => time() + 60 * 60 * 24,
+  )));
 
   $cacheInfo = sirv_getCacheInfo();
   $profiles = sirv_getProfilesList();

@@ -173,8 +173,7 @@ class Sirv_Gallery_MV
     protected function getCaptions(){
         $captions = $this->params['show_caption'] ? $this->remove_tags($this->captions) : array();
 
-
-        return json_encode($captions, JSON_HEX_QUOT | JSON_HEX_APOS);
+        return htmlspecialchars(json_encode($captions), ENT_QUOTES, 'UTF-8');
     }
 
 
@@ -279,7 +278,7 @@ class Sirv_Gallery_MV
         $this->fixCaptionPosition($this->params['id']);
 
         $smv_options = $this->get_smv_options();
-        $captions = 'data-mv-captions=\'' . $this->getCaptions().'\'';
+        $captions = 'data-mv-captions="' . $this->getCaptions().'"';
         $thumbsOrientation = $this->params['zgallery_data_options']['thumbnails'];
         $align = $this->getAlign();
         $captions_html = ($thumbsOrientation == 'bottom' && count($this->items) > 1) ? '' : '<div class="sirv-align-wrapper '. $align .'"><div class="sirv-mv-caption '. $this->params['id']. '"></div></div>';

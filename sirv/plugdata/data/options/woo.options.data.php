@@ -718,7 +718,7 @@ $cat_options = array(
         ),
       ),
       array(
-        'label' => '2',
+        'label' => '2 (swap on hover)',
         'check_data_type' => 'checked',
         'attrs' => array(
           'type' => 'radio',
@@ -726,7 +726,7 @@ $cat_options = array(
         ),
       ),
       array(
-        'label' => '3',
+        'label' => '3 (swap via arrows/bullets)',
         'check_data_type' => 'checked',
         'attrs' => array(
           'type' => 'radio',
@@ -734,7 +734,7 @@ $cat_options = array(
         ),
       ),
       array(
-        'label' => '4',
+        'label' => '4 (swap via arrows/bullets)',
         'check_data_type' => 'checked',
         'attrs' => array(
           'type' => 'radio',
@@ -742,7 +742,7 @@ $cat_options = array(
         ),
       ),
       array(
-        'label' => 'All items',
+        'label' => 'All items (swap via arrows/bullets)',
         'check_data_type' => 'checked',
         'attrs' => array(
           'type' => 'radio',

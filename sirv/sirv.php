@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           7.5.3
+ * Version:           7.5.4
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '7.5.3');
+define('SIRV_PLUGIN_VERSION', '7.5.4');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -53,6 +53,7 @@ global $base_prefix;
 global $sirv_woo_is_enable;
 global $sirv_woo_cat_is_enable;
 global $sirv_cdn_url;
+global $sirv_domains;
 global $isAjax;
 global $profiles;
 global $sirv_logger;
@@ -895,6 +896,31 @@ function sirv_get_default_prevent_thumbs(){
 }
 
 
+function sirv_get_domains($accountInfo){
+  $domains = array();
+
+  if (!empty($accountInfo)) {
+
+    if (!empty($accountInfo->cdnTempURL)) {
+      $domains[$accountInfo->cdnTempURL] = $accountInfo->cdnTempURL;
+    }
+
+    if (!empty($accountInfo->alias)) {
+      $domains[$accountInfo->alias . '.sirv.com'] = $accountInfo->alias . '.sirv.com';
+    }
+
+    if (!empty($accountInfo->aliases)) {
+      foreach ($accountInfo->aliases as $a => $alias) {
+        $domain = !empty($alias->customDomain) ? $alias->customDomain : $a . '.sirv.com';
+        $domains[$domain] = $domain;
+      }
+    }
+  }
+
+  return $domains;
+}
+
+
 
 function sirv_update_options(){
   if (get_option('WP_USE_SIRV_CDN') && !get_option('SIRV_ENABLE_CDN')) update_option('SIRV_ENABLE_CDN', get_option('WP_USE_SIRV_CDN'));
@@ -931,6 +957,10 @@ function sirv_fill_empty_options(){
     }
   }
   if (!get_option('SIRV_CDN_URL')) update_option('SIRV_CDN_URL', '');
+  if (!get_option('SIRV_CUSTOM_DOMAINS')) update_option('SIRV_CUSTOM_DOMAINS', json_encode(array(
+    "domains" => array(),
+    "expired_at" => time() * 60 * 60 * 24,
+  )));
   if (!get_option('SIRV_STAT')) update_option('SIRV_STAT', '', 'no');
   if (!get_option('SIRV_FETCH_MAX_FILE_SIZE')) update_option('SIRV_FETCH_MAX_FILE_SIZE', '');
   if (!get_option('SIRV_CSS_BACKGROUND_IMAGES')) update_option('SIRV_CSS_BACKGROUND_IMAGES', '');
@@ -1800,6 +1830,7 @@ function sirv_register_settings(){
   register_setting('sirv-settings-group', 'SIRV_ACCOUNT_EMAIL');
   register_setting('sirv-settings-group', 'SIRV_ACCOUNT_NAME');
   register_setting('sirv-settings-group', 'SIRV_CDN_URL');
+  register_setting('sirv-settings-group', 'SIRV_CUSTOM_DOMAINS');
   register_setting('sirv-settings-group', 'SIRV_STAT');
   register_setting('sirv-settings-group', 'SIRV_FETCH_MAX_FILE_SIZE');
   register_setting('sirv-settings-group', 'SIRV_CSS_BACKGROUND_IMAGES');
@@ -2303,10 +2334,14 @@ function sirv_is_sirv_item($url){
   //does not give 100% guarantee that this is sirv image
   if( sirv_is_double_http($url) ) return true;
 
-  //$sirv_cdn_url = get_option('SIRV_CDN_URL');
-  $sirv_cdn_url = sirv_get_cached_cdn_url();
-  $sirv_url = empty($sirv_cdn_url) ? 'sirv.com' : $sirv_cdn_url;
-  return stripos($url, $sirv_url) !== false;
+  $domains = sirv_get_cached_sirv_domains();
+
+  for ($i=0; $i < count($domains); $i++) {
+    $sirv_domain = $domains[$i];
+    if( stripos($url, $sirv_domain) !== false ) return true;
+  }
+
+  return false;
   }
 
 
@@ -2386,6 +2421,24 @@ function sirv_get_cached_cdn_url(){
     $sirv_cdn_url = get_option('SIRV_CDN_URL');
   }
   return $sirv_cdn_url;
+}
+
+
+function sirv_get_cached_sirv_domains(){
+  global $sirv_domains;
+
+  if ( !isset($sirv_domains) ) {
+    $domains_data = json_decode( get_option('SIRV_CUSTOM_DOMAINS'), true);
+    $domains = count($domains_data['domains']) == 0 ? array() : $domains_data['domains'];
+
+    if ( count($domains) == 0 ) {
+      $sirv_cdn_url = sirv_get_cached_cdn_url();
+      $domains[] = empty($sirv_cdn_url) ? 'sirv.com' : $sirv_cdn_url;
+    }
+
+    //TODO: check expired_at and refresh cache in background
+  }
+  return $domains;
 }
 
 
@@ -5212,7 +5265,8 @@ add_action('wp_ajax_sirv_save_shortcode_in_db', 'sirv_save_shortcode_in_db');
 function sirv_save_shortcode_in_db(){
 
   if (!(is_array($_POST) && isset($_POST['shortcode_data']) && defined('DOING_AJAX') && DOING_AJAX)) {
-    return;
+    echo json_encode(array('error' => 'Action denied'));
+    wp_die();
   }
 
   if (!sirv_is_allow_ajax_connect('sirv_logic_ajax_validation_nonce', 'edit_posts')) {
@@ -5223,11 +5277,14 @@ function sirv_save_shortcode_in_db(){
   global $base_prefix;
   global $wpdb;
 
+  $error = null;
   $table_name = $base_prefix . 'sirv_shortcodes';
 
 
 
   $data = $_POST['shortcode_data'];
+  $data = sirv_santize_shorcode_data($data);
+
   $data['images'] = serialize($data['images']);
   $data['shortcode_options'] = serialize($data['shortcode_options']);
   $data['timestamp'] = date("Y-m-d H:i:s");
@@ -5236,10 +5293,34 @@ function sirv_save_shortcode_in_db(){
 
   $wpdb->insert($table_name, $data);
 
-  echo $wpdb->insert_id;
+  if ($wpdb->last_error) {
+    $error = $wpdb->last_error;
+  }
+  if ( $wpdb->insert_id == 0 && is_null($error) ) {
+    $error = 'Shortcode was not saved';
+  }
+
+  echo json_encode(array(
+    'error' => $error,
+    'shortcode_id' => $wpdb->insert_id
+  ));
 
 
   wp_die();
+}
+
+
+function sirv_santize_shorcode_data($data){
+
+  foreach ($data as $key => $value) {
+    if ( is_array($value) ) {
+      $data[$key] = sirv_santize_shorcode_data($value);
+    } else {
+      $data[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    }
+  }
+
+  return $data;
 }
 
 
@@ -5420,7 +5501,8 @@ add_action('wp_ajax_sirv_update_sc', 'sirv_update_sc');
 function sirv_update_sc(){
 
   if (!(is_array($_POST) && isset($_POST['row_id']) && isset($_POST['shortcode_data']) && defined('DOING_AJAX') && DOING_AJAX)) {
-    return;
+    echo json_encode(array('error' => 'Action denied'));
+    wp_die();
   }
 
   if (!sirv_is_allow_ajax_connect('sirv_logic_ajax_validation_nonce', 'edit_posts')) {
@@ -5431,20 +5513,33 @@ function sirv_update_sc(){
   global $base_prefix;
   global $wpdb;
 
+  $error = null;
+
   $table_name = $base_prefix . 'sirv_shortcodes';
 
   $id = intval($_POST['row_id']);
   $data = $_POST['shortcode_data'];
-
-  unset($data['isAltCaption']);
+  $data = sirv_santize_shorcode_data($data);
 
   $data['images'] = serialize($data['images']);
   $data['shortcode_options'] = serialize($data['shortcode_options']);
 
+  unset($data['isAltCaption']);
 
   $row =  $wpdb->update($table_name, $data, array('ID' => $id));
 
-  echo $row;
+  if ($wpdb->last_error) {
+    $error = $wpdb->last_error;
+  }
+
+  if ( $row === false ){
+    $row = 0;
+  }
+
+  echo json_encode(array(
+    'error' => $error,
+    'row' => $row,
+  ));
 
 
   wp_die();

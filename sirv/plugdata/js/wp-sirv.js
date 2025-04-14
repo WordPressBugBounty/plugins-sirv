@@ -2578,9 +2578,14 @@ jQuery(function($){
 
                     if($('.insert').hasClass('edit-gallery')){
                         id = parseInt($('.insert').attr('data-shortcode-id'));
-                        save_shorcode_to_db('sirv_update_sc', id);
+                        const row = save_shorcode_to_db('sirv_update_sc', id);
+
+                        if (row === 0) return;
                     }else{
                         id = save_shorcode_to_db('sirv_save_shortcode_in_db');
+
+                        if (id === 0) return;
+
                         html = '[sirv-gallery id='+ id +']';
                     }
 
@@ -3249,7 +3254,7 @@ jQuery(function($){
         function save_shorcode_to_db(action, row_id){
 
             row_id = row_id || -1;
-            let id;
+            let value;
             let data = {
                 action: action,
                 _ajax_nonce: sirv_ajax_object.ajaxnonce,
@@ -3261,22 +3266,31 @@ jQuery(function($){
             };
 
             let ajaxData = {
-                            url: sirv_ajax_object.ajaxurl,
-                            type: 'POST',
-                            async: false,
-                            data: data
+                url: sirv_ajax_object.ajaxurl,
+                type: 'POST',
+                dataType: 'json',
+                async: false,
+                data: data
             };
 
             //processingOverlay='.loading-ajax'
             sendAjaxRequest(ajaxData, processingOverlay = '.loading-ajax', showingArea=false, isdebug=false, doneFn=function(response){
                 if(response.error){
                     console.error(response.error);
+                    toastr.error(`Error: ${response.error}`, "", {preventDuplicates: true, timeOut: 60 * 1000, positionClass: "toast-top-center", closeButton: true});
                 }
 
-                id = response;
+                if(response?.shortcode_id){
+                    value = response.shortcode_id;
+                }
+
+                if(response?.row){
+                    value = response.row;
+                }
+
             });
 
-            return id;
+            return value;
         }
 
 
