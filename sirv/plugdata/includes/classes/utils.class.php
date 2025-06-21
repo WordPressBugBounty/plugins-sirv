@@ -189,6 +189,39 @@
     }
 
 
+    public static function get_remote_file_size($url){
+      $site_url = get_site_url();
+      $request_headers = array(
+        "Accept" => 'Accept: application/json',
+        "Referer" => "Referer: $site_url",
+      );
+
+      $ch = curl_init();
+      curl_setopt_array($ch, array(
+        CURLOPT_URL => $url,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_NONE,
+        CURLOPT_NOBODY => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => $request_headers,
+        CURLOPT_USERAGENT => self::$user_agent,
+        CURLOPT_HEADER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_ACCEPT_ENCODING => "",
+      ));
+
+      $result = curl_exec($ch);
+      $filesize = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+      $error = curl_error($ch);
+
+      curl_close($ch);
+
+      return array(
+        "filesize" => $filesize > 0 ? $filesize : 0,
+        "error" => $error
+      );
+    }
+
+
     public static function get_sirv_item_info_curl($url){
 
       $response = array(

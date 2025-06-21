@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           7.5.4
+ * Version:           7.5.5
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '7.5.4');
+define('SIRV_PLUGIN_VERSION', '7.5.5');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -454,14 +454,14 @@ function sirv_variation_image_html($image_html, $product_id, $variaition_id){
         $isCrop = true;
       }
 
-      $size_data['width'] = $wp_size[0];
-      $size_data['height'] = $wp_size[1];
+      $size_data['width'] = (int) $wp_size[0];
+      $size_data['height'] = (int) $wp_size[1];
       $size_data['cropType'] = sirv_get_crop_type($wp_size, $sizes, (bool) $isCrop);
       $size_data['error'] = false;
     }else{
       if (!empty($sizes)  && in_array($wp_size, array_keys($sizes))) {
-        $size_data['width'] = $sizes[$wp_size]['width'];
-        $size_data['height'] = $sizes[$wp_size]['height'];
+        $size_data['width'] = (int) $sizes[$wp_size]['width'];
+        $size_data['height'] = (int) $sizes[$wp_size]['height'];
 
         $isCrop = isset($sizes[$wp_size]['crop']) ? (bool) $sizes[$wp_size]['crop'] : false;
 
@@ -2681,10 +2681,12 @@ function sirv_the_content($content, $type='content'){
             $h = 0;
 
             if( isset($img_attrs['width']) || isset($img_attrs['height']) ){
-              $w = isset($img_attrs['width']) ? $img_attrs['width'] : 0;
-              $h = isset($img_attrs['height']) ? $img_attrs['height'] : 0;
+              $w = isset($img_attrs['width']) ? (int) $img_attrs['width'] : 0;
+              $h = isset($img_attrs['height']) ? (int) $img_attrs['height'] : 0;
             }else{
               list($w, $h) = explode('x', str_replace('-', '', str_replace('&#215;', 'x', $size_str)));
+              $w = (int) $w;
+              $h = (int) $h;
               $img_attrs['width'] = $w;
               $img_attrs['height'] = $h;
             }
@@ -3723,9 +3725,11 @@ function sirv_generate_sirv_item_db_data($sirv_url, $attachment_id){
   if ($response["result"] && !$error) {
     $json = @json_decode($response["result"], true);
     if ( empty($json['_isplaceholder']) && (int) $headers['http_code'] == 200 ) {
+      $filesize = Utils::get_remote_file_size($sirv_url);
+
       $data['status'] = 'SYNCED';
       $data['timestamp_synced'] = date("Y-m-d H:i:s");
-      $data['size'] = isset($headers['download_content_length']) ? (int) $headers['download_content_length'] : NULL;
+      $data['size'] = $filesize['filesize'];
       $data['error_type'] = NULL;
 
       $returned_sirv_url = $sirv_url;

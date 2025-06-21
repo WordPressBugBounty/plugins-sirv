@@ -3,7 +3,22 @@
             top: 120px;
         }
     </style>
-
+    <script>
+        jQuery(document).ready(function($) {
+            $('.sirv-media-content').tooltip({
+                classes:{
+                    "ui-tooltip": "sirv-ui-widget-content sirv-ui-corner-all sirv-ui-widget-shadow",
+                },
+                show: false,
+                hide: false,
+                position: {
+                    my: "left bottom-25",
+                    at: "left bottom",
+                    collision: "flipfit",
+                },
+            });
+        });
+    </script>
     <div class="sirv-sirv-media_library-php">
         <div class="loading-ajax">
             <span class="sirv-loading-icon"></span>
@@ -31,7 +46,7 @@
             </div>
             <div class="sirv-drop-handler"></div>
         </div>
-        <div class="content">
+        <div class="sirv-media-content">
             <div class="selection-content" id="drag-upload-area">
                 <div class="nav">
                     <div class="sirv-main-title">
@@ -51,28 +66,27 @@
                             </div>
                             <div class="sub-toolbar-right">
                                 <div class="sirv-search-container">
-                                    <!-- <div class="btn btn-success sirv-search">
-                                                            <span>Search</span>
-                                                        </div> -->
                                     <input id="sirv-search-field" class="sirv-search-narrow strech" type="text"
                                         placeholder="🔍 Search" value="" autocomplete="off" />
                                     <button class="sirv-search-cancel">
                                         <span class="dashicons dashicons-no-alt"></span>
                                     </button>
-                                    <div id="sirv-search-button" class="btn btn-success">
+                                    <!-- <div id="sirv-search-button" class="btn btn-success">
                                         <span>Search</span>
+                                    </div> -->
+                                </div>
+                                <div class="sirv-newfolder-container">
+                                    <div class="sirv-btn sirv-btn-secondary create-folder">
+                                        <i class="fa fa-folder-o"></i>
+                                        <span>New folder</span>
                                     </div>
                                 </div>
                                 <div class="upload-files-container">
-                                    <div class="btn btn-success fileinput-button" data-item-type="uploadButton" data-menu-position="bottom">
+                                    <div class="sirv-btn sirv-btn-primary fileinput-button" data-item-type="uploadButton" data-menu-position="bottom">
+                                        <i class="fa fa-upload"></i>
                                         <span>Upload media</span>
                                     </div>
                                     <input id="filesToUpload" class="sirvFilesToUpload" data-current-folder="/" type="file" name="files[]" multiple="">
-                                </div>
-                                <div class="sirv-newfolder-container">
-                                    <div class="btn btn-tool create-folder">
-                                        <span>New folder</span>
-                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -1,81 +1,218 @@
-const sirvUIContainerSelector = "sirv-ui-container";
-const sirvUIConfirmDialogRootSelector = "sirv-ui-cdlg-containter";
+"use strict";
 
+const defaultWindowOptions = {};
+const defaultDialogOptions = {
+  isTitle: true,
+  isCancelBtn: true,
+  isOkBtn: true,
+  cancelBtnText: "Cancel",
+  okBtnText: "Continue",
+};
 
-function sirvUICreateContainer(){
-  const body = document.querySelector("body");
-  const div = document.createElement("div");
+function sirvUIRenderModalWindow(children, type, windowOptions={}) {
+    let dialogContainer = document.querySelector('.sirv-ui-modal-dialogs-container');
 
-  div.classList.add(sirvUIContainerSelector);
+    const template = `
+      <dialog class="sirv-ui-modal-dialog sirv-ui-modal-dialog-${type}">
+        <button type="button" class="sirv-modal-window-close-button sirv-modal-window-close-action">✕</button>
+        <div class="sirv-ui-modal-dialog-container">
+          ${children}
+        </div>
+      </dialog>
+    `;
 
-  body.prepend(div);
+    if (dialogContainer) {
+      dialogContainer.innerHTML += template;
+    }else{
+      dialogContainer = document.createElement("div");
+      dialogContainer.classList.add("sirv-ui-modal-dialogs-container");
+      dialogContainer.innerHTML = template;
+
+      document.body.appendChild(dialogContainer);
+    }
 }
 
-function sirvUICreateConfirmDialog(){
-  const confirmDialogTemplate = `
-    <div class="sirv-ui-cdlg-containter">
-      <div class="sirv-ui-cdlg-header">
-        <div class="sirv-ui-cdlg-title">Confirm dialog</div>
-        <div class="sirv-ui-cdlg-close-btn sirv-ui-cdlg-close">✕</div>
-      </div>
-      <div class="sirv-ui-cdlg-message">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempora distinctio deleniti nesciunt. Minus, fugit voluptas, magnam maxime voluptatem modi, aspernatur nulla aliquid neque quidem tempore reprehenderit incidunt! Ducimus, eligendi vitae!
-      </div>
-      <div class="sirv-ui-cdlg-controls">
-        <button class="button-secondary sirv-ui-cdlg-close">Cancel</button>
-        <button class="button-primary sirv-ui-cdlg-continue-btn">Continue</button>
-      </div>
+function sirvUIGetControlsTemplate(options) {
+  const defaultCancelBtnTemplate = `
+    <button autofocus class="sirv-ui-btn sirv-ui-button-secondary sirv-ui-dialog-cancel-btn sirv-modal-window-close-action">${options.cancelBtnText || 'Cancel'}</button>
+  `;
+  const defaultokBtnTemplate = `<button class="sirv-ui-btn sirv-ui-button-primary sirv-ui-dialog-ok-btn">${options.okBtnText || 'Continue'}</button>`;
+
+
+  const controlsTemplate = `
+    <div class="sirv-ui-dialog-block-controls">
+      ${options.isCancelBtn == false ? "" : defaultCancelBtnTemplate}
+      ${options.isOkBtn == false ? "" : defaultokBtnTemplate}
     </div>
   `;
 
-  const sirvUIContainer = document.querySelector(`.${sirvUIContainerSelector}`);
-  sirvUIContainer.insertAdjacentHTML("beforeend", confirmDialogTemplate);
+  return controlsTemplate;
+}
+
+
+function sirvUIGetTitleTemplate(options) {
+  const defaultTitleTemplate = `
+    <div class="sirv-ui-dialog-block-title">
+      <h1></h1>
+    </div>`;
+
+    return options.isTitle == false ? "" : defaultTitleTemplate;
+}
+
+
+function sirvUIAddDialogHTMLToPage(dialogType, dialogContentTemplate, dialogOptions = {}) {
+  dialogOptions = {...defaultDialogOptions, ...dialogOptions};
+
+  const moduleTitle = sirvUIGetTitleTemplate(dialogOptions);
+  const moduleControls = sirvUIGetControlsTemplate(dialogOptions);
+
+  const baseTemplate = `
+    <div class="sirv-ui-dialog-data-content">
+      ${moduleTitle}
+      <div class="sirv-ui-dialog-block-content">
+        ${dialogContentTemplate}
+      </div>
+      ${moduleControls}
+    </div>
+  `;
+
+  sirvUIRenderModalWindow(baseTemplate, dialogType);
+}
+
+
+function sirvUIAddConfirmDialogHTMLToThePage(){
+  sirvUIAddDialogHTMLToPage('confirm', '');
+}
+
+
+function sirvUIAddInformDialogHTMLToThePage(){
+  sirvUIAddDialogHTMLToPage("inform", "", { isOkBtn: false, cancelBtnText : "Close"});
+}
+
+
+function sirvUIAddInputDialogHTMLToThePage(){
+  const inputTemplate = `
+    <label for="sirv-ui-input-text" class="sirv-ui-input-dialog-label"></label>
+    <input type="text" name="sirv-ui-input-text" class="sirv-ui-input-text" placeholder="">
+  `;
+
+  sirvUIAddDialogHTMLToPage("input", inputTemplate, { okBtnText : "Create" });
+}
+
+
+function sirvUIAttachCallback(callback, btnEl, dialogEl) {
+  btnEl.addEventListener("click", callback);
+
+  //prevent from duplicate events
+  dialogEl.addEventListener("close", function handler() {
+    if (!!btnEl) {
+      btnEl.removeEventListener("click", callback);
+    }
+    dialogEl.removeEventListener("close", handler);
+  });
+
+  document.addEventListener("sirv-ui-modal-dialog-close-event", function handler() {
+      if (!!btnEl) {
+        btnEl.removeEventListener("click", callback);
+      }
+      document.removeEventListener("sirv-ui-modal-dialog-close-event", handler);
+    }
+  );
+}
+
+
+function sirvUIShowInformDialog(title, desc, dialogOptions = {}){
+  const informDialog = document.querySelector(".sirv-ui-modal-dialog-inform");
+
+  const titleEl = informDialog.querySelector(".sirv-ui-dialog-block-title h1");
+  const descEl = informDialog.querySelector(".sirv-ui-dialog-block-content");
+
+  if (titleEl) titleEl.innerText = title;
+  if (descEl) descEl.innerHTML = desc;
+
+  informDialog.showModal();
 }
 
 
 function sirvUIShowConfirmDialog(title, desc, yesCallback=null, yesCallbackOptions = [], dialogOptions = {}){
+  const confirmDialog = document.querySelector(".sirv-ui-modal-dialog-confirm");
 
-  let continueBtn = null;
-  const continueBtnHandler = function(){
-    yesCallback(...yesCallbackOptions);
-    bpopup_ui_cdialog.close();
+  if(yesCallback){
+    const btnEl = confirmDialog.querySelector(".sirv-ui-dialog-ok-btn");
+
+    if(btnEl){
+      const okBtnHandler = function () {
+        confirmDialog.close();
+
+        yesCallback(...yesCallbackOptions);
+      };
+      sirvUIAttachCallback(okBtnHandler, btnEl, confirmDialog);
+    }
   }
 
-  window["bpopup_ui_cdialog"] = jQuery(`.${sirvUIConfirmDialogRootSelector}`).bPopup({
-    position: ["auto", "auto"],
-    zIndex: 9999999,
-    closeClass: "sirv-ui-cdlg-close",
-    onOpen: function () {
-      const titleEl = document.querySelector(".sirv-ui-cdlg-title");
-      titleEl.innerText = title;
+  const titleEl = confirmDialog.querySelector(".sirv-ui-dialog-block-title h1");
+  const descEl = confirmDialog.querySelector(".sirv-ui-dialog-block-content");
 
-      const descEl = document.querySelector(".sirv-ui-cdlg-message");
-      descEl.innerText = desc;
+  if (titleEl) titleEl.innerText = title;
+  if (descEl) descEl.innerText = desc;
 
-      if (!!yesCallback) {
-        continueBtn = document.querySelector(".sirv-ui-cdlg-continue-btn");
-        continueBtn.addEventListener("click", continueBtnHandler);
-      }
+  confirmDialog.showModal();
+}
 
-      jQuery(`.${sirvUIConfirmDialogRootSelector}`).css("display", "flex");
-    },
-    onClose: function () {
-      if (!!continueBtn){
-        continueBtn.removeEventListener("click", continueBtnHandler);
-      }
-      jQuery(`.${sirvUIConfirmDialogRootSelector}`).hide();
-    },
+
+function sirvUIShowInputDialog (title, inputLabelText, inputPlaceholderText='', yesCallback=null, yesCallbackOptions = [], dialogOptions = {}){
+  const inputDialog = document.querySelector(".sirv-ui-modal-dialog-input");
+
+  const titleEl = inputDialog.querySelector(".sirv-ui-dialog-block-title h1");
+  const input = inputDialog.querySelector(".sirv-ui-dialog-block-content input.sirv-ui-input-text");
+  const inputLabel = inputDialog.querySelector(".sirv-ui-dialog-block-content .sirv-ui-input-dialog-label");
+
+  if(yesCallback){
+    const btnEl = inputDialog.querySelector(".sirv-ui-dialog-ok-btn");
+
+    if (btnEl){
+      const okBtnHandler = function () {
+        inputDialog.close();
+
+        yesCallbackOptions.push(input.value);
+        yesCallback(...yesCallbackOptions);
+      };
+      sirvUIAttachCallback(okBtnHandler, btnEl, inputDialog);
+    }
+  }
+
+  titleEl.innerText = title;
+  inputLabel.innerText = inputLabelText;
+  input.placeholder = inputPlaceholderText;
+
+  inputDialog.showModal();
+}
+
+
+function sirvUIBindCloseAction() {
+  const closeButtons = document.querySelectorAll('.sirv-modal-window-close-action');
+
+  closeButtons.forEach((button) => {
+    button.addEventListener('click', (event) => {
+      const modalDialog = button.closest('.sirv-ui-modal-dialog');
+      modalDialog.close();
+
+      const closeDialogevent = new Event("sirv-ui-modal-dialog-close-event");
+      document.dispatchEvent(closeDialogevent);
+    });
   });
 }
 
 
-function initializeSirvUI(){
-  sirvUICreateContainer();
+function sirvUIInitialize() {
+  sirvUIAddConfirmDialogHTMLToThePage();
+  sirvUIAddInformDialogHTMLToThePage();
+  //sirvUIAddInputDialogHTMLToThePage();
 
-  sirvUICreateConfirmDialog();
+  sirvUIBindCloseAction();
 }
 
 
 document.addEventListener("DOMContentLoaded", function () {
-  initializeSirvUI();
+  sirvUIInitialize();
 });

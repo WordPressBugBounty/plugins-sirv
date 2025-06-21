@@ -60,10 +60,6 @@
     height: 100%
   }
 
-  #sirv-choose-shortcode {
-    height: 100%
-  }
-
 
   #gallery-profile {
     display: none;
@@ -169,84 +165,12 @@
     margin: 0 3px !important;
   }
 
-  .sirv-modal-close {
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin-top: 10px;
-    margin-right: 10px;
-  }
-
   .sirv-tabs {
     display: none;
   }
 
   .sirv-cancel {
     display: none;
-  }
-
-  .sirv-choose-wrapper {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .sirv-choose-shortcode {
-    margin: 5px;
-    display: flex;
-    flex-wrap: wrap;
-    width: calc(20% - 15px);
-    min-height: 177px;
-    border: 2px solid #d2cece;
-    padding: 0 0px 2px 0px;
-    line-height: 0;
-    justify-content: center;
-    cursor: pointer;
-  }
-
-  .sirv-choose-shortcode:hover {
-    /* box-shadow: 0px 0px 5px 3px #4bb2ea; */
-    /* border-color: #4bb2ea; */
-    border-color: #9ec1de;
-  }
-
-  .sirv-choose-shortcode:hover .sirv-choose-shortcode-title {
-    /* background: #4bb2ea; */
-    background: #9ec1de;
-    color: #3a4b5a;
-  }
-
-  .sirv-choose-shortcode-title {
-    width: 100%;
-    height: 20px;
-    background: #eaeaea;
-    border-bottom: 1px solid #e0e0e0;
-    margin-bottom: 2px;
-    line-height: normal !important;
-    text-align: center;
-  }
-
-  .sirv-choose-shortcode img {
-    max-width: 70px;
-    max-height: 70px;
-    margin: 2px;
-    object-fit: cover;
-  }
-
-  .sirv-selected-shortcode {
-    /* border: 2px solid #91b6ed;
-        box-sizing: content-box; */
-    /* box-shadow: 0px 0px 5px 3px #4bb2ea; */
-    /* border-color: #4bb2ea; */
-    border-color: #9ec1de;
-    background: #ddedfc;
-    color: #fff;
-  }
-
-  .sirv-selected-shortcode .sirv-choose-shortcode-title {
-    /* background: #4bb2ea; */
-    background: #9ec1de;
-    color: #3a4b5a;
   }
 
   .sirv-insert-shortcode-wrapper {
@@ -269,7 +193,7 @@
         position: relative;
     } */
 
-  .content {
+  .sirv-media-content {
     display: flex;
     flex-direction: column;
   }
@@ -323,25 +247,6 @@
 
   .sirv-choose-shortcodes .sirv-pagination {
     padding: 0;
-  }
-
-  /* @media only screen and (max-width: 2048px) {
-        .sirv-choose-shortcode {width: calc(14% - 10px);}
-    } */
-  @media only screen and (max-width: 1024px) {
-    .sirv-choose-shortcode {
-      width: calc(25% - 14px);
-    }
-  }
-
-  @media only screen and (max-width: 768px) {
-    .sirv-choose-shortcode {
-      width: calc(33% - 12px);
-    }
-  }
-
-  .create-folder-container {
-    margin-right: 5px;
   }
 
   .sub-toolbar-left {
@@ -437,6 +342,18 @@
     /* setProfiles();
     jQuery('.nav-tab-sirv-choose-shortcodes').on('click', showShortcodeTab);
     isAddMedia(); */
+    jQuery('.sirv-media-content').tooltip({
+        classes:{
+            "ui-tooltip": "sirv-ui-widget-content sirv-ui-corner-all sirv-ui-widget-shadow",
+        },
+        show: false,
+        hide: false,
+        position: {
+            my: "left bottom-25",
+            at: "left bottom",
+            collision: "flipfit",
+        },
+    });
 
   });// domready end
 </script>
@@ -467,15 +384,15 @@
   </div>
   <div class="sirv-drop-handler"></div>
 </div>
-<div class="content">
+<div class="sirv-media-content">
   <div class="sirv-tabs">
     <div class="nav-tab-wrapper">
-      <a class="nav-tab nav-tab-active nav-tab-sirv-add-media" href="#sirv-add-media"><span class="sirv-tab-txt">Add new
+      <a class="sirv-nav-tab sirv-nav-tab-active nav-tab nav-tab-active nav-tab-sirv-add-media" href="#sirv-add-media"><span class="sirv-tab-txt">Add new
           media</span></a>
-      <a class="nav-tab nav-tab-sirv-choose-shortcodes" href="#sirv-choose-shortcodes"><span class="sirv-tab-txt">Choose
+      <a class="sirv-nav-tab nav-tab nav-tab-sirv-choose-shortcodes" href="#sirv-choose-shortcodes"><span class="sirv-tab-txt">Choose
           shortcode</span></a>
     </div>
-    <a class="b-close sirv-modal-close" title="Cancel"><span class="dashicons dashicons-no-alt"></span></a>
+    <a class="b-close sirv-modal-close"><span class="dashicons dashicons-no-alt"></span></a>
   </div>
   <div class="sirv-tab-content sirv-tab-content-active sirv-add-media" id="sirv-add-media">
     <div class="selection-content" id="drag-upload-area">
@@ -494,29 +411,23 @@
                 <button class="sirv-search-cancel">
                   <span class="dashicons dashicons-no-alt"></span>
                 </button>
-                <div id="sirv-search-button" class="btn btn-success">
+                <!-- <div id="sirv-search-button" class="btn btn-success">
                     <span>Search</span>
-                </div>
-              </div>
-              <!-- <div class="upload-files-container">
-                <div class="btn btn-success fileinput-button">
-                  <span>Upload media</span>
-                  <input id="filesToUpload" class="sirvFilesToUpload" data-current-folder="/" type="file" name="files[]"
-                    multiple="">
-                </div>
-              </div> -->
-              <div class="upload-files-container">
-                  <div class="btn btn-success fileinput-button" data-item-type="uploadButton" data-menu-position="bottom">
-                      <span>Upload media</span>
-                  </div>
-                  <input id="filesToUpload" class="sirvFilesToUpload" data-current-folder="/" type="file" name="files[]" multiple="">
+                </div> -->
               </div>
               <div class="create-folder-container">
-                <div class="btn btn-success create-folder">
+                <div class="sirv-btn sirv-btn-secondary create-folder">
+                  <i class="fa fa-folder-o"></i>
                   <span>New folder</span>
                 </div>
               </div>
-              <!-- <a class="btn btn-success b-close sirv-cancel">Cancel</a> -->
+              <div class="upload-files-container">
+                  <div class="sirv-btn sirv-btn-primary fileinput-button" data-item-type="uploadButton" data-menu-position="bottom">
+                    <i class="fa fa-upload"></i>
+                    <span>Upload media</span>
+                  </div>
+                  <input id="filesToUpload" class="sirvFilesToUpload" data-current-folder="/" type="file" name="files[]" multiple="">
+              </div>
             </div>
           </div>
           <div class="sirv-hr">

@@ -991,7 +991,7 @@ jQuery(function($){
 
         function renderBreadcrambs(currentDir){
             if(currentDir != "/"){
-                $('<li><span class="breadcrumb-text">You are here: </span><a href="#" class="sirv-breadcramb-link" data-item-sirv-path="/">Home</a></li>').appendTo('.breadcrumb');
+                $('<li><a href="#" class="sirv-breadcramb-link" data-item-sirv-path="/">Home</a></li>').appendTo('.breadcrumb');
                 let dirs = currentDir.split('/').slice(1);
                 let temp_dir = "";
                 for(let i=0; i < dirs.length; i++){
@@ -1003,7 +1003,7 @@ jQuery(function($){
                     }
                 }
             }else{
-                $('<li><span class="breadcrumb-text">You are here: </span>Home</li>').appendTo('.breadcrumb')
+                $('<li>Home</li>').appendTo('.breadcrumb')
             }
         }
 
@@ -3902,28 +3902,15 @@ jQuery(function($){
 
         function changeTab(e, $object){
             $('.sirv-tab-content').removeClass('sirv-tab-content-active');
-            $('.nav-tab-wrapper > a').removeClass('nav-tab-active');
+            $('.nav-tab-wrapper > a').removeClass('nav-tab-active sirv-nav-tab-active');
             $('.sirv-tab-content'+$object.attr('href')).addClass('sirv-tab-content-active');
-            $object.addClass('nav-tab-active').trigger("blur");
+            $object.addClass('nav-tab-active sirv-nav-tab-active').trigger("blur");
             if(typeof e !== 'undefined') e.preventDefault();
         }
 
         // Initialization
         patchMediaBar();
         getPhpFilesLimitations();
-
-        $(document).tooltip({
-            classes:{
-                "ui-tooltip": "sirv-ui-widget-content sirv-ui-corner-all sirv-ui-widget-shadow",
-            },
-            show: false,
-            hide: false,
-            position: {
-                my: "left bottom-25",
-                at: "left bottom",
-                collision: "flipfit",
-            },
-        });
 
         if($('.sirv-items-container').length > 0) getContentFromSirv();
 

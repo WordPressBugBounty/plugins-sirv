@@ -135,6 +135,12 @@ class ConflictPlugins{
         </ol>
           If Rocket Loader is already disabled, you can dismiss this warning.',
       ),
+      "tenweb-speed-optimizer/tenweb_speed_optimizer.php" => array(
+        "name" => "10Web Booster (I-Tul Page Booster)",
+        "title" => "",
+        "type" => "plugin",
+        "desc" => 'The page booster plugin might have settings the conflict with your Sirv plugin settings. If you have a problem, please uninstall the 10Web (I-Tul) page booster plugin and <a target="_blank" href="https://sirv.com/help/support/#support">contact our support team</a> to discuss the issue.',
+      ),
     );
   }
 

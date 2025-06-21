@@ -2,7 +2,7 @@
 .b-modal.__b-popup1__ { z-index: 9999999998; }
 
 
-.sirv-modal .content, .sirv-sirv-media_library-php .content{
+.sirv-modal .sirv-media-content, .sirv-sirv-media_library-php .sirv-media-content{
     background-color: #FFFFFF;
     height: 100%;
     width: 100%;
@@ -72,14 +72,44 @@ margin-bottom:20px;
     list-style: none;
     margin:0;
     padding-left: 10px;
+    font-size: 14px;
+    font-weight: 400;
 }
 
 .sirv-modal .breadcrumb > li, .sirv-sirv-media_library-php .breadcrumb > li {
     display: inline-block;
-    padding: 0 5px 0 0;
+    padding: 0;
     margin:0;
     text-align: center;
     line-height:30px;
+}
+
+.sirv-modal .breadcrumb > li:before, .sirv-sirv-media_library-php .breadcrumb > li:before {
+    content: ">";
+    font-weight: 500;
+    display: inline-block;
+    margin-right: 4px;
+    margin-left: 4px;
+    color: #6C7683;
+    width: 1rem;
+}
+
+.sirv-modal .breadcrumb > li:first-child:before, .sirv-sirv-media_library-php .breadcrumb > li:first-child:before {
+    content: '';
+}
+
+.sirv-modal .breadcrumb > li a, .sirv-sirv-media_library-php .breadcrumb > li a {
+    color: #6C7683;
+    text-decoration: none;
+}
+
+.sirv-modal .breadcrumb > li a:hover, .sirv-sirv-media_library-php .breadcrumb > li a:hover {
+    color: #327BBA;
+    text-decoration: none;
+}
+
+.sirv-modal .breadcrumb > li span, .sirv-sirv-media_library-php .breadcrumb > li span {
+    color: #2F363F;
 }
 
 .wide.sirv-search-cancel{ display: inline-block; }
@@ -90,7 +120,7 @@ margin-bottom:20px;
     position: absolute;
     top: 0;
     bottom: 0;
-    right: 72px;
+    right: 0;
     width: 34px;
     height: 34px;
     padding: 0;
@@ -138,16 +168,6 @@ margin-bottom:20px;
     display: block;
 }
 
-.sirv-modal .breadcrumb > li:before, .sirv-sirv-media_library-php .breadcrumb > li:before {
-    content: ">";
-    display: inline-block;
-    width: 1.12334em;
-}
-
-.sirv-modal .breadcrumb > li:first-child:before, .sirv-sirv-media_library-php .breadcrumb > li:first-child:before {
-    content: '';
-}
-
 
 .sirv-modal .controls, .sirv-sirv-media_library-php .controls {
     background-color: mintcream;
@@ -167,10 +187,6 @@ margin-bottom:20px;
     right: 10px;
     top:50%;
     transform:translateY(-50%);
-}
-
-.insert{
-
 }
 
 .sirv-modal .controls div{
@@ -199,47 +215,80 @@ margin-bottom:20px;
 }
 
 .fileinput-button {
-  position: relative;
-  overflow: hidden;
+    position: relative;
+    overflow: hidden;
 }
 
 .fileinput-button input {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin: 0;
-  opacity: 0;
-  -ms-filter: 'alpha(opacity=0)';
-  font-size: 200px;
-  direction: ltr;
-  cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    opacity: 0;
+    -ms-filter: 'alpha(opacity=0)';
+    filter: opacity(0);
+    font-size: 200px;
+    direction: ltr;
+    cursor: pointer;
 }
 
 .sirv-modal .btn, .sirv-sirv-media_library-php .btn {
-  display: inline-block;
-  padding: 6px 12px;
+    display: inline-block;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    cursor: pointer;
+}
 
-  font-size: 14px;
+.sirv-modal .sirv-btn, .sirv-sirv-media_library-php .sirv-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    cursor: pointer;
+}
 
+.sirv-modal .sirv-btn-primary, .sirv-sirv-media_library-php .sirv-btn-primary {
+    color: #fff;
+    border-color: #327BBA;
+    background-color: #327BBA;
+}
 
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: middle;
-  cursor: pointer;
-  border: 1px solid transparent;
-  border-radius: 4px;
+.sirv-modal .sirv-btn-primary:hover, .sirv-sirv-media_library-php .sirv-btn-primary:hover {
+    background-color: #255A88;
+    border-color: #255A88;
+}
+
+.sirv-modal .sirv-btn-secondary, .sirv-sirv-media_library-php .sirv-btn-secondary {
+    color: #327BBA;
+}
+
+.sirv-modal .sirv-btn-secondary:hover, .sirv-sirv-media_library-php .sirv-btn-secondary:hover {
+    color: #255A88;
+    border-color: #8FB7D9;
 }
 
 .sirv-modal .btn-success, .sirv-sirv-media_library-php .btn-success {
-  color: #fff;
-  background-color: #3F81BC;
-  border-color: #3F81BC;
+    color: #fff;
+    background-color: #3F81BC;
+    border-color: #3F81BC;
 }
 
 .sirv-modal .btn-success:hover, .sirv-sirv-media_library-php .btn-success:hover {
-  color: #fff;
-  background-color: #1D71BC;
-  border-color: #1D71BC;
+    color: #fff;
+    background-color: #1D71BC;
+    border-color: #1D71BC;
 }
 
 .sirv-modal .btn-success.btn-transparent, .sirv-sirv-media_library-php .btn-success.btn-transparent {
@@ -256,15 +305,15 @@ margin-bottom:20px;
 
 
 .sirv-modal .btn-tool, .sirv-sirv-media_library-php .btn-tool {
-  color: #fff;
-  background-color: #4B4B4B;
-  border-color: #4B4B4B;
-}
+    color: #fff;
+    background-color: #4B4B4B;
+    border-color: #4B4B4B;
+    }
 
 .sirv-modal .btn-tool:hover, .sirv-sirv-media_library-php .btn-tool:hover {
-  color: #fff;
-  background-color: #3b3939;
-  border-color: #3b3939;
+    color: #fff;
+    background-color: #3b3939;
+    border-color: #3b3939;
 }
 
 .sirv-image-container .selected, .sirv-spin-container .selected{
@@ -652,15 +701,16 @@ ul.items-list li.selected a, ul.items-list li.selected div.sirv-image-wrapper { 
 
 
 .sirv-modal .create-profile { font-size: 11px;
-  text-decoration: none;
-  display: block;
-  margin-bottom: 15px; margin-top:-5px;}
+    text-decoration: none;
+    display: block;
+    margin-bottom: 15px; margin-top:-5px;}
 
-  .gallery-creation-content .b-close { position: absolute; top:5px; right: 5px; font-size: 36px; z-index: 10000; cursor: pointer; }
+    .gallery-creation-content .b-close { position: absolute; top:5px; right: 5px; font-size: 36px; z-index: 10000; cursor: pointer; }
 
 
-  label .sirv-flat-radio-buttons { display: inline-block; }
-  .sirv-flat-radio-buttons:not(:first-of-type) { margin-left: 5px !important; }
+    label .sirv-flat-radio-buttons { display: inline-block; }
+    .sirv-flat-radio-buttons:not(:first-of-type) { margin-left: 5px !important;
+}
 
 
 .sirv-empty-dir {
@@ -681,10 +731,18 @@ ul.items-list li.selected a, ul.items-list li.selected div.sirv-image-wrapper { 
     font-size: 20px;
 }
 
-/* .sirv-images { position: relative; height: 100%;} */
+.sirv-nav-tab {
+    border: none;
+    background: none;
+    color: #8d8f91;
+    font-size: 1rem;
+}
 
-.nav-tab-active{
-    background: #fafafa;
+/* .sirv-images { position: relative; height: 100%;} */
+.sirv-nav-tab-active, .sirv-nav-tab-active:hover{
+    border-bottom: 2px solid #327BBA;
+    background: #fff;
+    color: #000;
 }
 
 .gallery-options-wrapper{ position: relative; }
@@ -725,27 +783,34 @@ ul.items-list li.selected a, ul.items-list li.selected div.sirv-image-wrapper { 
     position: fixed !important;
 
 }
-.b-close{
-background: #fff !important; color:#1E8CBE !important;
+
+.sirv-modal-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 20px;
+    margin-top: 10px;
+    margin-right: 10px;
 }
-.b-close:hover { color:#fff !important; background: #1E8CBE !important; }
+
+.b-close{
+    /* background: #fff !important; */
+    color:#949BA1 !important;
+}
+
+.b-close:hover {
+    color:#2F363F !important;
+}
 
 /*---------------------------------------------------------------sirv-media-library----------------------------------------------------------------*/
 
-#wpbody-content iframe{width: 100%;}
-
-/* #drag-upload-area{
-    border: 1px dashed #ccc;
-    padding: 10px 10px 120px 10px;
-    height: 120px;
-    margin: 0px 10px 10px 10px;
-    position: relative;
-    background-color: #FCFCFC
-} */
-
-.sirv-newfolder-container, .create-folder-container{
-    margin-left: 5px;
+#wpbody-content iframe{
+    width: 100%;
 }
+
+/* .sirv-newfolder-container, .create-folder-container{
+    margin-left: 5px;
+} */
 
 .sirv-drop-wrapper{
     display: none;
@@ -939,17 +1004,17 @@ background: #fff !important; color:#1E8CBE !important;
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
+    gap: 8px;
 }
 
 .sirv-search-container {
-    margin-right: 20px;
+    margin-right: 18px;
     position: relative;
     display: flex;
     flex-direction: row;
     align-items: flex-start;
 }
 .sirv-search-container .sirv-search { float: right; margin-right: -100px; display: none; }
-.sirv-newfolder-container { /* float:right; width: 25%; text-align: right; */ }
 .sirv-search-for{
     display: none;
     padding-left: 10px;
@@ -1101,8 +1166,6 @@ background: #fff !important; color:#1E8CBE !important;
 .search-title { margin-left: 0px; }
 .sirv-items-container > .nav h1 { margin:2px 0 2px 2px;}
 .breadcrumb > li:first-child:before { display: none; }
-/* .breadcrumb { margin-left: 3px; } */
-/* .sirv-modal .breadcrumb { padding-left: 10px !important; } */
 #sirv-search-field {
     height: 33px;
     font-family: 'Helvetica',
@@ -1123,19 +1186,17 @@ background: #fff !important; color:#1E8CBE !important;
     padding-right: 10px;
 }
 
-
-@keyframes search-expand {
-    from {width: 100px;}
-    to {width: 300px;}
+.sirv-search-narrow{
+    width: 230px;
+    -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
 }
 
-@-webkit-keyframes search-expand {
-    from {width: 100px;}
-    to {width: 300px;}
+.sirv-search-wide{
+    width: 330px;
+    -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
 }
-
-.sirv-search-narrow{ width: 100px; }
-.sirv-search-wide{ width: 300px; animation-name: search-expand; animation-duration: 0.3s; }
 
 .selected-images-container { display: table-row; }
 .selected-images-container > div { display: table-cell; margin:0 !important; padding: 7px; }
@@ -1413,3 +1474,119 @@ input#sirv-model-shadow-slider {
     opacity: 0.7;
 }
 /*--------------------------------------------------------push messages  END-----------------------------------------*/
+
+/*-------------------------------------------------------------shortcode card-----------------------------------------*/
+.sirv-choose-wrapper{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 10px 10px 35px;
+}
+
+.sirv-shortcode-card {
+    display: flex;
+    overflow: hidden;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 4px;
+    border: 1px solid rgba(47, 54, 63, 0.4);
+    border-radius: 2px;
+    cursor: pointer;
+}
+.sirv-shortcode-card:hover {
+    border-color: #327BBA;
+    outline: 1px solid #327BBA;
+}
+
+.sirv-shortcode-card .sirv-shortcode-card-images {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    height: calc(100% - 45px);
+    gap: 2px;
+}
+
+.sirv-shortcode-card .sirv-shortcode-card-images img{
+    max-width: 70px;
+    max-height: 70px;
+    object-fit: cover;
+}
+
+.sirv-shortcode-card .sirv-shortcode-card-data {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 40px;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+}
+
+.sirv-shortcode-card .sirv-shortcode-card-icon {
+    width: 10%;
+    margin-left: 5px;
+}
+
+.sirv-shortcode-card .sirv-shortcode-card-icon > img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.sirv-shortcode-card .sirv-shortcode-card-metadata {
+    display: flex;
+    flex-direction: column;
+    width: calc(90% - 4px - 5px);
+    height: 100%;
+    justify-content: space-between;
+}
+
+.sirv-shortcode-card .sirv-shortcode-card-metadata .sirv-shortcode-card-metadata-text {
+    display: flex;
+    gap: 5px;
+    width: 100%;
+    height: 20px;
+    justify-content: flex-start;
+    flex-direction: row;
+    align-items: center;
+}
+
+.sirv-shortcode-card .sirv-shortcode-card-metadata .sirv-shortcode-card-metadata-gallery-type{
+    font-weight: 600;
+    max-width: 42%;
+}
+
+.sirv-shortcode-card .sirv-shortcode-card-metadata-gallery-title {
+    max-width: calc(58% - 4px);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.sirv-shortcode-card .sirv-more-images-overlay {
+    position: relative;
+}
+
+.sirv-shortcode-card .sirv-more-images-overlay-count {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.6);
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.sirv-shortcode-card.sirv-shortcode-card--is-selected{
+    border-color: #327BBA;
+    background: #ddedfc;
+    outline: 1px solid #327BBA;
+}
+/*--------------------------------------------------------shortcode card  END-----------------------------------------*/

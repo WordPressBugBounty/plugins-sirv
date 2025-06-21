@@ -7,7 +7,7 @@ jQuery(function($){
             var body_height = $('body').height() - $(footer).outerHeight(true);
             $('#wpcontent').css('margin-left', '156px');
             $('#wpbody').css('height', body_height).css('overflow', 'hidden');
-            $('#wpbody-content .content').css('height', body_height);
+            $('#wpbody-content .sirv-media-content').css('height', body_height);
         }
 
         //Initialization

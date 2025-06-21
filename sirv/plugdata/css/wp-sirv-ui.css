@@ -1,59 +1,87 @@
-.sirv-ui-cdlg-containter {
-    display: none;
-    flex-direction: column;
-    width: 500px;
-    height: auto;
-    background-color: #fff;
-    border-radius: 10px;
+body:has(dialog[open]) {
     overflow: hidden;
 }
 
-.sirv-ui-cdlg-header {
-    display: flex;
-    background-color: #c2c5c7;
-    color: #fff;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    font-size: 20px;
+dialog.sirv-ui-modal-dialog {
+    /* position: relative; */
+    padding: 45px 25px 20px;
+    border: none;
+    border-radius: 3px;
+    background-color: #fff;
+    width: 500px;
 }
 
-.sirv-ui-cdlg-message {
-    padding: 16px 20px;
+.sirv-modal-window-close-button {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    font-size: 1.6rem;
+    padding: 2px;
+    border: none;
+    color: #bebdbd;
+    background: transparent;
+    cursor: pointer;
+}
+
+.sirv-modal-window-close-button:hover {
+    color: #000;
+}
+
+dialog.sirv-ui-modal-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.85);
+}
+
+.sirv-ui-dialog-data-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.sirv-ui-dialog-block-title h1 {
+    margin: 0;
+}
+
+.sirv-ui-dialog-block-controls {
+    display: flex;
+    gap: 20px;
+}
+
+.sirv-ui-btn {
+    width: 120px;
+    padding: 10px;
     font-size: 15px;
+    border: 1px solid #9c9d9e;
+    border-radius: 2px;
+    cursor: pointer;
 }
 
-.sirv-ui-cdlg-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 10px;
+.sirv-ui-btn:hover {
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
 }
 
-.sirv-ui-cdlg-controls > button {
-    margin-right: 20px !important;
+.sirv-ui-button-primary {
+    background: #327BBA;
+    border-color: transparent;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: none;
 }
 
-.primary-button {
-    border: 1px solid #1d9fc9;
-    background-color: #1d9fc9;
-    color: #FFF;
+.sirv-ui-button-primary:hover, .sirv-ui-button-secondary:hover {
+    background: #255A88;
+    color: #fff;
 }
 
-.secondary-button {
-    border: 1px solid #b3b0b0;
-    color: #b3b0b0;
-    background-color: #FFF;
+.sirv-ui-button-secondary {
+    color: #000;
+
+    border-color: #d5d7d9;
+    background: #fff;
+    vertical-align: top;
 }
 
-.sirv-ui-cdlg-close-btn{
-  padding: 5px;
-  font-size: 25px;
-  color: #ddd9d9;
-  cursor: pointer;
+input.sirv-ui-input-text {
+    height: 2rem;
+    width: 100%;
 }
-
-.sirv-ui-cdlg-close-btn:hover{
-  color: #757575;
-}
-

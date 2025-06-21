@@ -46,7 +46,7 @@ jQuery(function($){
         if(data !== '' && isJsonString(data)){
             shObj = JSON.parse(data);
             if(shObj.id){
-                $('.sirv-choose-shortcode[data-sh-id='+ shObj.id +']').addClass('sirv-selected-shortcode');
+                $('.sirv-shortcode-card[data-sh-id='+ shObj.id +']').addClass('sirv-shortcode-card--is-selected');
             }
         }
 
@@ -59,8 +59,11 @@ jQuery(function($){
 
 
     function generateShortcodeByType(data, type){
+        const shortcodeType = getShortcodeType(data);
+
         let $template = '';
         let imageSrc = '';
+
 
         if(type == 'tableRow'){
             imageSrc = data.images.length > 0 ? stripslashes(data['images'][0]['url']) : '';
@@ -80,7 +83,7 @@ jQuery(function($){
                 '<td class="t-pv"><img class="t-pv-img" data-original="'+ imageSrc +'" src="'+ curImgPlaceholder +'"></td>'+
                 '<td class="t-sh-name">'+ shName +'</td>' +
                 '<td class="t-name">'+
-                    '<b>'+ getShortcodeType(data) +'</b><br>'+
+                    '<b>'+ shortcodeType +'</b><br>'+
                     '<a class="sirv-edit-shortcode" href="#" data-shortcode-id="'+ data.id +'">Edit</a> | '+
                     '<a href="#" class="sirv-duplicate-shortcode" data-shortcode-id="'+ data.id +'" title="Duplicate shortcode">Duplicate shortcode</a>'+
                 '</td>'+
@@ -89,20 +92,68 @@ jQuery(function($){
                 '<td class="t-sc">[sirv-gallery id='+ data.id +']</td>'+
             '</tr>');
         } else if(type == 'chooseView'){
-            let imagesCount = data.images.length > 0 ? data.images.length <= 6 ? data.images.length : 6 : 0;
+            console.log(data);
+            const imageCountLimit = 6;
+
+            const imagesCount = data.images.length > imageCountLimit ? imageCountLimit : data.images.length;
+            const overLimitCount = data.images.length - imageCountLimit > 0 ? data.images.length - imageCountLimit : 0;
             let imagesTemplate = '';
-            for(let i=0; i < imagesCount; i++){
+            for(let i= 0; i < imagesCount; i++){
                 imageSrc = stripslashes(data['images'][i]['url']);
                 let itemType = data['images'][i]['type'];
                 let curImgPlaceholder = getPlaceholder(itemType);
 
-                imagesTemplate += `<img class="sirv-sh-view" data-type="${itemType}" data-original="${imageSrc}" src="${curImgPlaceholder}">`;
+                if(i == imagesCount - 1 && overLimitCount > 0){
+                    imagesTemplate += `
+                    <div class="sirv-more-images-overlay">
+                        <div class="sirv-more-images-overlay-count">+${overLimitCount}</div>
+                        <img class="sirv-sh-view" data-type="${itemType}" data-original="${imageSrc}" src="${curImgPlaceholder}">
+                    </div>
+                    `;
+                }else{
+                    imagesTemplate += `<img class="sirv-sh-view" data-type="${itemType}" data-original="${imageSrc}" src="${curImgPlaceholder}">`;
+                }
+
             }
 
-            $template = $('<div class="sirv-choose-shortcode" data-sh-id="'+ data.id +'" data-sh-type="'+ getShortcodeType(data) +'" data-sh-count="'+ data.images.length +'"><div class="sirv-choose-shortcode-title">'+ getShortcodeType(data) +'</div>'+ imagesTemplate +'</div>');
+
+
+            /* $template = $('<div class="sirv-choose-shortcode" data-sh-id="'+ data.id +'" data-sh-type="'+ shortcodeType +'" data-sh-count="'+ data.images.length +'"><div class="sirv-choose-shortcode-title">'+ shortcodeType +'</div>'+ imagesTemplate +'</div>'); */
+
+            const shortcodeName = data.shortcode_options.global_options?.shortcodeName || '';
+
+            $template = $(`
+                <div class="sirv-shortcode-card" data-sh-id="${data.id}" data-sh-type="${shortcodeType}" data-sh-count="${data.images.length}">
+                    <div class="sirv-shortcode-card-images">${imagesTemplate}</div>
+                    <div class="sirv-shortcode-card-data">
+                        <div class="sirv-shortcode-card-icon"><img src="${getGalleryTypeIconUrl(shortcodeType)}"/></div>
+                        <div class="sirv-shortcode-card-metadata">
+                        <div class="sirv-shortcode-card-metadata-text">
+                            <div class="sirv-shortcode-card-metadata-gallery-type">${shortcodeType}</div>
+                            <div class="sirv-shortcode-card-metadata-gallery-title" title="${shortcodeName}">${shortcodeName}</div>
+                        </div>
+                        <div class="sirv-shortcode-card-metadata-date">${formatShDate(data.timestamp)}</div>
+                        </div>
+                    </div>
+                </div>
+            `);
         }
 
         return $template;
+    }
+
+
+    function formatShDate(dateStr){
+
+        if(!dateStr){
+            dateStr = new Date().toISOString();
+        }
+        const date = new Date(dateStr.replace(" ", "T"));
+        return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        });
     }
 
 
@@ -130,6 +181,38 @@ jQuery(function($){
         }
         return placeholder;
     }
+
+
+    function getGalleryTypeIconUrl(type){
+        //Spin Video Model Image gallery Zoom gallery
+        type = type.toLowerCase();
+
+        let iconPath = '';
+        switch (type) {
+            case 'spin':
+                iconPath = `${sirv_ajax_object.assets_path}/gallery-type-spin.svg`;
+                break;
+            case 'model':
+                iconPath = `${sirv_ajax_object.assets_path}/gallery-type-model.svg`;
+                break;
+            case 'zoom gallery':
+            case 'zoom image':
+                iconPath = `${sirv_ajax_object.assets_path}/gallery-type-zoom.svg`;
+                break;
+            case 'video':
+                iconPath = `${sirv_ajax_object.assets_path}/gallery-type-video.svg`;
+                break;
+            case 'image gallery':
+                iconPath = `${sirv_ajax_object.assets_path}/gallery-type-gallery.svg`;
+                break;
+            default:
+                iconPath = `${sirv_ajax_object.assets_path}/gallery-type-gallery.svg`;
+                break;
+        }
+
+        return iconPath;
+    }
+
 
     function getItemType(itemUrl){
         const videoRegExp = /(mp4|mpg|mpeg|mov|qt|webm|avi|mp2|mpe|mpv|ogg|m4p|m4v|wmv|flw|swf|avchd)/gi;
@@ -197,7 +280,7 @@ jQuery(function($){
         $('.sirv-pagination-button').on('click', goToPage);
         $('.sirv-edit-shortcode').on('click', editShortcode);
         $('.sirv-duplicate-shortcode').on('click', duplicateShortcode);
-        $('.sirv-choose-shortcode').on('click', selectShortcode);
+        $('.sirv-shortcode-card').on('click', selectShortcode);
         $('.sirv-insert-shortcode-button').on('click', addShortcodesToPost);
     }
 
@@ -206,7 +289,7 @@ jQuery(function($){
         $('.sirv-pagination-button').off('click', goToPage);
         $('.sirv-edit-shortcode').off('click', editShortcode);
         $('.sirv-duplicate-shortcode').off('click', duplicateShortcode);
-        $('.sirv-choose-shortcode').off('click', selectShortcode);
+        $('.sirv-shortcode-card').off('click', selectShortcode);
         $('.sirv-insert-shortcode-button').off('click', addShortcodesToPost);
     }
 
@@ -351,7 +434,7 @@ jQuery(function($){
 
     function addShortcodesToPost(){
 
-        let selShorcodes = $('.sirv-selected-shortcode');
+        let selShorcodes = $(".sirv-shortcode-card--is-selected");
         let html = '';
         let ids = [];
 
@@ -447,24 +530,24 @@ jQuery(function($){
         let selectedElem = $(this);
         let selectedData = getSelectedData(selectedElem);
 
-        if(selectedElem.hasClass('sirv-selected-shortcode')){
-            selectedElem.removeClass('sirv-selected-shortcode');
+        if(selectedElem.hasClass('sirv-shortcode-card--is-selected')){
+            selectedElem.removeClass('sirv-shortcode-card--is-selected');
             $('.sirv-pagination').attr('data-selected', '');
         }else{
 
             if( (window.isSirvGutenberg && window.isSirvGutenberg == true) || (window.isSirvElementor && window.isSirvElementor == true) ){
-                $.each($('.sirv-selected-shortcode'), function(index, elem){
-                    $(elem).removeClass('sirv-selected-shortcode');
+                $.each($('.sirv-shortcode-card--is-selected'), function(index, elem){
+                    $(elem).removeClass('sirv-shortcode-card--is-selected');
                 });
                 $('.sirv-pagination').attr('data-selected', '');
             }
 
-            selectedElem.addClass('sirv-selected-shortcode');
+            selectedElem.addClass('sirv-shortcode-card--is-selected');
             $('.sirv-pagination').attr('data-selected', selectedData);
         }
 
 
-        let isSelectedShortcode = !!$('.sirv-selected-shortcode').length;
+        let isSelectedShortcode = !!$('.sirv-shortcode-card--is-selected').length;
 
         if(isSelectedShortcode){
             $('.sirv-insert-shortcode-wrapper').show();
@@ -594,6 +677,11 @@ jQuery(function($){
     }
 
 
+    window['getShGalleryType'] = function(data){
+        return data.shortcode_options.global_options.sirvGalleryType || 'image';
+    }
+
+
     window['getShortcodeType'] = function(data){
         let isSingleImage = data.images.length == 1 ? true : false;
 
@@ -602,7 +690,7 @@ jQuery(function($){
             let gType = type;
             if(type == 'image' || type == 'gallery'){
                 if(data.use_as_gallery){
-                    if(data.use_sirv_zoom) {
+                    if(data.use_sirv_zoom === 'true') {
                         gType = isSingleImage == true ? 'Zoom image' : 'Zoom gallery'
                     }else{
                         gType = 'Image gallery';
