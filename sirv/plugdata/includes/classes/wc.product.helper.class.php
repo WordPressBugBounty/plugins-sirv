@@ -29,7 +29,7 @@ class SirvProdImageHelper{
       ),
     );
 
-    if(! empty($previous_attachment_id)){
+    if( !empty($previous_attachment_id) ) {
       $attachment['ID'] = $previous_attachment_id;
     }
 
@@ -107,39 +107,41 @@ class SirvProdImageHelper{
 
     $filesize = self::get_filesize($sirv_url, $sirv_metadata['sirv_type'])  ;
 
-    if( !empty($filesize) ) $sirv_metadata['filesize'] = $filesize;
+    if( ! empty($filesize) ) $sirv_metadata['filesize'] = $filesize;
 
     return $sirv_metadata;
   }
 
 
   protected static function get_filesize($sirv_url, $sirv_item_type){
-  $size = null;
+    $user_agent = 'Sirv/Wordpress';
+    $size = null;
 
-  if( $sirv_item_type == 'spin') $sirv_url .= "?image";
+    if( $sirv_item_type == 'spin') $sirv_url .= "?image";
 
-  $ch = curl_init($sirv_url);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  curl_setopt($ch, CURLOPT_ENCODING, '');
-  curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+    $ch = curl_init($sirv_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_ENCODING, '');
+    curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
+    curl_setopt($ch, CURLINFO_HEADER_OUT, true);
 
-  try {
-    curl_exec($ch);
+    try {
+      curl_exec($ch);
 
-    $data = curl_exec($ch);
-    if (extension_loaded('mbstring')) {
-      $size = mb_strlen($data, 'utf-8');
-    } else {
-        $headers_data = get_headers($sirv_url, true);
-        $size = (int) $headers_data['Content-Length'];
+      $data = curl_exec($ch);
+      if (extension_loaded('mbstring')) {
+        $size = mb_strlen($data, 'utf-8');
+      } else {
+          $headers_data = get_headers($sirv_url, true);
+          $size = (int) $headers_data['Content-Length'];
+      }
+
+    } catch (Exception $e) {
+      //log
+    }finally{
+      curl_close($ch);
+      return $size;
     }
-
-  } catch (Exception $e) {
-    //log
-  }finally{
-    curl_close($ch);
-    return $size;
-  }
 }
 
 

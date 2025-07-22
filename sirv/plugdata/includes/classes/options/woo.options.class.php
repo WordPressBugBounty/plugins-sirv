@@ -29,6 +29,10 @@ class Woo_options extends Options_generator{
       $option['values'][1]['label'] = $option['values'][1]['label'] . ' (<span class="' . $option['option_name'] . '-' . $option['values'][1]['attrs']['value'] . '">' . $without_content . '</span>)';
     }
 
+    $view_file_otion_status = get_option('SIRV_WOO_IS_USE_VIEW_FILE') == 'on' ? true : false;
+
+    $disable_action = $view_file_otion_status ? '' : ' disabled ';
+
 
     $html = '
     <tr>
@@ -62,7 +66,7 @@ class Woo_options extends Options_generator{
           </div>
         </div>
         <div class="sirv-view-cache-option-toolbar">
-          <button type="button" class="button button-primary sync-all-view-data-show-dialog">Sync all products</button>
+          <button type="button" class="button button-primary sync-all-view-data-show-dialog"'. $disable_action .'>Sync all products</button>
         </div>
       </td>
     </tr>
@@ -280,6 +284,37 @@ class Woo_options extends Options_generator{
           </div>
         </td>
       </tr>';
+  }
+
+
+  protected static function render_sirv_smv_cache_management($option){
+    global $wpdb;
+    $cache_table = $wpdb->prefix . 'sirv_cache';
+
+    $cache_count = $wpdb->get_var(
+      "SELECT COUNT(*) FROM $cache_table
+      WHERE cache_key IN ('_sirv_woo_pdp_cache', '_sirv_woo_cat_cache')
+      AND cache_status IN ('SUCCESS', 'EMPTY', 'FAILED', 'EXPIRED')"
+    );
+
+    $cache_count = $cache_count ? $cache_count : 0;
+
+    $disable_action = sirv_is_enable_option('SIRV_WOO_SMV_CACHE_IS_ENABLE', 'on') ? '' : ' disabled ';
+
+    $html = '
+      <tr>
+        ' . self::render_option_title($option['label']) . '
+        <td>
+          <div class="sirv-smv-html-cache-management">
+            <span class="sirv-smv-html-cache">Cached galleries: <span class="sirv-smv-html-cache-count">'. $cache_count . '</span></span>
+            <div class="sirv-clean-smv-html-cache-container">
+              <button type="button" class="button button-primary sirv-clean-smv-html-cache" '. $disable_action .'>Clear cache</button><span class="sirv-traffic-loading-ico" style="display: none;"></span>
+            </div>
+          </div>
+        </td>
+      </tr>';
+
+    return $html;
   }
 }
 

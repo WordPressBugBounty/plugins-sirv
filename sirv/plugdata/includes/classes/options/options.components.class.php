@@ -63,11 +63,20 @@ class Options_components extends HTML_form_components{
   protected static function render_select_option($option){
     $below_text = isset($option['below_text']) ? $option['below_text'] : '';
     $id_selector = isset($option['id_selector']) ? 'id="' . $option['id_selector'] . '"' : '';
+    $is_muted = false;
+    $expired_at_timestamp = 0;
+
+    if ( isset($option['endpoint_name']) ){
+      $is_muted = sirv_is_muted($option['endpoint_name']);
+      $expired_at_timestamp = $is_muted ? sirv_get_mute_expired_at($option['endpoint_name']) : 0;
+    }
+
     $html = '
       <tr ' . $id_selector . '>
         ' . self::render_option_title($option['label']) . '
         <td>
-        '. self::render_select_component($option) . '
+        '.  self::render_mute_message($is_muted, $expired_at_timestamp ) . '
+        '. self::render_select_component($option, $is_muted) . '
         ' . self::render_below_text($below_text) . '
         </td>
         ' . PHP_EOL . self::render_tooltip($option) . '
@@ -97,25 +106,28 @@ class Options_components extends HTML_form_components{
   protected static function render_text_to_input_option($option){
     $above_text = (isset($option['above_text']) && $option['above_text']) ? self::render_above_text($option['above_text']) : '';
     $below_text = (isset($option['below_text']) && $option['below_text']) ? self::render_below_text($option['below_text']) : '';
+
+    $option['attrs']['data-restore-value'] = $option['value'];
+
     $html = '
       <tr>
         ' . self::render_option_title($option['label']) . '
-        <td style="padding-top:0;">
-          <div class="sirv-text-to-input-option">
+        <td colspan="2" style="padding-top:0;" >
+          <div class="sirv-text-to-input-option-block">
             <div class="sirv-text-to-input-option_above-text">
               ' . $above_text . '
             </div>
-            <div class="sirv-text-to-input-option-option">
+            <div class="sirv-text-to-input-option">
               <div class="sirv-text-to-input-option-text-part">
-                <div>
-                  <span class="sirv--grey">' . htmlspecialchars($option['const_text']) . '</span>' . htmlspecialchars($option['value']) . '
+                <div title="'. htmlspecialchars($option['value']) .'">
+                  <span class="sirv--grey">' . htmlspecialchars($option['const_text']) . '</span><span class="sirv-text-to-input-option-rendered-value">' . htmlspecialchars($option['value']) . '</span>
                 </div>
-                <a class="sirv-option-edit" href="#">Change</a>
               </div>
               <div class="sirv-text-to-input-option-input-part" style="display: none;">
                 <span class="sirv--grey">' . htmlspecialchars($option['const_text']) . '</span>
                 ' . self::render_text_component($option) . '
               </div>
+              <a class="sirv-option-edit" href="#" data-type="render">Change</a>
             </div>
             <div class="sirv-text-to-input-option_below-text">
               ' . $below_text . '
@@ -127,6 +139,11 @@ class Options_components extends HTML_form_components{
     ';
 
     return $html;
+  }
+
+
+  protected static function render_messages_block($selector){
+    return '<th class="' . $selector . ' no-padding" colspan="2"></th>';
   }
 
 

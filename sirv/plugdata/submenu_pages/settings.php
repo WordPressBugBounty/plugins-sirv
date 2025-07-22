@@ -64,32 +64,36 @@
           </div>
         </td>
       </tr>
-      <?php
-      //if ($isMultiCDN && !empty($domains) && !$is_direct) {
-      if (count($domains) > 1) {
-      ?>
-        <tr>
-          <th><label>Domain</label></th>
-          <td>
-            <select id="sirv-choose-domain" name="SIRV_CDN_URL">
-              <?php
-              foreach ($domains as $domain) {
-                $selected = '';
-                if ($domain == $sirvCDNurl) {
-                  $selected = 'selected';
+      <tr>
+        <th><label>Domain</label></th>
+        <td>
+          <?php
+            if ($is_accountInfo_muted) {
+              //$domains_mute_message = 'Option is disabled due to exceeding API usage rate limit. Refresh this page in <b>' . Utils::get_minutes(sirv_get_mute_expired_at($accountInfoEndpoint)) . ' minutes</b>';
+              $domains_mute_message = 'You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for <b>' . Utils::get_minutes(sirv_get_mute_expired_at($accountInfoEndpoint)) . ' minutes</b>. Please try again after that or inform the <a href="https://sirv.com/help/support/#support" target="_blank">Sirv support team</a> if you keep seeing this message.';
+              echo '<div class="sirv-message-container">' . Utils::showMessage($domains_mute_message, 'warning') . '</div>';
+            }
+          ?>
+          <select id="sirv-choose-domain" name="SIRV_CDN_URL" <?php echo ($is_accountInfo_muted || count($domains) <= 1) ? 'disabled' : ''; ?>>
+            <?php
+              if ( count($domains) > 1 ) {
+                foreach ($domains as $domain) {
+                  $selected = '';
+                  if ($domain == $sirvCDNurl) {
+                    $selected = 'selected';
+                  }
+                  echo '<option ' . $selected . ' value="' . $domain . '">' . $domain . '</option>';
                 }
-                echo '<option ' . $selected . ' value="' . $domain . '">' . $domain . '</option>';
+              } else {
+                echo '<option selected value="' . $sirvCDNurl . '">' . $sirvCDNurl . '</option>';
               }
-              ?>
-            </select>
-          </td>
-        </tr>
-      <?php } else { ?>
-        <input type="hidden" id="sirv-choose-domain-hidden" name="SIRV_CDN_URL" value="<?php echo $sirvCDNurl; ?>">
-      <?php } ?>
+            ?>
+          </select>
+        </td>
+      </tr>
       <tr>
         <?php
-          $sirv_folder = get_option('SIRV_FOLDER');
+        $sirv_folder = get_option('SIRV_FOLDER');
         ?>
         <th>
           <label>Folder name on Sirv</label>
@@ -231,11 +235,29 @@
           <label>Image profile</label>
         </th>
         <td>
+          <?php
+            $endpoint_name = 'v2/files/readdir';
+            $is_muted_profiles = sirv_is_muted($endpoint_name);
+            if ($is_muted_profiles) {
+              //$profiles_mute_message = 'Option is disabled due to exceeding API usage rate limit. Refresh this page in <b>' . Utils::get_minutes(sirv_get_mute_expired_at($endpoint_name)) . ' minutes</b>';
+              $profiles_mute_message = 'You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for <b>' . Utils::get_minutes(sirv_get_mute_expired_at($endpoint_name)) . ' minutes</b>. Please try again after that or inform the <a href="https://sirv.com/help/support/#support" target="_blank">Sirv support team</a> if you keep seeing this message.';
+
+              echo '<div class="sirv-message-container">' . Utils::showMessage($profiles_mute_message, 'warning') . '</div>';
+            }
+          ?>
           <!-- <span class="sirv-traffic-loading-ico sirv-shortcodes-profiles"></span> -->
-          <select id="sirv-cdn-profiles">
-            <?php if (isset($profiles)) echo sirv_renderProfilesOptopns($profiles); ?>
+          <select id="sirv-cdn-profiles" <?php echo $is_muted_profiles ? 'disabled' : ''; ?>>
+            <?php
+              $profiles_cdn_value = htmlspecialchars(get_option('SIRV_CDN_PROFILES'));
+
+              if (isset($profiles)) echo sirv_renderProfilesOptopns($profiles);
+
+              if ($is_muted_profiles) {
+                echo '<option disabled>Choose profile</option><option value="' . $profiles_cdn_value . '">' . $profiles_cdn_value . '</option>';
+              }
+            ?>
           </select>
-          <input type="hidden" id="sirv-cdn-profiles-val" name="SIRV_CDN_PROFILES" value="<?php echo get_option('SIRV_CDN_PROFILES'); ?>">
+          <input type="hidden" id="sirv-cdn-profiles-val" name="SIRV_CDN_PROFILES" value="<?php echo $profiles_cdn_value; ?>">
         </td>
         <td>
           <div class="sirv-tooltip">
@@ -250,10 +272,23 @@
         </th>
         <td>
           <!-- <span class="sirv-traffic-loading-ico sirv-shortcodes-profiles"></span> -->
-          <select id="sirv-shortcodes-profiles">
-            <?php if (isset($profiles)) echo sirv_renderProfilesOptopns($profiles); ?>
+          <?php
+            if ($is_muted_profiles) {
+              echo '<div class="sirv-message-container">' . Utils::showMessage($profiles_mute_message, 'warning') . '</div>';
+            }
+          ?>
+          <select id="sirv-shortcodes-profiles" <?php echo $is_muted_profiles ? 'disabled' : ''; ?>>
+            <?php
+              $profiles_shortcodes_value = htmlspecialchars(get_option('SIRV_SHORTCODES_PROFILES'));
+
+              if (isset($profiles)) echo sirv_renderProfilesOptopns($profiles);
+
+              if ($is_muted_profiles) {
+                echo '<option disabled>Choose profile</option><option value="' . $profiles_shortcodes_value . '">' . $profiles_shortcodes_value . '</option>';
+              }
+            ?>
           </select>
-          <input type="hidden" id="sirv-shortcodes-profiles-val" name="SIRV_SHORTCODES_PROFILES" value="<?php echo get_option('SIRV_SHORTCODES_PROFILES'); ?>">
+          <input type="hidden" id="sirv-shortcodes-profiles-val" name="SIRV_SHORTCODES_PROFILES" value="<?php echo $profiles_shortcodes_value; ?>">
         </td>
         <td>
           <div class="sirv-tooltip">

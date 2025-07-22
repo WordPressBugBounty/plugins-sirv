@@ -135,7 +135,7 @@ nav.nav-tab-wrapper {
 }
 
 .form-table th {
-    width: 160px;
+    min-width: 160px;
 }
 
 .small-padding th {
@@ -2140,9 +2140,16 @@ input[name=SIRV_EMAIL]:focus::placeholder {
 /*--------------------------------empty-view-cache-option END----------------------------------------*/
 
 /*--------------------------------sirv-text-to-input-option------------------------------------------*/
-.sirv-text-to-input-option {
+.sirv-text-to-input-option-block {
     display: flex;
     flex-direction: column;
+}
+
+.sirv-text-to-input-option {
+    display: flex;
+    width: 98%;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .sirv-text-to-input-option-text-part {
@@ -2151,8 +2158,26 @@ input[name=SIRV_EMAIL]:focus::placeholder {
     line-height: 38px;
 }
 
+.sirv-text-to-input-option-text-part > div {
+    display: flex;
+    max-width: 535px;
+    flex-direction: row;
+}
+
+.sirv-text-to-input-option-text-part > div span {
+    display: block;
+}
+
+span.sirv-text-to-input-option-rendered-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 75%;
+}
+
 .sirv-text-to-input-option-input-part {
     display: flex;
+    width: 90%;
     align-content: center;
     align-items: center;
     flex-direction: row;
@@ -2292,3 +2317,19 @@ label sup, h2 sup {
     opacity: 0.7;
 }
 /*--------------------------------------------------------push messages  END-----------------------------------------*/
+
+.sirv-message-container {
+    margin-bottom: 10px;
+}
+
+.sirv-smv-html-cache-management {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.sirv-clean-smv-html-cache-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}

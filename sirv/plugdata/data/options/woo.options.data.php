@@ -170,7 +170,7 @@ $content_options = array(
     'type' => 'custom',
     'func' => 'render_text_to_input_option',
     'value' => '',
-    'below_text' => 'Possible variables: {product-sku}, {product-id}',
+    'below_text' => 'Possible variables: {product-sku}, {product-id} <button type="button" class="sirv-option-show-path-filters-action">Filters?</button>',
     'default' => 'products/{product-sku}',
     'const_text' => $sirvCDNurl .'/',
     'default_type' => 'str',
@@ -247,6 +247,85 @@ $content_options = array(
     'button_val' => 'Empty cache',
     'button_class' => 'sirv-clear-view-cache-table',
     'data_provider' => 'sirv_get_view_cache_info',
+  ),
+);
+
+$smv_html_cache_options = array(
+  'SIRV_WOO_SMV_CACHE_IS_ENABLE' => array(
+    'enabled_option' => true,
+    'option_name' => 'SIRV_WOO_SMV_CACHE_IS_ENABLE',
+    'label' => 'Cache gallery code',
+    'below_text' => 'Save precompiled code for faster loading.',
+    'type' => 'radio',
+    'func' => 'render_radio_option',
+    'is_new_line' => true,
+    'value' => '',
+    'values' => array(
+      array(
+        'label' => 'Enable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'on',
+        ),
+      ),
+      array(
+        'label' => 'Disable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'off',
+        ),
+      ),
+    ),
+    'default' => 'off',
+    'default_type' => 'str',
+    'show_status' => true,
+    'enabled_value' => 'on',
+  ),
+  'SIRV_WOO_SMV_CACHE_BACKGROUND_IS_ENABLE' => array(
+    'enabled_option' => true,
+    'option_name' => 'SIRV_WOO_SMV_CACHE_BACKGROUND_IS_ENABLE',
+    'label' => 'Background caching',
+    'below_text' => 'Refresh the gallery cache in the background, after the page has loaded.',
+    'type' => 'radio',
+    'func' => 'render_radio_option',
+    'is_new_line' => true,
+    'value' => '',
+    'values' => array(
+      array(
+        'label' => 'Enable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'on',
+        ),
+      ),
+      array(
+        'label' => 'Disable',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'off',
+        ),
+      ),
+    ),
+    'default' => 'off',
+    'default_type' => 'str',
+    'show_status' => true,
+    'enabled_value' => 'on',
+  ),
+  'unreg_sirv_smv_cache_managment' => array(
+    'enabled_option' => true,
+    'option_name' => 'sirv_smv_cache_managment',
+    'label' => 'Cache management',
+    'type' => 'custom',
+    'func' => 'render_sirv_smv_cache_management',
+    'custom_type' => 'table',
+    'value' => '',
+    /* 'button_val' => 'Empty cache',
+    'button_class' => 'sirv-clear-view-cache-table',
+    'data_provider' => 'sirv_get_view_cache_info', */
   ),
 );
 
@@ -461,6 +540,7 @@ $design_options = array(
     'type' => 'select',
     'func' => 'render_select_option',
     'select_id' => 'sirv-woo-product-profiles',
+    'endpoint_name' => 'v2/files/readdir',
     'value' => '',
     'default' => '',
     'default_type' => 'str',
@@ -481,6 +561,7 @@ $design_options = array(
     'type' => 'select',
     'func' => 'render_select_option',
     'select_id' => 'sirv-woo-product-mobile-profiles',
+    'endpoint_name' => 'v2/files/readdir',
     'value' => '',
     'default' => '',
     'default_type' => 'str',
@@ -1106,6 +1187,14 @@ Upload files at <a href="https://my.sirv.com/" target="_blank">my.sirv.com</a> o
     "id" => 'woo-content',
     "show_save_button" => true,
     "options" => $content_options
+  ),
+  "SMV_HTML_CACHE" => array(
+    "id" => 'woo-cache-gallery',
+    "title" => 'Gallery cache',
+    "description" => 'For a fast workflow, you could use hardly galleries caching. Galleries for product page and categories(if enabled) caching in DB as html. ',
+    "show_save_button" => true,
+    "messages_block_selector" => 'sirv-smv-html-cache-messages',
+    "options" => $smv_html_cache_options,
   ),
   "VIEW_FILES" => array(
     "id" => 'woo-view-files',

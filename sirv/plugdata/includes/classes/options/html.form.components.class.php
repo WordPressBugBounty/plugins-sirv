@@ -60,20 +60,25 @@ class HTML_form_components{
   }
 
 
-  protected static function render_select_component($option){
-    $is_render_empty_option = (isset($option['render_empty_option']) && $option['render_empty_option']) ? true : false;
+  protected static function render_select_component($option, $is_muted){
     $select_items = '';
-    if($is_render_empty_option){
-      $default_selected = ($option['value'] == '') ? 'selected' : '';
-      $select_items = '<option value="" ' . $default_selected . '>-</option>';
-    }
 
-    foreach ($option['select_data'] as $name => $value) {
-      $select_items .= "<option value='{$value}' " . selected($value, $option['value'], false) . ">{$name}</option>" . PHP_EOL;
+    if ( $is_muted ) {
+      $select_items = '<option selected value="'. $option['value'] .'">' . $option['value'] .'</option>' . PHP_EOL;
+    } else {
+      $is_render_empty_option = (isset($option['render_empty_option']) && $option['render_empty_option']) ? true : false;
+      if($is_render_empty_option){
+        $default_selected = ($option['value'] == '') ? 'selected' : '';
+        $select_items = '<option value="" ' . $default_selected . '>-</option>';
+      }
+
+      foreach ($option['select_data'] as $name => $value) {
+        $select_items .= "<option value='{$value}' " . selected($value, $option['value'], false) . ">{$name}</option>" . PHP_EOL;
+      }
     }
 
     $html =
-    '<select id="' . $option['select_id'] . '">
+    '<select id="' . $option['select_id'] . '" '. ( $is_muted ? 'disabled' : '') . '>
       <option disabled>'. $option['select_title'] .'</option>
       '. $select_items . '
     </select>' . PHP_EOL . self::render_input_component($option['attrs']);
@@ -131,6 +136,16 @@ class HTML_form_components{
     }
 
     return $tooltip;
+  }
+
+
+  protected static function render_mute_message($is_muted, $expired_at_timestamp){
+
+    if ( ! $is_muted || ! isset($expired_at_timestamp) || $expired_at_timestamp == 0 ) return '';
+
+    //$mute_message = 'Option is disabled due to exceeding API usage rate limit. Refresh this page in <b>' . Utils::get_minutes($expired_at_timestamp) . ' minutes</b>';
+    $mute_message = 'You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for <b>' . Utils::get_minutes($expired_at_timestamp) . ' minutes</b>. Please try again after that or inform the <a href="https://sirv.com/help/support/#support" target="_blank">Sirv support team</a> if you keep seeing this message.';
+    return '<div class="sirv-message-container">' . Utils::showMessage($mute_message, 'warning') . '</div>';
   }
 
 

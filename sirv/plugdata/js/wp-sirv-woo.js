@@ -60,7 +60,7 @@ jQuery(function ($) {
 
 
   function getJSONData(key, type) {
-    let data =  type === 'object' ? {} : [];
+    let data = type === 'object' ? {} : [];
     const idsJsonStr = $("#sirv-woo-gallery_data_" + sirv_woo_product.mainID).attr(key);
     try {
       data = JSON.parse(idsJsonStr);
@@ -91,6 +91,7 @@ jQuery(function ($) {
   $(document).ready(function () {
 
     existingIds = getJSONData("data-existings-ids", "array");
+
     itemByVariationId = getJSONData("data-item-by-variation-id", "object");
     galleryId = $('#sirv-woo-gallery_' + sirv_woo_product.mainID + ' div.smv').attr('id');
 

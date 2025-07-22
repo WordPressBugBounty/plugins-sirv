@@ -92,7 +92,6 @@ jQuery(function($){
                 '<td class="t-sc">[sirv-gallery id='+ data.id +']</td>'+
             '</tr>');
         } else if(type == 'chooseView'){
-            console.log(data);
             const imageCountLimit = 6;
 
             const imagesCount = data.images.length > imageCountLimit ? imageCountLimit : data.images.length;

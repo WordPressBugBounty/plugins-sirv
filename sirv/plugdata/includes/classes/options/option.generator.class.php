@@ -25,12 +25,14 @@ class Options_generator extends Options_components{
       </div>';
 
     $render_save_button = $block['show_save_button'] ? $save_button_html : '';
+    $messages_block = isset($block['messages_block_selector']) ? self::render_messages_block($block['messages_block_selector']) : '';
     $html = '
     <h2>'. $block['title'] .'</h2>
     <p class="sirv-options-desc">'. $block['description'] .'</p>
     <div class="sirv-optiontable-holder" id="'. $block['id'] .'">
       <table class="sirv-woo-settings optiontable form-table">
         <tbody>
+          '. $messages_block .'
           '. self::loop($block['options']) . '
         </tbody>
       </table>

@@ -2,25 +2,21 @@
 
 defined('ABSPATH') or die('No script kiddies please!');
 
+$endpoint_names = array('v2/account', 'v2/billing/plan', 'v2/account/storage', 'v2/stats/http', 'v2/account/limits');
 $error = '';
 
 $sirvAPIClient = sirv_getAPIClient();
-$isMuted = $sirvAPIClient->isMuted();
-if ($isMuted) {
-  $error = $sirvAPIClient->getMuteError();
-}
-
 $sirvStatus = $sirvAPIClient->preOperationCheck();
 
 if ($sirvStatus) {
   $isMultiCDN = false;
-  //$is_direct = get_option('SIRV_NETWORK_TYPE') == "2" ? true : false;
 
   $accountInfo = $sirvAPIClient->getAccountInfo();
-  if (!empty($accountInfo)) {
+  if ( ! empty($accountInfo) ) {
+
+    $accountName = $accountInfo->alias;
 
     $isMultiCDN = count((array) $accountInfo->aliases) > 1 ? true : false;
-    //$is_direct = (isset($accountInfo->aliases->{$accountInfo->alias}->cdn) && $accountInfo->aliases->{$accountInfo->alias}->cdn) ? false : true;
     $sirvCDNurl = get_option('SIRV_CDN_URL');
 
     $domains = sirv_get_domains($accountInfo);
@@ -31,37 +27,51 @@ if ($sirvStatus) {
 
 
     update_option('SIRV_ACCOUNT_NAME', $accountInfo->alias);
-    //update_option('SIRV_NETWORK_TYPE', (isset($accountInfo->aliases->{$accountInfo->alias}->cdn) && $accountInfo->aliases->{$accountInfo->alias}->cdn) ? 1 : 2);
-    //update_option( 'SIRV_NETWORK_TYPE', (isset($accountInfo->cdnURL) ? 1 : 2) );
     update_option('SIRV_FETCH_MAX_FILE_SIZE', $accountInfo->fetching->maxFilesize);
-    if (empty($sirvCDNurl) || !$isMultiCDN) {
+    if ( empty($sirvCDNurl) || ! $isMultiCDN ) {
       update_option('SIRV_CDN_URL', isset($accountInfo->cdnURL) ? $accountInfo->cdnURL : $accountInfo->alias . '.sirv.com');
     }
+  }
 
-    $storageInfo = sirv_getStorageInfo();
+  $storageInfo = sirv_getStorageInfo();
+
+  list($is_muted, $expired_at) = sirv_is_muted($endpoint_names, true);
+
+  if ($is_muted) {
+    $error = 'Some account data may not be loaded due API usage limit reached.<br><br>Please refresh this page in <b>' . Utils::get_minutes($expired_at)  . '</b> minutes, once the hourly limit has refreshed (' . date("H:i e", $expired_at) . ').<br><br><a target="_blank" href="https://my.sirv.com/#/account/usage">Current API usage</a> is shown in your Sirv account.';
   }
 }
 ?>
 
 <div class="sirv-tab-content sirv-tab-content-active">
-  <?php if ($isMuted || $sirvStatus) { ?>
+  <?php if ( $sirvStatus ) { ?>
     <h1>Account info</h1>
     <div class="sirv-s3credentials-wrapper">
       <div class="sirv-optiontable-holder">
         <div class="sirv-error"><?php if ($error) echo Utils::showMessage($error); ?></div>
-        <?php if ($sirvStatus) { ?>
+        <?php if ( $sirvStatus ) { ?>
           <table class="optiontable form-table">
             <tr>
               <th><label>Account</label></th>
-              <td><span><?php echo $storageInfo['account']; ?></span></td>
+              <td><span><?php if( isset($accountName) ) echo $accountName; ?></span></td>
             </tr>
             <tr>
               <th><label>Plan</label></th>
-              <td><span><?php echo $storageInfo['plan']['name']; ?>&nbsp;&nbsp;</span><a target="_blank" href="https://my.sirv.com/#/account/billing/plan">Upgrade plan</a></td>
+              <td><span>
+                <?php echo isset($storageInfo['plan']['name']) ? $storageInfo['plan']['name'] : 'No data'; ?>
+                &nbsp;&nbsp;</span><a target="_blank" href="https://my.sirv.com/#/account/billing/plan">Upgrade plan</a></td>
             </tr>
             <tr>
               <th><label>Allowance</label></th>
-              <td><span><?php echo $storageInfo['storage']['allowance_text'] . ' storage, ' . $storageInfo['plan']['dataTransferLimit_text'] . ' monthly transfer'; ?></span></td>
+              <td>
+                <span>
+                  <?php
+                    $allowance_text = isset($storageInfo['storage']['allowance_text']) ? $storageInfo['storage']['allowance_text'] : 'No data';
+                    $dataTransferLimit_text = isset($storageInfo['plan']['dataTransferLimit_text']) ? $storageInfo['plan']['dataTransferLimit_text'] : 'No data';
+                    echo $allowance_text . ' storage, ' . $dataTransferLimit_text . ' monthly transfer';
+                  ?>
+                </span>
+              </td>
             </tr>
             <tr>
               <th><label>User</label></th>
@@ -142,8 +152,6 @@ if ($sirvStatus) {
           <tr class="sirv-block-hide">
             <th></th>
             <td colspan="2">
-              <!-- <span class="sirv-new-acc-text">Start a 30 day free trial, with 5GB storage & 20GB transfer.
-                Then autoswitch to a free plan or upgrade to a <a href="https://sirv.com/pricing/">paid plan</a>.</span> -->
               <span class="sirv-new-acc-text">
                 No credit card needed. Enjoy 5GB free storage & 20GB transfer for 30 days. Then choose a <a target="_blank" href="https://sirv.com/pricing/">free or paid plan</a>.
                 By signing up, you agree to our <a target="_blank" href="https://sirv.com/terms/">Terms of Service</a>.
@@ -156,7 +164,7 @@ if ($sirvStatus) {
     <br>
   <?php } ?>
 
-  <?php if ($sirvStatus && !empty($storageInfo)) { ?>
+  <?php if ( $sirvStatus ) { ?>
     <div class="sirv-tab-content sirv-tab-content-active" id="sirv-stats">
       <div class="sirv-stats-container">
         <div class="sirv-stats-messages"></div>
@@ -172,19 +180,33 @@ if ($sirvStatus) {
               </tr>
               <tr class="small-padding">
                 <th><label>Allowance</label></th>
-                <td><span class="sirv-allowance"><?php if (isset($storageInfo)) echo $storageInfo['storage']['allowance_text']; ?></span></td>
+                <td><span class="sirv-allowance">
+                  <?php echo isset($storageInfo['storage']['allowance_text']) ? $storageInfo['storage']['allowance_text'] : 'No data'; ?>
+                </span></td>
               </tr>
               <tr class="small-padding">
                 <th><label>Used</label></th>
-                <td><span class="sirv-st-used"><?php if (isset($storageInfo)) echo $storageInfo['storage']['used_text']; ?><span> (<?php if (isset($storageInfo)) echo $storageInfo['storage']['used_percent']; ?>%)</span></span></td>
+                <td><span class="sirv-st-used">
+                  <?php echo isset($storageInfo['storage']['used_text']) ? $storageInfo['storage']['used_text'] : 'No data'; ?>
+                  <span>
+                    (<?php echo isset($storageInfo['storage']['used_percent']) ? $storageInfo['storage']['used_percent'] : 'No data'; ?>%)
+                  </span>
+                </span></td>
               </tr>
               <tr class="small-padding">
                 <th><label>Available</label></th>
-                <td><span class="sirv-st-available"><?php if (isset($storageInfo)) echo $storageInfo['storage']['available_text']; ?><span> (<?php if (isset($storageInfo)) echo $storageInfo['storage']['available_percent']; ?>%)</span></span></td>
+                <td><span class="sirv-st-available">
+                  <?php echo isset($storageInfo['storage']['available_text']) ? $storageInfo['storage']['available_text'] : 'No data'; ?>
+                  <span>
+                    (<?php echo isset($storageInfo['storage']['available_percent']) ? $storageInfo['storage']['available_percent'] : 'No data'; ?>%)
+                  </span>
+                </span></td>
               </tr>
               <tr class="small-padding">
                 <th><label>Files</label></th>
-                <td><span class="sirv-st-files"><?php if (isset($storageInfo)) echo $storageInfo['storage']['files']; ?></span></td>
+                <td><span class="sirv-st-files">
+                  <?php echo isset($storageInfo['storage']['files']) ? $storageInfo['storage']['files'] : 'No data'; ?>
+                </span></td>
               </tr>
             </table>
           </div>
@@ -199,7 +221,9 @@ if ($sirvStatus) {
               <tbody cellspacing="0" class="optiontable form-table sirv-form-table traffic-wrapper">
                 <tr class="small-padding">
                   <th><label>Allowance</label></th>
-                  <td colspan="2"><span style="" class="sirv-trf-month"><?php if (isset($storageInfo)) echo $storageInfo['traffic']['allowance_text']; ?></span></td>
+                  <td colspan="2"><span class="sirv-trf-month">
+                    <?php echo isset($storageInfo['traffic']['allowance_text']) ? $storageInfo['traffic']['allowance_text'] : 'No data'; ?>
+                  </span></td>
                 </tr>
                 <?php
                 if (isset($storageInfo['traffic']['traffic'])) {
@@ -227,8 +251,12 @@ if ($sirvStatus) {
           </div>
         </div>
         <h2>API usage</h2>
-        <!-- <p class="sirv-options-desc">Check how much sirv api requests is using.</p> -->
-        <p class="sirv-options-desc">Last update: <span class='sirv-stat-last-update'><?php echo $storageInfo['lastUpdate']; ?></span>&nbsp;&nbsp;<a class="sirv-stat-refresh" href="#">Refresh</a></p>
+        <p class="sirv-options-desc">
+          Last update: <span class='sirv-stat-last-update'><?php echo $storageInfo['lastUpdate']; ?></span>&nbsp;&nbsp;
+          <?php if ( ! $is_muted ) { ?>
+            <a class="sirv-stat-refresh" href="#">Refresh</a>
+          <?php } ?>
+        </p>
         <div class="sirv-api-usage">
           <div class="sirv-optiontable-holder">
             <table class="optiontable form-table sirv-form-table">
@@ -242,9 +270,11 @@ if ($sirvStatus) {
               </thead>
               <tbody class='sirv-api-usage-content'>
                 <?php
-                //sirv_debug_msg($storageInfo['limits']);
-                foreach ($storageInfo['limits'] as $limit) {
-                  $is_limit_reached = ((int) $limit['count'] >= (int) $limit['limit'] && (int) $limit['limit'] > 0) ? 'style="color: red;"' : '';
+                  if ( count($storageInfo['limits']) === 0) {
+                    echo '<tr><td colspan="4" style="text-align: center;">No data</td></tr>';
+                  } else {
+                    foreach ($storageInfo['limits'] as $limit) {
+                    $is_limit_reached = ((int) $limit['count'] >= (int) $limit['limit'] && (int) $limit['limit'] > 0) ? 'style="color: red;"' : '';
                 ?>
                   <tr <?php echo $is_limit_reached; ?>>
                     <td><?php echo $limit['type'] ?></td>
@@ -259,7 +289,7 @@ if ($sirvStatus) {
                       <td></td>
                     <?php } ?>
                   </tr>
-                <?php } ?>
+                <?php }} ?>
               </tbody>
             </table>
           </div>

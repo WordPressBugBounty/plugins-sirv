@@ -853,9 +853,26 @@ jQuery(function ($) {
         function optionEdit(e){
             e.preventDefault();
 
-            $p = $(this).parent();
-            $p.hide();
-            $p.siblings().show();
+            const $button = $(this);
+            const type = $button.attr('data-type')
+            const $showValuePart = $(this).parent().find('.sirv-text-to-input-option-text-part');
+            const $inputValuePart = $(this).parent().find('.sirv-text-to-input-option-input-part');
+            const $input = $inputValuePart.find('input');
+
+            if (type === 'render'){
+                $button.attr('data-type', 'edit');
+                $button.text('Cancel');
+                $showValuePart.hide();
+                $inputValuePart.show();
+            }
+
+            if (type == 'edit'){
+                $button.attr("data-type", "render");
+                $button.text("Change");
+                $input.val($input.attr('data-restore-value'));
+                $showValuePart.show();
+                $inputValuePart.hide();
+            }
         }
 
 
@@ -1533,6 +1550,7 @@ jQuery(function ($) {
                 dataType: "json",
                 beforeSend: function () {
                     $spinner.show();
+                    hideMessages(".sirv-show-view-cache-messages");
                 }
             }).done(function (data) {
                 //debug
@@ -1544,12 +1562,15 @@ jQuery(function ($) {
                     showMessage('.sirv-show-view-cache-messages', data.error);
                 }
 
-                if(!!data){
-                    if (!!data?.sync_data){
-                        updateViewSyncData(data.sync_data);
-                    }
-
+                if(!!data.result){
+                    //toastr.success(`${data.result} records have been deleted`, "", {preventDuplicates: true, timeOut: 4000, positionClass: "toast-top-center"});
+                    showMessage(".sirv-show-view-cache-messages", `Cache records have been deleted`, 'success');
                 }
+
+                if (!!data?.sync_data){
+                    updateViewSyncData(data.sync_data);
+                }
+
 
             }).fail(function (jqXHR, status, error) {
                 console.error("status: ", status);
@@ -2846,6 +2867,157 @@ jQuery(function ($) {
             shadowBottom.style.opacity = 1 - currentScroll;
         }
 
+
+        $(".sirv-option-show-path-filters-action").on("click", showPathFiltersHelpWindow);
+        function showPathFiltersHelpWindow(){
+            sirvUIShowInformDialog("How to use filters",
+                `
+                    <style>
+                        .sirv-option-show-path-filters-help table td {
+                            vertical-align: baseline;
+                        }
+                    </style>
+                    <div class="sirv-option-show-path-filters-help">
+                        <p>
+                            A filter is required if Sirv folders are named with truncated parts of your SKUs. This folder naming technique is recommended if you have more than 10,000 products. <a target="_blank" href="https://sirv.com/help/articles/naming-folders-images/">Learn more</a>.
+                        </p>
+                        <p>
+                            <h3>Filters</h3>
+
+                            <table width="100%">
+                                <tbody>
+                                    <tr>
+                                        <td width="35%"><b>first:{length}</b></td>
+                                        <td>Number of characters from beginning.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>last:{length}</b></td>
+                                        <td>Number of characters from end.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>chars:{position}:{length}</b></td>
+                                        <td>Number of characters from a position. Position can be negative, to count from end of the string. </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </p>
+                        <p>
+                            <h3>Examples</h3>
+
+                            Specify either the product SKU <code>{product-sku}</code> or variation SKU <code>{variation-sku}</code> and your chosen filter.
+                            For example, the product SKU <b>abcdef</b> could be truncated like so:
+                            <table width="100%">
+                                <tbody>
+                                    <tr>
+                                        <td width="50%"><code>{product-sku first:3}</code></td>
+                                        <td>Will return <b>abc</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>{product-sku last:3}</code></td>
+                                        <td>Will return <b>def</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>{product-sku chars:1:3}</code></td>
+                                        <td>Will return <b>abc</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>{product-sku chars:2:4}</code></td>
+                                        <td>Will return <b>bcde</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>{product-sku chars:-2:2}</code></td>
+                                        <td>Will return <b>ef</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>{product-sku chars:-3:1}</code></td>
+                                        <td>Will return <b>d</b></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </p>
+                        <p>
+                            <h3>Full example</h3>
+
+                            The most popular folder naming convention starts with a top level folder such as products, then a truncated SKU, then the full SKU. Example:
+
+                            <pre><code>/products/{product-sku first:3}/{product-sku}/</code></pre>
+                        </p>
+                    <div>
+                `
+            );
+        }
+
+
+        $("input[name=SIRV_WOO_IS_USE_VIEW_FILE]").on("change", manageViewFileContentOption);
+        function manageViewFileContentOption(){
+            $status = $(this).val();
+
+            if($status == 'on'){
+                manageElement('.sync-all-view-data-show-dialog', false);
+            }else{
+                manageElement('.sync-all-view-data-show-dialog', true);
+            }
+
+        }
+
+
+        $(".sirv-clean-smv-html-cache").on("click", deleteSmvHtmlCache);
+        function deleteSmvHtmlCache(){
+            const button = $(this);
+            const buttonSelector = ".sirv-clean-smv-html-cache";
+
+            $.ajax({
+                url: ajaxurl,
+                data: {
+                    action: 'sirv_clear_smv_html_cache',
+                    _ajax_nonce: sirv_options_data.ajaxnonce,
+                },
+                type: 'POST',
+                dataType: "json",
+                beforeSend: function (){
+                    hideMessages(".sirv-smv-html-cache-messages");
+
+                    manageElement(buttonSelector, true, 'Clearing cache...');
+                    button.siblings(".sirv-traffic-loading-ico").show();
+                },
+            }).done(function (res) {
+                //debug
+                //console.log(res);
+
+                manageElement(buttonSelector, false, "Clear cache");
+                button.siblings(".sirv-traffic-loading-ico").hide();
+
+                if(res.error){
+                    showMessage(".sirv-smv-html-cache-messages", res.error);
+                }
+
+                if (!!res.affected_rows){
+                    showMessage(".sirv-smv-html-cache-messages", `${res.affected_rows} rows have been deleted`, 'success');
+                }
+
+                $(".sirv-smv-html-cache-count").text(res.cache_count);
+
+            }).fail(function (jqXHR, status, error) {
+                manageElement(buttonSelector, false, "Clear cache");
+                button.siblings(".sirv-traffic-loading-ico").hide();
+
+                console.error("Error during ajax request: " + error);
+                showAjaxErrorMessage(jqXHR, status, error, '.sirv-smv-html-cache-messages');
+
+            });
+        }
+
+        $("input[name=SIRV_WOO_SMV_CACHE_IS_ENABLE]").on("change", manageSmvHtmlCacheOption);
+        function manageSmvHtmlCacheOption(){
+            $status = $(this).val();
+
+            if($status == 'on'){
+                manageElement(".sirv-clean-smv-html-cache", false);
+            }else{
+                manageElement(".sirv-clean-smv-html-cache", true);
+            }
+
+        }
 
         //-----------------------initialization-----------------------
         setProfiles();

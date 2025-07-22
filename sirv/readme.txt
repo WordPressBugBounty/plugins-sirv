@@ -4,8 +4,8 @@ Donate link: https://sirv.com/
 Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
-Tested up to: 6.8.1
-Stable tag: 7.5.5
+Tested up to: 6.8.2
+Stable tag: 8.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -222,6 +222,15 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 18. To upload images to your Sirv library, go to the Media Library page within the Sirv sub-menu (in the left navigation column).
 
 == Changelog ==
+
+= 8.0.0 (2025-07-22) =
+* Tested with the latest WordPress version 6.8.2.
+* New caching option to store product and category galleries as HTML in the database. Instead of building the gallery on-the-fly, it embeds a pregenerated gallery, for faster page loading and lower server load. Optional.
+* Background option for background cache updates. If the gallery cache has expired, plugin will create a new cache after page loading in the background. Optional.
+* The non-blocking options page due to the specific API limit being reached.
+* Added option to delete folders and their contents from the Sirv media gallery.
+* Added filters for options to choose partial string matches for "Sirv folder for products" and "Sirv folder for variations".
+* Various fixes and optimizations.
 
 = 7.5.5 (2025-06-21) =
 * Tested with the latest WordPress version 6.8.1.

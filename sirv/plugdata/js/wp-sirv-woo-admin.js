@@ -461,6 +461,7 @@ jQuery( function($){
     function updateSmvCache(){
       const product_id = $(this).attr('data-product-id');
       const type = $(this).attr('data-type');
+      const $viewGalleryUL = $("#sirv-view-images-ul-" + product_id);
 
       $.ajax({
         url: ajaxurl,
@@ -487,13 +488,16 @@ jQuery( function($){
             });
           }
 
-          if(!!response?.cache?.items){
+          if(response?.view_path){
+            const $viewPathTextEl = $(`#sirv-view-gallery-${product_id} .sirv-view-gallery-header-path`);
+            if ($viewPathTextEl.length) $viewPathTextEl.text(response.view_path);
+          }
+
+          if(response?.cache?.items){
             const itemsPattern = "?thumbnail=78&image";
-            const $viewGalleryUL = $("#sirv-view-images-ul-" + product_id);
 
             let documentFragment = $(document.createDocumentFragment());
             const items = response.cache.items;
-
 
             for (const item of items) {
               documentFragment.append(
@@ -508,6 +512,8 @@ jQuery( function($){
 
             $viewGalleryUL.empty();
             $viewGalleryUL.append(documentFragment);
+          }else{
+            $viewGalleryUL.empty();
           }
         })
         .fail(function (jqXHR, status, error) {

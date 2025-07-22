@@ -130,7 +130,7 @@ $skeletonClass = $isSkeleton ? ' sirv-skeleton ' : '';
 <div class="sirv-woo-wrapper<?php echo $custom_classes_attr; ?>" <?php echo $custom_styles; ?>>
   <div class="sirv-skeleton-wrapper">
     <div class="sirv-smv-container <?php echo $skeletonClass; ?>">
-      <?php echo $woo->get_woo_product_gallery_html(); ?>
+      <?php echo $woo->get_cached_woo_smv_html('_sirv_woo_pdp_cache'); ?>
     </div>
 
   </div>

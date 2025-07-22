@@ -8,7 +8,6 @@ jQuery(function($){
         let prev = -1;
         let maxFileSize;
         let maxFilesCount;
-        let sirvFileSizeLimit;
         let profileTimer;
         let emptyFolder = false;
         let noResults = false;
@@ -324,18 +323,21 @@ jQuery(function($){
 
 
         function toolbarFixed() {
-            let $toolbar = $('.toolbar-container');
+            let $toolbar = $(".media-tools-panel");
             let $itemContainer = $('.sirv-items-container');
+            const $nav = $(".sirv-sirv-media_library-php > .nav");
 
             if ($(this).scrollTop() > $toolbar.height()) {
                 if(!$toolbar.hasClass('sub-toolbar--fixed')){
                     $toolbar.addClass('sub-toolbar--fixed');
                     $itemContainer.addClass('items-container-toolbar--fixed');
+                    $nav.hide();
                     reCalcSearchMenuPosition();
                 }
             } else {
                 $toolbar.removeClass('sub-toolbar--fixed');
                 $itemContainer.removeClass('items-container-toolbar--fixed');
+                $nav.show();
                 reCalcSearchMenuPosition();
             }
 
@@ -1236,7 +1238,8 @@ jQuery(function($){
                 { id: 'uploaddirs', class: 'sirv-menu-item-upload-dirs', icon: "fa fa-upload", group: 2, type: ['global', 'uploadButton'], text: "Upload folders"},
                 { id: 'duplicate', class: 'sirv-menu-item-duplicate', icon: "fa fa-copy", group: 2, type: ['image', 'video', 'spin', 'model'], text: "Duplicate"},
                 { id: 'rename', class: 'sirv-menu-item-rename', icon: "fa fa-pencil", group: 2, type: ['image', 'video', 'spin', 'dir',, 'model'], text: "Rename"},
-                { id: 'delete', class: 'sirv-menu-item-delete', icon: "fa fa-trash-o", group: 2, type: ['image', 'video', 'spin', 'dir', 'model'], text: "Delete"},
+                { id: 'delete', class: 'sirv-menu-item-delete', icon: "fa fa-trash-o", group: 2, type: ['image', 'video', 'spin', 'model'], text: "Delete"},
+                { id: 'deleteDir', class: 'sirv-menu-item-delete-dir', icon: "fa fa-trash-o", group: 2, type: ['dir'], text: "Delete"},
                 { id: 'download', class: 'sirv-menu-item-download', icon: "fa fa-download", group: 3, type: ['image', 'video', 'spin', 'model'], text: "Download"},
             ];
 
@@ -1293,6 +1296,12 @@ jQuery(function($){
             let offset = {top: 0, left: 0};
             let menuBoundRect = menuElem[0].getBoundingClientRect();
             let elemBoundsRect = elem[0].getBoundingClientRect();
+
+            //let wHeigth = window.innerHeight;
+            let wWidth = window.innerWidth;
+            //let cBottom = elemBoundsRect.y + Math.ceil(menuBoundRect.height);
+            let cRight = elemBoundsRect.x + Math.ceil(menuBoundRect.width);
+
             switch (position) {
                 case 'top':
                     offset.top = elemBoundsRect.top - menuBoundRect.height - 2;
@@ -1304,7 +1313,7 @@ jQuery(function($){
                     break;
                 case 'bottom':
                     offset.top = elemBoundsRect.bottom + 2;
-                    offset.left = elemBoundsRect.left;
+                    offset.left = cRight > wWidth ? elemBoundsRect.right - menuBoundRect.width : elemBoundsRect.left;
                     break;
                 case 'left':
                     offset.top = elemBoundsRect.top;
@@ -1383,6 +1392,19 @@ jQuery(function($){
             }
 
             deactivateActionMenu(isClearParams);
+        }
+
+
+        function menuMultipleDeleteItems(e){
+            e.preventDefault();
+            e.stopPropagation();
+
+            let $menu = $('.sirv-dropdown');
+            let delLink = $menu.attr("data-item-sirv-path");
+
+            runRemoteDeleteJob([delLink]);
+
+            deactivateActionMenu();
         }
 
 
@@ -1664,6 +1686,7 @@ jQuery(function($){
         function bindActionMenuEvents(){
             $('.sirv-menu-item-copy-link').on('click', menuCopyItemLink);
             $('.sirv-menu-item-delete').on('click', menuDeleteItem);
+            $('.sirv-menu-item-delete-dir').on('click', menuMultipleDeleteItems);
             $('.sirv-menu-item-download').on('click', menuDownloadItem);
             $('.sirv-menu-item-open-new-tab').on('click', menuOpenInNewTab);
             $('.sirv-menu-item-new-folder').on('click', menuNewFolder);
@@ -1677,6 +1700,7 @@ jQuery(function($){
         function unBindActionMenuEvents() {
             $('.sirv-menu-item-copy-link').off('click', menuCopyItemLink);
             $('.sirv-menu-item-delete').off('click', menuDeleteItem);
+            $('.sirv-menu-item-delete-dir').off('click', menuMultipleDeleteItems);
             $('.sirv-menu-item-download').off('click', menuDownloadItem);
             $('.sirv-menu-item-open-new-tab').off('click', menuOpenInNewTab);
             $('.sirv-menu-item-new-folder').off('click', menuNewFolder);
@@ -1691,7 +1715,7 @@ jQuery(function($){
             $('.sirv-items-container').on('contextmenu', rightClickContextMenu);
             $('.sirv-item-menu-actions').on('click', clickActionMenu);
             $('.sirv-item-body').on('contextmenu', rightClickContextMenu);
-            $('.sirv-items-container').on('scroll', toolbarFixed);
+            //$('.sirv-items-container').on('scroll', toolbarFixed);
             $('#sirv-search-field').on('focus', wideSearchField);
             $('#sirv-search-field').on("focusout", narrowSearchField);
             $('#sirv-search-field').on('keyup', searchOnEnter);
@@ -1731,7 +1755,7 @@ jQuery(function($){
             $('.sirv-items-container').off('contextmenu', rightClickContextMenu);
             $('.sirv-item-body').off('contextmenu', rightClickContextMenu);
             $('.sirv-item-menu-actions').off('click', clickActionMenu);
-            $('.sirv-items-container').off('scroll', toolbarFixed);
+            //$('.sirv-items-container').off('scroll', toolbarFixed);
             $('#sirv-search-field').off('focus', wideSearchField);
             $('#sirv-search-field').off("focusout", narrowSearchField);
             $('#sirv-search-field').off('keyup', searchOnEnter);
@@ -1775,6 +1799,11 @@ jQuery(function($){
         function beforeGetContent() {
             let dataLink = $(this).attr('data-item-sirv-path');
             window.sirvViewerPath = dataLink;
+
+            if (toastr) {
+                toastr.clear();
+            }
+
             getContentFromSirv(dataLink);
         }
 
@@ -1890,7 +1919,7 @@ jQuery(function($){
         let uploadTimer;
 
         window['modernUploadImages'] = function(files){
-            let groupedImages = groupedFiles(files, maxFileSize, maxFilesCount, sirvFileSizeLimit);
+            let groupedImages = groupedFiles(files, maxFileSize, maxFilesCount);
             let countFiles = files.length;
             //let currentDir = htmlDecode($('#filesToUpload').attr('data-current-folder'));
             let currentDir = getCurrentDir(hasLastSlash = true);
@@ -1978,11 +2007,11 @@ jQuery(function($){
             const errorLimitPattern = new RegExp(/bytes exceeds the limit of/im);
 
             let file = fileItem.fileObject;
-            let maxSliceSize = 2 * 1024 * 1024;
+            //max maxSliceSize 1M because admin-ajax.php can't handle more than ~1M
+            let maxSliceSize = 1 * 1024 * 1024;
             let sliceSize = getSliceSize(maxFileSize, maxSliceSize);
             let nextSlice = start + sliceSize + 1;
             let blob = file.slice(start, nextSlice);
-
             let totalSlices = countSlices(file.size, sliceSize);
 
             reader.onloadend = function( event ) {
@@ -2132,7 +2161,7 @@ jQuery(function($){
         }
 
 
-        function groupedFiles(files, maxFileSize, maxFiles, sirvFileSizeLimit){
+        function groupedFiles(files, maxFileSize, maxFiles){
             let partArray = [];
             let overSizedImages = [];
             let sumFileSize = 0;
@@ -2143,6 +2172,7 @@ jQuery(function($){
 
             for(let i = 0; i<files.length; i++){
                 let file = files[i];
+
                 sumFileSize += file.size;
                 filesCount += 1;
                 if((sumFileSize >= maxFileSize && filesCount > maxFiles) || filesCount > maxFiles || sumFileSize >= maxFileSize){
@@ -2176,7 +2206,7 @@ jQuery(function($){
 
 
         //FirstImageUploadDelay - delay before first image will be uploaded. Need if loading big image and getUploadingStatus() will not get status info during uploading first image
-        let FirstImageUploadDelay = 50;
+        let FirstImageUploadDelay = 15;
         function getUploadingStatus(){
             let data = {
                         action: 'sirv_get_image_uploading_status',
@@ -2192,6 +2222,7 @@ jQuery(function($){
                 doneFn=function(response){
 
                     if(response.error){
+                        window.clearInterval(uploadTimer);
                         console.error(response.error);
                         return;
                     }
@@ -2211,7 +2242,7 @@ jQuery(function($){
                             //$('.sirv-progress-text').html('processing...');
                             if(FirstImageUploadDelay == 0){
                                 window.clearInterval(uploadTimer);
-                                FirstImageUploadDelay = 50;
+                                FirstImageUploadDelay = 15;
                             }
                             FirstImageUploadDelay--;
                         }
@@ -2361,6 +2392,175 @@ jQuery(function($){
         function htmlDecode(input) {
             var doc = new DOMParser().parseFromString(input, "text/html");
             return doc.documentElement.textContent;
+        }
+
+
+        function getAjaxError(jqXHR, status, error) {
+            const errorTitle = `<b>Error during ajax request</b>`;
+
+            let errorText = !!error
+                ? `<p>Error message: "${error}"</p>`
+                : `<p>Error message: Unknown error. If this continues, please inform the <a target="_blank" rel="noopener" href="https://sirv.com/help/support/#support">Sirv support team</a></p>\n`;
+
+            let httpCodeText = "";
+            let statusText = "";
+
+            if(jqXHR.status !== 200){
+                httpCodeText = `<p>HTTP CODE: ${jqXHR.status} ${jqXHR.statusText}</p>`;
+            }
+
+            if(!!status){
+                statusText = `<p>Status: ${status}</p>`;
+            }
+
+            return `${errorTitle}<br>${errorText}${httpCodeText}${statusText}`;
+        }
+
+
+        function runRemoteDeleteJob(filenames){
+            const $progressBarModal = $(".sirv-upload-ajax");
+
+            $.ajax({
+                url: ajaxurl,
+                data: {
+                    action: 'sirv_run_remote_delete_job',
+                    _ajax_nonce: sirv_ajax_object.ajaxnonce,
+                    filenames,
+                },
+                type: 'POST',
+                dataType: "json",
+                beforeSend: function (){
+                    showDeletingProgressBar($progressBarModal);
+                },
+            }).done(function (response) {
+                //debug
+                //console.log(response);
+
+                if(response?.error){
+                    hideDeletingProgressBarModal($progressBarModal);
+                    toastr.error(`Error: ${response.error}`, '', {preventDuplicates: true, timeOut: 5000, positionClass: "toast-top-center"});
+                    console.error(`Error: ${response.error}`);
+
+                    return;
+                }
+
+                if(response?.job_id){
+                    toastr.info(
+                        "Deletion has started. It could take a few minutes if there are thousands of files.",
+                        '',
+                        {preventDuplicates: true, timeOut: 7000, positionClass: "toast-top-center"}
+                    );
+
+                    setTimeout(function(){checkStatusRemoteDeleteJob(response.job_id)}, 500);
+                }
+
+            }).fail(function (jqXHR, status, error) {
+                hideDeletingProgressBarModal($progressBarModal);
+
+                const errorText = getAjaxError(jqXHR, status, error);
+                toastr.error(`${errorText}`, '', {preventDuplicates: true, timeOut: 10000, positionClass: "toast-top-center"});
+                console.error(`Error: ${errorText}`);
+            });
+        }
+
+
+        function checkStatusRemoteDeleteJob(jobId){
+            const $progressBarModal = $(".sirv-upload-ajax");
+
+            $.ajax({
+                url: ajaxurl,
+                data: {
+                    action: 'sirv_check_status_remote_delete_job',
+                    _ajax_nonce: sirv_ajax_object.ajaxnonce,
+                    jobId,
+                },
+                type: 'POST',
+                dataType: "json",
+                beforeSend: function (){
+                    showDeletingProgressBar($progressBarModal);
+                },
+            }).done(function (response) {
+                //debug
+                //console.log(response);
+
+                if(response?.error){
+                    hideDeletingProgressBarModal($progressBarModal);
+
+                    toastr.error(`Error: ${response.error}`, '', {preventDuplicates: true, timeOut: 4000, positionClass: "toast-top-center"});
+                    console.error(`Error: ${response.error}`);
+                    return;
+                }
+
+                if(response?.progress){
+                    if (response.progress == 100) {
+                        hideDeletingProgressBarModal($progressBarModal);
+
+                        getContentFromSirv(window.sirvGetPath);
+
+                        toastr.success(renderJobResultToText(response.result), '', {
+                            closeButton: true,
+                            preventDuplicates: true,
+                            showDuration: 0,
+                            hideDuration: 0,
+                            timeOut: 0,
+                            extendedTimeOut: 0,
+                            positionClass: "toast-top-center"
+                        });
+                    } else{
+                        $progressBarModal.find(".sirv-progress-bar").css("width", `${response.progress}%`);
+                        $progressBarModal.find(".sirv-progress-text").text(`${response.progress}%`);
+
+                        setTimeout(function(){checkStatusRemoteDeleteJob(jobId);}, 500);
+                    }
+                }else{
+                    setTimeout(function(){checkStatusRemoteDeleteJob(jobId);}, 500);
+                    console.log("no progress key: response:", response);
+
+                }
+
+            }).fail(function (jqXHR, status, error) {
+                hideDeletingProgressBarModal($progressBarModal);
+
+                const errorText = getAjaxError(jqXHR, status, error);
+                toastr.error(`${errorText}`, '', {preventDuplicates: true, timeOut: 10000, positionClass: "toast-top-center"});
+                console.error(`Error: ${errorText}`);
+            });
+        }
+
+
+        function renderJobResultToText(result){
+
+            const skipped = result.skipped.length > 0 ? result.skipped.join(",") : 0;
+
+            return `
+                Deletion has finished.
+                <p>
+                    Deleted files: ${result.deleted.files} <br>
+                    Deleted folders: ${result.deleted.dirs} <br>
+                    Not found: ${result.notfound} <br>
+                    Skipped files: ${skipped} <br>
+                </p>
+            `;
+        }
+
+
+        function showDeletingProgressBar($progressBarModal){
+            if(uploadTimer) window.clearInterval(uploadTimer);
+
+            $progressBarModal.find(".sirv-upload-dialog > h4").text("Deleting folder...");
+            $progressBarModal.find(".sirv-progress-bar").css("width", "0");
+            $progressBarModal.find(".sirv-progress-text").html('<span class="sirv-ajax-gif-animation sirv-no-lmargin"></span>processing...');
+
+            $progressBarModal.show();
+        }
+
+
+        function hideDeletingProgressBarModal($progressBarModal){
+            $progressBarModal.hide();
+
+            $progressBarModal.find(".sirv-upload-dialog > h4").text("Uploading files..");
+            $progressBarModal.find(".sirv-progress-bar").css("width", "0");
+            $progressBarModal.find(".sirv-progress-text").html('<span class="sirv-ajax-gif-animation sirv-no-lmargin"></span>processing...');
         }
 
 
@@ -3788,27 +3988,23 @@ jQuery(function($){
 
 
         function getPhpFilesLimitations(){
-            let data = {
-                        action: 'sirv_get_php_ini_data',
-                        sirv_get_php_ini_data: true
-
-            };
-
-
             let ajaxData = {
-                            url: ajaxurl,
-                            type: 'POST',
-                            data: data
+                url: ajaxurl,
+                dataType: 'json',
+                type: 'POST',
+                data: {
+                    action: 'sirv_get_php_ini_data',
+                    _ajax_nonce: sirv_ajax_object.ajaxnonce,
+                    sirv_get_php_ini_data: true
+                }
             }
 
             sendAjaxRequest(ajaxData, processingOverlay=false, showingArea=false, isdebug=false, function(response){
-                let json_obj = JSON.parse(response);
-                let tmpMaxPostSize = getPhpMaxPostSizeInBytes(json_obj.post_max_size);
-                let tmpMaxFileSize = getPhpMaxPostSizeInBytes(json_obj.max_file_size);
+                let tmpMaxPostSize = getPhpMaxPostSizeInBytes(response.post_max_size);
+                let tmpMaxFileSize = getPhpMaxPostSizeInBytes(response.max_file_size);
 
-                maxFilesCount = json_obj.max_file_uploads;
+                maxFilesCount = response.max_file_uploads;
                 maxFileSize = tmpMaxPostSize <= tmpMaxFileSize ? tmpMaxPostSize : tmpMaxFileSize;
-                sirvFileSizeLimit = json_obj.sirv_file_size_limit;
             });
 
         }

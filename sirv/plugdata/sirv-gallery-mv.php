@@ -238,9 +238,9 @@ class Sirv_Gallery_MV
 
     protected function get_global_smv_options(){
         global $post;
-        global $sirv_woo_is_enable;
+        global $sirv_gbl_woo_is_enable;
 
-        if ($sirv_woo_is_enable){
+        if ($sirv_gbl_woo_is_enable){
             if(isset($post->post_type) && $post->post_type === 'product'){
                 return '';
             }

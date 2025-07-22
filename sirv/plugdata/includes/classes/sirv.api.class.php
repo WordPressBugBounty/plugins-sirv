@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
  * You must not modify, adapt or create derivative works of this source code
  *
  *  @author    Sirv Limited <support@sirv.com>
- *  @copyright Copyright (c) 2017 Sirv Limited. All rights reserved
+ *  @copyright Copyright (c) 2017-2025 Sirv Limited. All rights reserved
  *  @license   https://www.magictoolbox.com/license/
  */
 
@@ -28,6 +28,7 @@ class SirvAPIClient
     private $tokenExpireTime = 0;
     private $connected = false;
     private $lastResponse;
+    private $mute_endpoint_expired_at = 0;
     private $userAgent;
     private $baseURL = "https://api.sirv.com/";
 
@@ -48,13 +49,14 @@ class SirvAPIClient
 
     public function fetchImage($imgs)
     {
-
+        $endpoint_name = 'v2/files/fetch';
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
         }
 
         $res = $this->sendRequest(
+            $endpoint_name,
             'v2/files/fetch',
             $imgs,
             'POST'
@@ -75,6 +77,8 @@ class SirvAPIClient
 
     public function uploadImage($fs_path, $sirv_path)
     {
+        $endpoint_name = 'v2/files/upload';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return array("upload_status" => 'failded', "error" => "Something went wrong during preoperation check");
@@ -98,6 +102,7 @@ class SirvAPIClient
         );
 
         $res = $this->sendRequest(
+            $endpoint_name,
             'v2/files/upload?filename=' . $sirv_path,
             file_get_contents($fs_path),
             'POST',
@@ -142,7 +147,10 @@ class SirvAPIClient
     }
 
 
-    public function search($query, $from){
+    public function search($query, $from)
+    {
+        $endpoint_name = 'v2/files/search';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
@@ -155,7 +163,7 @@ class SirvAPIClient
             'sort' => array("basename.raw" => "asc")
         );
 
-        $res = $this->sendRequest('v2/files/search', $data, 'POST');
+        $res = $this->sendRequest($endpoint_name, 'v2/files/search', $data, 'POST');
 
         if ($res){
             $this->connected = true;
@@ -187,12 +195,15 @@ class SirvAPIClient
 
     public function copyFile($filePath, $copyFilePath)
     {
+        $endpoint_name = 'v2/files/copy';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
         }
 
         $res = $this->sendRequest(
+            $endpoint_name,
             "v2/files/copy?from=$filePath&to=$copyFilePath",
             array(),
             'POST'
@@ -204,6 +215,8 @@ class SirvAPIClient
 
     public function deleteFile($filename, $isPreOperationCheck = true)
     {
+        $endpoint_name = 'v2/files/delete';
+
         if( $isPreOperationCheck ){
             $preCheck = $this->preOperationCheck();
             if (!$preCheck) {
@@ -212,6 +225,7 @@ class SirvAPIClient
         }
 
         $res = $this->sendRequest(
+            $endpoint_name,
             'v2/files/delete?filename=/'. rawurlencode(rawurldecode($filename)),
             array(),
             'POST'
@@ -221,7 +235,8 @@ class SirvAPIClient
     }
 
 
-    public function deleteFiles($files){
+    public function deleteFiles($files)
+    {
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
@@ -241,17 +256,78 @@ class SirvAPIClient
         }
 
         return array("delete" => $delete_count, "undelete" => $undelete_count);
-
     }
 
 
-    public function createFolder($folderPath){
+    public function runRemoteJobToDeleteItems($items = array()){
+        $endpoint_name = 'v2/files/batch/delete';
+        $response = array();
+
+        $preCheck = $this->preOperationCheck();
+        if (!$preCheck) {
+            $response['error'] = "Something went wrong during preoperation check";
+
+            return $response;
+        }
+
+        $res = $this->sendRequest(
+            $endpoint_name,
+            'v2/files/batch/delete',
+            array(
+                'filenames' => $items
+            ),
+            'POST'
+        );
+
+        if ($res && $res->http_code == 200) {
+            $response['job_id'] = $res->result->id;
+        } else {
+            $response['error']  = isset($result->error) ? $result->error : "Unknown error during Sirv API request to endpoint $endpoint_name";
+        }
+
+        return $response;
+    }
+
+
+    public function checkStatusOfRemoteJobToDeleteItems($job_id){
+        $endpoint_name = 'v2/files/batch/delete';
+        $response = array();
+
+        $preCheck = $this->preOperationCheck();
+        if (!$preCheck) {
+            $response['error'] = "Something went wrong during preoperation check";
+
+            return $response;
+        }
+
+        $res = $this->sendRequest(
+            $endpoint_name,
+            'v2/files/batch/delete?id=' . $job_id,
+            array(),
+            'GET'
+        );
+
+        if ($res && $res->http_code == 200) {
+            $response = $res->result;
+        } else {
+            $response['error'] = isset($result->error) ? $result->error : "Unknown error during Sirv API request to endpoint v2/files/batch/delete?id=$job_id";
+        }
+
+        return $response;
+    }
+
+
+    public function createFolder($folderPath)
+    {
+        $endpoint_name = 'v2/files/mkdir';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
         }
 
         $res = $this->sendRequest(
+            $endpoint_name,
             'v2/files/mkdir?dirname=/' . rawurlencode(rawurldecode(stripcslashes($folderPath))),
             array(),
             'POST'
@@ -261,7 +337,10 @@ class SirvAPIClient
     }
 
 
-    public function renameFile($oldFilePath, $newFilePath){
+    public function renameFile($oldFilePath, $newFilePath)
+    {
+        $endpoint_name = 'v2/files/rename';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
@@ -271,6 +350,7 @@ class SirvAPIClient
         $newFilePath = rawurlencode(rawurldecode(stripcslashes($newFilePath)));
 
         $res = $this->sendRequest(
+            $endpoint_name,
             "v2/files/rename?from=$oldFilePath&to=$newFilePath",
             array(),
             'POST'
@@ -282,12 +362,15 @@ class SirvAPIClient
 
     public function setMetaTitle($filename, $title)
     {
+        $endpoint_name = 'v2/files/meta/title';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
         }
 
         $res = $this->sendRequest(
+            $endpoint_name,
             'v2/files/meta/title?filename=' . $filename,
             array(
                 'title' => $title
@@ -301,12 +384,15 @@ class SirvAPIClient
 
     public function setMetaDescription($filename, $description)
     {
+        $endpoint_name = 'v2/files/meta/description';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
         }
 
         $res = $this->sendRequest(
+            $endpoint_name,
             'v2/files/meta/description?filename=' . $filename,
             array(
                 'description' => $description
@@ -319,6 +405,7 @@ class SirvAPIClient
 
     public function configFetching($url, $status, $minify)
     {
+        $endpoint_name = 'v2/account';
 
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
@@ -351,7 +438,7 @@ class SirvAPIClient
             );
         }
 
-        $res = $this->sendRequest('v2/account', $data, 'POST');
+        $res = $this->sendRequest($endpoint_name, 'v2/account', $data, 'POST');
 
         if ($res) {
             $this->connected = true;
@@ -367,6 +454,8 @@ class SirvAPIClient
 
     public function configCDN($status, $alias)
     {
+        $endpoint_name = 'v2/account';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
@@ -380,7 +469,7 @@ class SirvAPIClient
             )
         );
 
-        $res = $this->sendRequest('v2/account', $data, 'POST');
+        $res = $this->sendRequest($endpoint_name, 'v2/account', $data, 'POST');
 
         if ($res) {
             $this->connected = true;
@@ -393,6 +482,7 @@ class SirvAPIClient
         }
     }
 
+
     public function preOperationCheck()
     {
         if ($this->connected) {
@@ -400,30 +490,32 @@ class SirvAPIClient
         }
 
         if (empty($this->token) || $this->isTokenExpired()) {
-            if (!$this->getNewToken()) {
+            if ( !$this->getNewToken() ) {
                 return false;
-            } else {
-                return true;
             }
-        } else {
-            return true;
         }
+
+        return true;
     }
+
 
     public function isConnected()
     {
         return $this->connected;
     }
 
+
     public function getNewToken()
     {
+        $endpoint_name = 'v2/token';
+
         if (empty($this->clientId) || empty($this->clientSecret)) {
             $this->nullClientLogin();
             $this->nullToken();
             $this->updateParentClassSettings();
             return false;
         }
-        $res = $this->sendRequest('v2/token', array(
+        $res = $this->sendRequest($endpoint_name, 'v2/token', array(
             "clientId" => $this->clientId,
             "clientSecret" => $this->clientSecret,
         ));
@@ -462,7 +554,9 @@ class SirvAPIClient
 
     public function getUsersList($email, $password, $otpToken)
     {
-        $res = $this->sendRequest('v2/token', array(
+        $endpoint_name = 'v2/user/accounts';
+
+        $res = $this->sendRequest('v2/token', 'v2/token', array(
             "clientId" => $this->clientId_default,
             "clientSecret" => $this->clientSecret_default,
         ));
@@ -476,7 +570,7 @@ class SirvAPIClient
                 $requestOptions['otpToken'] = $otpToken;
             }
 
-            $res = $this->sendRequest('v2/user/accounts', $requestOptions, 'POST', $res->result->token);
+            $res = $this->sendRequest($endpoint_name, 'v2/user/accounts', $requestOptions, 'POST', $res->result->token);
             if($res){
                 if($res->http_code == 417){
                     return array(
@@ -501,7 +595,10 @@ class SirvAPIClient
 
     public function getFolderOptions($filename)
     {
+        $endpoint_name = 'v2/files/options';
+
         $res = $this->sendRequest(
+            $endpoint_name,
             'v2/files/options?filename=/'.rawurlencode($filename).'&withInherited=true',
             array(),
             'GET'
@@ -516,12 +613,15 @@ class SirvAPIClient
 
     public function getFileStat($filename)
     {
+        $endpoint_name = 'v2/files/stat';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
         }
 
         $res = $this->sendRequest(
+            $endpoint_name,
             'v2/files/stat?filename=/'. $filename,
             array(),
             'GET'
@@ -537,12 +637,15 @@ class SirvAPIClient
 
     public function getProfiles()
     {
+        $endpoint_name = 'v2/files/readdir';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
         }
 
         $res = $this->sendRequest(
+            $endpoint_name,
             'v2/files/readdir?dirname=/Profiles',
             array(),
             'GET'
@@ -558,7 +661,10 @@ class SirvAPIClient
 
     public function setFolderOptions($filename, $options)
     {
+        $endpoint_name = 'v2/files/options';
+
         $res = $this->sendRequest(
+            $endpoint_name,
             'v2/files/options?filename=/'.rawurlencode($filename),
             $options,
             'POST'
@@ -569,19 +675,24 @@ class SirvAPIClient
 
     public function registerAccount($email, $password, $firstName, $lastName, $alias)
     {
-        $res = $this->sendRequest('v2/token', array(
+        $endpoint_name = 'v2/account';
+
+        $res = $this->sendRequest('v2/token', 'v2/token', array(
             "clientId" => $this->clientId_default,
             "clientSecret" => $this->clientSecret_default,
         ));
 
         if ($res && $res->http_code == 200 && !empty($res->result->token) && !empty($res->result->expiresIn)) {
-            $res = $this->sendRequest('v2/account', array(
-                "email" => $email,
-                "password" => $password,
-                "firstName" => $firstName,
-                "lastName" => $lastName,
-                "alias" => $alias,
-            ), 'PUT', $res->result->token);
+            $res = $this->sendRequest(
+                $endpoint_name,
+                'v2/account', array(
+                    "email" => $email,
+                    "password" => $password,
+                    "firstName" => $firstName,
+                    "lastName" => $lastName,
+                    "alias" => $alias,
+                ),
+                'PUT', $res->result->token);
 
             if ($res && $res->http_code == 200) {
                 return true;
@@ -594,33 +705,47 @@ class SirvAPIClient
 
     public function setupClientCredentials($token)
     {
-        $res = $this->sendRequest('v2/rest/credentials', array(), 'GET', $token);
-        if ($res && $res->http_code == 200 && !empty($res->result->clientId) && !empty($res->result->clientSecret)) {
-            $this->clientId = $res->result->clientId;
-            $this->clientSecret = $res->result->clientSecret;
+        $endpoint_name = 'v2/rest/credentials';
+        $response = array("status" => false);
+
+        $endpoint_response = $this->sendRequest($endpoint_name, 'v2/rest/credentials', array(), 'GET', $token);
+        if (
+            $endpoint_response && $endpoint_response->http_code == 200
+            && !empty($endpoint_response->result->clientId)
+            && !empty($endpoint_response->result->clientSecret))
+        {
+            $this->clientId = $endpoint_response->result->clientId;
+            $this->clientSecret = $endpoint_response->result->clientSecret;
             $this->getNewToken();
             $this->updateParentClassSettings();
-            return true;
+
+            $response['status'] = true;
+
         } else {
-            return false;
+            $response['status'] = false;
+            $response['error'] = isset($endpoint_response->error) ? $endpoint_response->error : "Error during request to Sirv API: $endpoint_name";
         }
+
+        return $response;
     }
 
 
     public function setupS3Credentials($email = '')
     {
+        $endpoint_name = 'v2/account/users';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
         }
 
-        $res = $this->sendRequest('v2/account/users', array(), 'GET');
+        $res = $this->sendRequest($endpoint_name, 'v2/account/users', array(), 'GET');
 
         if ($res && $res->http_code == 200 && !empty($res->result) && is_array($res->result) && count($res->result)) {
             $res_user = false;
 
             foreach ($res->result as $user) {
-                $tmp_res = $this->sendRequest('v2/user?userId=' . $user->userId, array(), 'GET');
+                $tmp_res = $this->sendRequest('v2/user', 'v2/user?userId=' . $user->userId, array(), 'GET');
                 if ($tmp_res && $tmp_res->http_code == 200 && strtolower($tmp_res->result->email) == strtolower($email)) {
                     $res_user = $tmp_res;
                     break;
@@ -629,7 +754,7 @@ class SirvAPIClient
 
             if ($res_user && $res_user->http_code == 200 &&
                 !empty($res_user->result->s3Secret) && !empty($res_user->result->email)) {
-                $res_alias = $this->sendRequest('v2/account', array(), 'GET');
+                $res_alias = $this->sendRequest('v2/account', 'v2/account', array(), 'GET');
 
                 if ($res_alias && $res_alias->http_code == 200 &&
                     !empty($res_alias->result) && !empty($res_alias->result->alias)) {
@@ -695,12 +820,14 @@ class SirvAPIClient
 
     public function getAccountInfo()
     {
+        $endpoint_name = 'v2/account';
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
             return false;
         }
 
-        $result = $this->sendRequest('v2/account', array(), 'GET');
+        $result = $this->sendRequest($endpoint_name, 'v2/account', array(), 'GET');
 
         if (!$result || empty($result->result) || $result->http_code != 200 || empty($result->result)) {
             $this->connected = false;
@@ -715,32 +842,41 @@ class SirvAPIClient
 
     public function getStorageInfo()
     {
+        $storageInfo = array(
+            'storage'   => array(),
+            'plan'      => array(),
+            'traffic'   => array(),
+            'limits'    => array(),
+        );
+
         $preCheck = $this->preOperationCheck();
         if (!$preCheck) {
-            return false;
+            //TODO? add error message
+            return $storageInfo;
         }
 
-        $storageInfo = array();
+        $storage = $this->sendRequest('v2/account/storage', 'v2/account/storage', array(), 'GET');
+        $billing = $this->sendRequest('v2/billing/plan', 'v2/billing/plan', array(), 'GET');
+        $limits = $this->sendRequest('v2/account/limits', 'v2/account/limits', array(), 'GET');
 
-        $result = $this->sendRequest('v2/account', array(), 'GET');
-        $result_storage = $this->sendRequest('v2/account/storage', array(), 'GET');
+        if ( $storage->http_code == 200 && ! empty($storage->result) ) {
+            $storage->result->plan = (int) $this->getPlanValue($storage->result->plan) + (int) $this->getPlanValue($storage->result->extra);
+            $storage->result->used = (int) $this->getPlanValue($storage->result->used);
 
-        if (!$result || empty($result->result) || $result->http_code != 200
-            || !$result_storage->result || empty($result->result) || $result_storage->http_code != 200) {
-            $this->connected = false;
-            $this->nullToken();
-            $this->updateParentClassSettings();
-            return false;
+            $storageInfo['storage'] = array(
+                'allowance' => $storage->result->plan,
+                'allowance_text' => Utils::getFormatedFileSize($storage->result->plan),
+                'used' => $storage->result->used,
+                'available' => $storage->result->plan - $storage->result->used,
+                'available_text' => Utils::getFormatedFileSize($storage->result->plan - $storage->result->used),
+                'available_percent' => number_format(($storage->result->plan - $storage->result->used) / $storage->result->plan * 100, 2, '.', ''),
+                'used_text' => Utils::getFormatedFileSize($storage->result->used),
+                'used_percent' => number_format($storage->result->used / $storage->result->plan * 100, 2, '.', ''),
+                'files' => $this->getPlanValue($storage->result->files),
+            );
         }
 
-        $result = $result->result;
-        $result_storage = $result_storage->result;
-
-        if (isset($result->alias)) {
-            $storageInfo['account'] = $result->alias;
-
-            $billing = $this->sendRequest('v2/billing/plan', array(), 'GET');
-
+        if ( $billing->http_code == 200 && ! empty($billing->result) ) {
             $billing->result->dateActive = preg_replace(
                 '/.*([0-9]{4}\-[0-9]{2}\-[0-9]{2}).*/ims',
                 '$1',
@@ -760,8 +896,8 @@ class SirvAPIClient
 
             $storageInfo['plan'] = array(
                 'name' => $billing->result->name,
-                'trial_ends' => preg_match('/trial/ims', $billing->result->name) ?
-                    'until ' . date("j F", strtotime('+30 days', strtotime($billing->result->dateActive))) . $until
+                'trial_ends' => preg_match('/trial/ims', $billing->result->name)
+                    ? 'until ' . date("j F", strtotime('+30 days', strtotime($billing->result->dateActive))) . $until
                     : '',
                 'storage' => $billing->result->storage,
                 'storage_text' => Utils::getFormatedFileSize($billing->result->storage),
@@ -769,32 +905,9 @@ class SirvAPIClient
                 'dataTransferLimit_text' => isset($billing->result->dataTransferLimit) ? Utils::getFormatedFileSize($billing->result->dataTransferLimit) : '&#8734',
             );
 
-            $storage = $this->sendRequest('v2/account/storage', array(), 'GET');
-
-            $storage->result->plan = (int) $this->getPlanValue($storage->result->plan) + (int) $this->getPlanValue($storage->result->extra);
-            $storage->result->used = (int) $this->getPlanValue($storage->result->used);
-
-            $storageInfo['storage'] = array(
-                'allowance' => $storage->result->plan,
-                'allowance_text' => Utils::getFormatedFileSize($storage->result->plan),
-                'used' => $storage->result->used,
-                'available' => $storage->result->plan - $storage->result->used,
-                'available_text' => Utils::getFormatedFileSize($storage->result->plan - $storage->result->used),
-                'available_percent' => number_format(
-                    ($storage->result->plan - $storage->result->used) / $storage->result->plan * 100,
-                    2,
-                    '.',
-                    ''
-                ),
-                'used_text' => Utils::getFormatedFileSize($storage->result->used),
-                'used_percent' => number_format($storage->result->used / $storage->result->plan * 100, 2, '.', ''),
-                'files' => $this->getPlanValue($storage->result->files),
-            );
-
             $storageInfo['traffic'] = array(
                 'allowance' => isset($billing->result->dataTransferLimit) ? $billing->result->dataTransferLimit : '',
-                'allowance_text' => isset($billing->result->dataTransferLimit) ?
-                Utils::getFormatedFileSize($billing->result->dataTransferLimit) : '&#8734',
+                'allowance_text' => isset($billing->result->dataTransferLimit) ? Utils::getFormatedFileSize($billing->result->dataTransferLimit) : '&#8734',
             );
 
             $dates = array(
@@ -816,73 +929,43 @@ class SirvAPIClient
                 ),
             );
 
-            $dataTransferLimit = isset($billing->result->dataTransferLimit) ?
-            $billing->result->dataTransferLimit : PHP_INT_MAX;
+            $dataTransferLimit = isset($billing->result->dataTransferLimit) ? $billing->result->dataTransferLimit : PHP_INT_MAX;
 
             $count = 0;
             foreach ($dates as $label => $date) {
-                $traffic = $this->sendRequest('v2/stats/http?from=' . $date[0] . '&to=' . $date[1], array(), 'GET');
+                $traffic = $this->sendRequest('v2/stats/http', 'v2/stats/http?from=' . $date[0] . '&to=' . $date[1], array(), 'GET');
 
-                if (!$traffic || $traffic->http_code != 200) {
-                    $this->connected = false;
-                    $this->nullToken();
-                    $this->updateParentClassSettings();
-                    return false;
-                }
+                if ( $traffic->http_code == 200 && ! empty($traffic->result) ) {
+                    $traffic = (array) $traffic->result;
 
-                unset($traffic->http_code);
+                    $storageInfo['traffic']['traffic'][$label]['size'] = 0;
+                    $storageInfo['traffic']['traffic'][$label]['order'] = $count++;
 
-                $traffic = (array)$traffic->result;
-
-                $storageInfo['traffic']['traffic'][$label]['size'] = 0;
-                $storageInfo['traffic']['traffic'][$label]['order'] = $count++;
-
-                if (count($traffic)) {
-                    foreach ($traffic as $v) {
-                        $storageInfo['traffic']['traffic'][$label]['size'] += (isset($v->total->size))
-                        ? $v->total->size : 0;
+                    if (count($traffic)) {
+                        foreach ($traffic as $v) {
+                            $storageInfo['traffic']['traffic'][$label]['size'] += (isset($v->total->size)) ? $v->total->size : 0;
+                        }
                     }
+
+                    $storageInfo['traffic']['traffic'][$label]['percent'] = number_format( $storageInfo['traffic']['traffic'][$label]['size'] / $dataTransferLimit * 100, 2, '.', '' );
+                    $storageInfo['traffic']['traffic'][$label]['percent_reverse'] = number_format( 100 - $storageInfo['traffic']['traffic'][$label]['size'] / $dataTransferLimit * 100, 2, '.', '' );
+                    $storageInfo['traffic']['traffic'][$label]['size_text'] = Utils::getFormatedFileSize($storageInfo['traffic']['traffic'][$label]['size']);
                 }
-                $storageInfo['traffic']['traffic'][$label]['percent'] = number_format(
-                    $storageInfo['traffic']['traffic'][$label]['size'] / $dataTransferLimit * 100,
-                    2,
-                    '.',
-                    ''
-                );
-                $storageInfo['traffic']['traffic'][$label]['percent_reverse'] = number_format(
-                    100 - $storageInfo['traffic']['traffic'][$label]['size'] / $dataTransferLimit * 100,
-                    2,
-                    '.',
-                    ''
-                );
-                $storageInfo['traffic']['traffic'][$label]['size_text'] =
-                    Utils::getFormatedFileSize($storageInfo['traffic']['traffic'][$label]['size']);
             }
         }
 
-        $result = $this->sendRequest('v2/account/limits', array(), 'GET');
-
-        if ($result && !empty($result->result) && $result->http_code == 200) {
-            $storageInfo['limits'] = $result->result;
+        if ( $limits->http_code == 200 && ! empty($limits->result) ) {
+            $storageInfo['limits'] = $limits->result;
             $storageInfo['limits'] = (array) $storageInfo['limits'];
-            //$date = new DateTime();
-            //$timeZone = $date->getTimezone();
             foreach ($storageInfo['limits'] as $type => $value) {
                 $storageInfo['limits'][$type] = (array) $value;
                 $value = (array) $value;
-                /* $dt = new DateTime('@' . $value['reset']);
-                $dt->setTimeZone(new DateTimeZone($timeZone->getName()));
-                $storageInfo['limits'][$type]['reset_str'] = $dt->format("H:i:s");*/
                 $storageInfo['limits'][$type]['reset_timestamp'] = (int)$value['reset'];
                 $storageInfo['limits'][$type]['reset_str'] = date('H:i:s e', $value['reset']);
                 $storageInfo['limits'][$type]['count_reset_str'] = $this->calcTime((int) $value['reset']);
-                //$storageInfo['limits'][$type]['used'] = (round($value['count'] / $value['limit'] * 10000) / 100) . '%';
                 $storageInfo['limits'][$type]['used'] = $value['count'] == 0 || $value['limit'] == 0 ? 0 : (round($value['count'] / $value['limit'] * 10000) / 100) . '%';
                 $storageInfo['limits'][$type]['type'] = $type;
             }
-            //$storageInfo['limits'] = array_chunk($storageInfo['limits'], (int) count($storageInfo['limits']) / 2);
-        }else{
-            $storageInfo['limits'] = array();
         }
 
         return $storageInfo;
@@ -901,24 +984,10 @@ class SirvAPIClient
     }
 
 
-    public function getMuteError(){
-        $reset_time = (int) get_option('SIRV_MUTE');
-        $error_message = get_option('SIRV_MUTE_ERROR_MESSAGE');
-        //$error = 'Module disabled due to exceeding API usage rate limit. Refresh this page in ' . $this->calcTime($reset_time) . ' ' . date("F j, Y, H:i a (e)", $reset_time);
-        /* $default_error = 'Module settings temporarily unavailable due to exceeded API usage limit. Limits refresh every hour. Try again in '. $this->calcTime($reset_time) .' ('. date("H:i (e)", $reset_time) . '). <a href="https://my.sirv.com/#/account/usage">Current API usage</a> is shown in your Sirv account.'; */
-
-        $error = 'Plugin settings cannot load due API usage limit reached.<br><br>Please refresh this page in <b>' . $this->calcTime($reset_time) . '</b>, once the hourly limit has refreshed (' . date("H:i e", $reset_time) . ').<br><br>
-
-        <a target="_blank" href="https://my.sirv.com/#/account/usage">Current API usage</a> is shown in your Sirv account.<br><br>
-
-        <hr>API response:<br><br><i>' . $error_message .'</i>';
-
-        return $error;
-    }
-
-
     public function getContent($path='/', $continuation='')
     {
+        $endpoint_name = 'v2/files/readdir';
+
         $preCheck = $this->preOperationCheck();
             if (!$preCheck) {
                 return false;
@@ -928,7 +997,7 @@ class SirvAPIClient
                 ? 'dirname='.$path.'&continuation='.$continuation
                 : 'dirname='.$path;
 
-        $content = $this->sendRequest('v2/files/readdir?' . $params, array(), 'GET');
+        $content = $this->sendRequest($endpoint_name, 'v2/files/readdir?' . $params, array(), 'GET');
         if (!$content || $content->http_code != 200) {
             $this->connected = false;
             $this->nullToken();
@@ -946,26 +1015,67 @@ class SirvAPIClient
     }
 
 
-    public function muteRequests($timestamp, $errorMessage)
+    protected function format_muted_data($muted_data)
     {
-        update_option('SIRV_MUTE', $timestamp, 'no');
-        update_option('SIRV_MUTE_ERROR_MESSAGE', $errorMessage, 'no');
+        $muted = array();
+
+        if ( !is_array($muted_data) || empty($muted_data)) return $muted;
+
+        foreach ($muted_data as $mute_endpoint) {
+            $endpoint_name = str_replace('_transient_sirv_api_', '', $mute_endpoint['endpoint']);
+            $mute_expired_at = $mute_endpoint['expired_at'];
+            $muted[$endpoint_name] = (int) $mute_expired_at;
+        }
+
+        return $muted;
     }
 
 
-    public function isMuted()
+    public function setMuteRequest($endpoint, $expired_at_timestamp, $expired_at_in_seconds)
     {
-        return ((int)get_option('SIRV_MUTE') > time());
+        set_transient("sirv_api_$endpoint", $expired_at_timestamp, $expired_at_in_seconds);
     }
 
 
-    private function sendRequest($url, $data, $method = 'POST', $token = '', $headers = null, $isFile = false)
+    public function is_muted($endpoint){
+        $expired_at = get_transient("sirv_api_$endpoint");
+
+        if ( !isset($expired_at) || false === $expired_at ) return false;
+
+        $status =  (int) $expired_at > time();
+
+        if ( $status ) $this->mute_endpoint_expired_at = (int) $expired_at;
+
+        return $status;
+    }
+
+
+    public function getAllMuted()
+    {
+        global $wpdb;
+
+        $res = $wpdb->get_results("SELECT option_name as endpoint, option_value as expired_at FROM $wpdb->options WHERE option_name LIKE '_transient_sirv_api_%'", ARRAY_A);
+
+        return $this->format_muted_data($res);
+    }
+
+
+    private function sendRequest($endpoint_name, $url, $data, $method = 'POST', $token = '', $headers = null, $isFile = false)
     {
         $error = NULL;
+        $response = (object) array();
 
-        if ($this->isMuted()) {
-            //$this->curlInfo = array('http_code' => 429);
-            return false;
+        if ( $this->is_muted($endpoint_name) ) {
+            $response->error = 'API usage limit reached';
+            $response->endpoint_name = $endpoint_name;
+            $response->mute_expired_at = $this->mute_endpoint_expired_at;
+            $response->http_code = 429;
+            $response->http_code_text = $this->get_http_code_text(429);
+            $response->result = array();
+
+            $this->lastResponse = $response;
+
+            return $response;
         }
 
         if (is_null($headers)) $headers = array();
@@ -1007,33 +1117,35 @@ class SirvAPIClient
         $error = curl_error($curl);
 
         if($error){
-            global $sirv_logger;
+            global $sirv_gbl_sirv_logger;
 
-            $sirv_logger->error($this->baseURL . $url, 'request url')->filename('network_errors.log')->write();
-            $sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
-            $sirv_logger->delimiter()->filename('network_errors.log')->write();
+            $sirv_gbl_sirv_logger->error($this->baseURL . $url, 'request url')->filename('network_errors.log')->write();
+            $sirv_gbl_sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
+            $sirv_gbl_sirv_logger->delimiter()->filename('network_errors.log')->write();
         }
 
         if(IS_DEBUG){
-            global $sirv_logger;
+            global $sirv_gbl_sirv_logger;
 
-            $sirv_logger->info($result, '$result')->filename('network.log')->write();
-            $sirv_logger->info($info, '$info')->filename('network.log')->write();
-            $sirv_logger->delimiter()->filename('network.log')->write();
+            $sirv_gbl_sirv_logger->info($result, '$result')->filename('network.log')->write();
+            $sirv_gbl_sirv_logger->info($info, '$info')->filename('network.log')->write();
+            $sirv_gbl_sirv_logger->delimiter()->filename('network.log')->write();
         }
 
         $res_object = json_decode($result);
 
         if ($this->isLimitRequestReached($res_object, $info)) {
-            $time = time() + 60*60;
+            $expired_at_timestamp = time() + HOUR_IN_SECONDS;
+            $expired_at_in_seconds = HOUR_IN_SECONDS;
 
             $errorMessage = $this->getLimitRequestReachedMessage($res_object, $info);
 
             if(preg_match('/stop sending requests until ([0-9]{4}\-[0-9]{2}\-[0-9]{2}.*?\([a-z]{1,}\))/ims', $errorMessage, $m)) {
-                $time = strtotime($m[1]);
+                $expired_at_timestamp = strtotime($m[1]);
+                $expired_at_in_seconds = $expired_at_timestamp - time();
             }
 
-            $this->muteRequests($time, $errorMessage);
+            $this->setMuteRequest($endpoint_name, $expired_at_timestamp, $expired_at_in_seconds);
         }
 
         $info['http_code_text'] = $this->get_http_code_text($info['http_code']);

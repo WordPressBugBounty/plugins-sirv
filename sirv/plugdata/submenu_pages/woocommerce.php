@@ -1,6 +1,6 @@
 <?php
 
-if ($storageInfo && $storageInfo['plan']['name'] == 'Free') {
+if (isset($storageInfo['plan']['name']) && $storageInfo['plan']['name'] == 'Free') {
   $message = '
     <span style="font-size: 15px;font-weight: 800;">Upgrade your plan</span><br>
     <p>Your Free Sirv plan cannot use <a target="_blank" href=" https://sirv.com/help/articles/smart-gallery/">Sirv Media Viewer smart galleries.</a></p>

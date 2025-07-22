@@ -56,29 +56,30 @@ function sirv_get_sync_button_text($isAllSynced, $cacheInfo)
 }
 
 
+//mute check
 $sirvAPIClient = sirv_getAPIClient();
-$isMuted = $sirvAPIClient->isMuted();
-
-if ($isMuted) {
-  $error = $sirvAPIClient->getMuteError();
-}
-
 $sirvStatus = $sirvAPIClient->preOperationCheck();
 
 if ($sirvStatus) {
   $isWoocommerce = isWoocommerce();
 
   $domains = array();
-  /* $is_direct = get_option('SIRV_NETWORK_TYPE') == "2" ? true : false; */
   $sirvCDNurl = get_option('SIRV_CDN_URL');
 
   $accountInfo = $sirvAPIClient->getAccountInfo();
 
   $domains = sirv_get_domains($accountInfo);
-  update_option('SIRV_CUSTOM_DOMAINS', json_encode(array(
-    "domains" => array_values($domains),
-    "expired_at" => time() + 60 * 60 * 24,
-  )));
+
+  $accountInfoEndpoint = 'v2/account';
+  $is_accountInfo_muted = sirv_is_muted($accountInfoEndpoint);
+
+  if ( ! $is_accountInfo_muted ) {
+    update_option('SIRV_CUSTOM_DOMAINS', json_encode(array(
+      "domains" => array_values($domains),
+      "expired_at" => time() + 60 * 60 * 24,
+    )));
+  }
+
 
   $cacheInfo = sirv_getCacheInfo();
   $profiles = sirv_getProfilesList();
@@ -99,21 +100,11 @@ if ($sirvStatus) {
   $is_show_resync_block = (int) $cacheInfo['q'] > 0 || $cacheInfo['FAILED']['count'] > 0 ? '' : 'display: none';
   $is_show_failed_block = (int) $cacheInfo['FAILED']['count'] > 0 ? '' : 'display: none';
 } else {
-  if (!$isMuted) {
-    wp_safe_redirect(add_query_arg(array('page' => SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/account.php'), admin_url('admin.php')));
-  }
+  wp_safe_redirect(add_query_arg(array('page' => SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/account.php'), admin_url('admin.php')));
 }
 ?>
 
 <style type="text/css">
-  /* .sirv-logo-background {
-    background-image: url("<?php echo plugin_dir_url(__FILE__) . "assets/logo.svg" ?>");
-    background-position: center right;
-    background-repeat: no-repeat;
-    background-size: 68px 68px;
-    min-height: 60px;
-  } */
-
   a[href*="page=<?php echo SIRV_PLUGIN_RELATIVE_SUBDIR_PATH ?>options.php"] img {
     padding-top: 7px !important;
   }
@@ -121,9 +112,6 @@ if ($sirvStatus) {
 
 <form action="options.php" method="post" id="sirv-save-options">
   <?php
-  //settings_fields('sirv-settings-group');
-  //do_settings_sections( 'sirv-settings-group' );
-  //wp_nonce_field('update-options');
   wp_nonce_field('sirv-settings-group-options');
   wp_nonce_field('options-options');
 
@@ -146,20 +134,9 @@ if ($sirvStatus) {
           <a class="nav-tab nav-tab-sirv-woo <?php echo ($active_tab == '#sirv-woo') ? 'nav-tab-active' : '' ?>" href="#sirv-woo" data-link="woo"><span class="dashicons dashicons-cart"></span><span class="sirv-tab-txt">WooCommerce</span></a>
         <?php } ?>
         <a class="nav-tab nav-tab-sirv-cache <?php echo ($active_tab == '#sirv-cache') ? 'nav-tab-active' : '' ?>" href="#sirv-cache" data-link="cache"><span class="dashicons dashicons-update"></span><span class="sirv-tab-txt">Synchronization</span></a>
-        <!-- <a class="nav-tab nav-tab-sirv-stats <?php echo ($active_tab == '#sirv-stats') ? 'nav-tab-active' : '' ?>" href="#sirv-stats"><span class="dashicons dashicons-chart-bar"></span><span class="sirv-tab-txt">Stats</span></a> -->
       <?php } ?>
     </nav>
   </div>
-
-  <?php
-  if ($isMuted) {
-  ?>
-    <div class="sirv-optiontable-holder">
-      <div class="sirv-error"><?php if ($error) echo Utils::showMessage($error); ?></div>
-    </div>
-
-  <?php } ?>
-
   <?php if ($sirvStatus) { ?>
     <div class="sirv-tab-content sirv-tab-content-active" id="sirv-settings">
       <?php include(dirname(__FILE__) . '/submenu_pages/settings.php'); ?>
@@ -177,7 +154,6 @@ if ($sirvStatus) {
   <?php } ?>
 
   <input type="hidden" name="active_tab" id="active_tab" value="#settings" />
-  <!-- <input type='hidden' name='option_page' value="sirv-settings-group" /> -->
   <input type='hidden' name='option_page' value="options" />
   <input type="hidden" name="action" value="update" />
   <input type="hidden" name="page_options" value="<?php echo implode(', ', $options_names); ?>" />

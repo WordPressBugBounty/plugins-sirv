@@ -20,6 +20,11 @@ jQuery(function($){
                             loadCallback: function(){
                                 $('.loading-ajax').show();
                                 getContentFromSirv(window.sirvGetPath());
+                            },
+                            onClose: function(){
+                                if (toastr){
+                                    toastr.clear();
+                                }
                             }
                         });
                     });
@@ -35,6 +40,11 @@ jQuery(function($){
                             loadCallback: function(){
                                 $('.loading-ajax').show();
                                 getContentFromSirv();
+                            },
+                            onClose: function(){
+                                if (toastr){
+                                    toastr.clear();
+                                }
                             }
                         });
                     });
@@ -51,6 +61,11 @@ jQuery(function($){
                             loadCallback: function(){
                                 $('.loading-ajax').show();
                                 getContentFromSirv();
+                            },
+                            onClose: function(){
+                                if (toastr){
+                                    toastr.clear();
+                                }
                             }
                         });
                     });
@@ -67,6 +82,11 @@ jQuery(function($){
                             loadCallback: function(){
                                 $('.loading-ajax').show();
                                 getContentFromSirv();
+                            },
+                            onClose: function(){
+                                if (toastr){
+                                    toastr.clear();
+                                }
                             }
                         });
                     });
@@ -83,6 +103,11 @@ jQuery(function($){
                             loadCallback: function(){
                                 $('.loading-ajax').show();
                                 getContentFromSirv();
+                            },
+                            onClose: function(){
+                                if (toastr){
+                                    toastr.clear();
+                                }
                             }
                         });
                     });
@@ -93,6 +118,11 @@ jQuery(function($){
                         zIndex: 9999999,
                         //contentContainer:'.modal-content',
                         loadUrl: modal_object.login_error_url,
+                        onClose: function(){
+                            if (toastr){
+                                toastr.clear();
+                            }
+                        }
                     });
                 });
             }
@@ -127,6 +157,10 @@ jQuery(function($){
                         }
                     },
                     onClose: function(){
+                        if (toastr) {
+                            toastr.clear();
+                        }
+
                         onCloseFunc();
                     }
                 });
@@ -135,6 +169,11 @@ jQuery(function($){
                     position: ['auto', 'auto'],
                     zIndex: 9999999,
                     loadUrl: modal_object.login_error_url,
+                    onClose: function(){
+                        if (toastr){
+                            toastr.clear();
+                        }
+                    }
                 });
             }
         }

@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           7.5.5
+ * Version:           8.0.0
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '7.5.5');
+define('SIRV_PLUGIN_VERSION', '8.0.0');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -40,45 +40,46 @@ require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/resize.class.php');
 require_once(SIRV_PLUGIN_SUBDIR_PATH . 'shortcodes.php');
 require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/utils.class.php');
 
-global $APIClient;
+global $sirv_gbl_APIClient;
+global $sirv_gbl_syncData;
+global $sirv_gbl_pathsData;
+global $sirv_gbl_isLocalHost;
+global $sirv_gbl_isLoggedInAccount;
+global $sirv_gbl_isAdmin;
+global $sirv_gbl_isFetchUpload;
+global $sirv_gbl_isFetchUrl;
+global $sirv_gbl_base_prefix;
+global $sirv_gbl_woo_is_enable;
+global $sirv_gbl_woo_cat_is_enable;
+global $sirv_gbl_sirv_cdn_url;
+global $sirv_gbl_isAjax;
+global $sirv_gbl_profiles;
+global $sirv_gbl_sirv_logger;
+global $sirv_gbl_sirv_ob_lvl;
+global $sirv_gbl_sirv_is_rest_rejected;
+global $sirv_gbl_background_mode;
 global $foldersData;
-global $syncData;
-global $pathsData;
-global $isLocalHost;
-global $isLoggedInAccount;
-global $isAdmin;
-global $isFetchUpload;
-global $isFetchUrl;
-global $base_prefix;
-global $sirv_woo_is_enable;
-global $sirv_woo_cat_is_enable;
-global $sirv_cdn_url;
-global $sirv_domains;
-global $isAjax;
-global $profiles;
-global $sirv_logger;
-global $sirv_ob_lvl;
-global $sirv_is_rest_rejected;
 global $overheadLimit;
 
-$sirv_logger = new SirvLogger(SIRV_PLUGIN_PATH, ABSPATH);
-$APIClient = false;
-$syncData = array();
-$pathsData = array();
-$isLocalHost = sirv_is_local_host();
-$isLoggedInAccount = (get_option('SIRV_ACCOUNT_NAME') !== '' && get_option('SIRV_CDN_URL') !== '') ? true : false;
-$isAdmin = sirv_isAdmin();
-$isFetchUpload = true;
-$isFetchUrl = false;
-$base_prefix = sirv_get_base_prefix();
-$isAjax = false;
-$sirv_ob_lvl = -1;
-$sirv_is_rest_rejected = false;
+$sirv_gbl_sirv_logger = new SirvLogger(SIRV_PLUGIN_PATH, ABSPATH);
+$sirv_gbl_background_mode = false;
+$sirv_gbl_APIClient = false;
+$sirv_gbl_syncData = array();
+$sirv_gbl_pathsData = array();
+$sirv_gbl_isLocalHost = sirv_is_local_host();
+$sirv_gbl_isLoggedInAccount = (get_option('SIRV_ACCOUNT_NAME') !== '' && get_option('SIRV_CDN_URL') !== '') ? true : false;
+$sirv_gbl_isAdmin = sirv_isAdmin();
+$sirv_gbl_isFetchUpload = true;
+$sirv_gbl_isFetchUrl = false;
+$sirv_gbl_base_prefix = sirv_get_base_prefix();
+$sirv_gbl_isAjax = false;
+$sirv_gbl_sirv_ob_lvl = -1;
+$sirv_gbl_sirv_is_rest_rejected = false;
 $overheadLimit = 5000;
-$sirv_woo_is_enable = sirv_is_enable_option('SIRV_WOO_IS_ENABLE', '2');
+$sirv_gbl_woo_is_enable = sirv_is_enable_option('SIRV_WOO_IS_ENABLE', '2');
 
 
-if ( $sirv_woo_is_enable ){
+if ($sirv_gbl_woo_is_enable ){
   require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/woo.class.php');
   add_action('woocommerce_init', 'sirv_wc_init');
 }
@@ -165,10 +166,10 @@ function sirv_add_export_data( $value, $product ) {
 
 
 function sirv_wc_init(){
-  global $sirv_woo_cat_is_enable;
+  global $sirv_gbl_woo_cat_is_enable;
   global $pagenow;
 
-  $sirv_woo_cat_is_enable = sirv_is_enable_option('SIRV_WOO_CAT_IS_ENABLE', 'enabled');
+  $sirv_gbl_woo_cat_is_enable = sirv_is_enable_option('SIRV_WOO_CAT_IS_ENABLE', 'enabled');
 
   if (in_array($pagenow, array('post-new.php', 'post.php'))) {
     $woo = new Woo;
@@ -238,7 +239,7 @@ function sirv_wc_init(){
 
   add_filter('posts_where', 'sirv_query_attachments');
 
-  if( $sirv_woo_cat_is_enable ){
+  if($sirv_gbl_woo_cat_is_enable ){
     remove_action('woocommerce_before_shop_loop_item_title', 'woocommerce_template_loop_product_thumbnail', 10);
     add_action('woocommerce_before_shop_loop_item_title', 'sirv_woocommerce_template_loop_product_thumbnail_override', 10);
 
@@ -256,13 +257,13 @@ function sirv_wc_init(){
 function sirv_jet_woo_builder_cats_html($thumb_html, $image_size, $use_thumb_effect, $attr, $jetFunctionsClass){
   global $product;
 
-  if (!is_a($product, 'WC_Product')) {
+  if ( !is_a($product, 'WC_Product') ) {
     return $thumb_html;
   }
 
   $woo = new Woo($product->get_id());
 
-  $thumb_html = $woo->get_woo_cat_gallery_html();
+  $thumb_html = $woo->get_cached_woo_smv_html('_sirv_woo_cat_cache');
 
   return $thumb_html;
 }
@@ -649,9 +650,9 @@ function sirv_debug_msg($msg, $isBoolVar = false){
 
 
 function sirv_qdebug($debug_msg, $var_name = "", $mode = 'a+'){
-  global $sirv_logger;
+  global $sirv_gbl_sirv_logger;
 
-  $sirv_logger->qdebug($debug_msg, $var_name, $mode, 3);
+  $sirv_gbl_sirv_logger->qdebug($debug_msg, $var_name, $mode, 3);
 }
 
 
@@ -719,6 +720,25 @@ function sirv_activation_callback($networkwide){
   sirv_congrat_notice();
 }
 
+//create tables for multisites(if enable) on update when registration hook does not work(silent mode)
+function sirv_do_action_for_multisite(){
+  if (function_exists('is_multisite') && is_multisite()) {
+    update_site_option('SIRV_WP_NETWORK_WIDE', '1');
+    global $wpdb;
+
+    $current_blog = $wpdb->blogid;
+    $blogids = $wpdb->get_col("SELECT blog_id FROM $wpdb->blogs");
+
+    foreach ($blogids as $blog_id) {
+      switch_to_blog($blog_id);
+      sirv_create_plugin_tables();
+    }
+    switch_to_blog($current_blog);
+  } else {
+    sirv_create_plugin_tables();
+  }
+}
+
 
 add_action('plugins_loaded', 'sirv_upgrade_plugin');
 function sirv_upgrade_plugin(){
@@ -726,6 +746,9 @@ function sirv_upgrade_plugin(){
 
 
   if (empty($sirv_plugin_version_installed) || $sirv_plugin_version_installed != SIRV_PLUGIN_VERSION) {
+
+    global $sirv_gbl_base_prefix;
+    global $wpdb;
 
     //4.1.1
     if (function_exists('is_multisite') && is_multisite()) {
@@ -749,10 +772,7 @@ function sirv_upgrade_plugin(){
       update_option('SIRV_VERSION_PLUGIN_INSTALLED', SIRV_PLUGIN_VERSION);
     }
 
-    global $base_prefix;
-    global $wpdb;
-
-    $shortcodes_t = $base_prefix . 'sirv_shortcodes';
+    $shortcodes_t = $sirv_gbl_base_prefix . 'sirv_shortcodes';
 
     $t_structure = $wpdb->get_results("DESCRIBE $shortcodes_t", ARRAY_A);
     $t_fields = sirv_get_field_names($t_structure);
@@ -770,6 +790,7 @@ function sirv_upgrade_plugin(){
     }
 
     sirv_fix_db();
+    sirv_do_action_for_multisite();
 
     //5.0
     sirv_register_settings();
@@ -843,6 +864,16 @@ function sirv_upgrade_plugin(){
       update_option('SIRV_WP_MEDIA_LIBRARY_SIZE', json_encode($option), 'no');
     }
 
+    if (SIRV_PLUGIN_VERSION == '8.0.0') {
+      $result = $wpdb->query("DELETE FROM $wpdb->postmeta WHERE meta_key IN ('_sirv_woo_viewf_data','_sirv_woo_viewf_status')");
+      if ($result === false) {
+        $wpdb->print_error();
+
+        global $sirv_gbl_sirv_logger;
+
+        $sirv_gbl_sirv_logger->error($wpdb->last_error, 'migration 8.0.0, remove old view files cache rows')->filename('error.log')->write();
+      }
+    }
   }
 }
 
@@ -1044,10 +1075,10 @@ function sirv_fill_empty_options(){
 
 function sirv_fix_db(){
   global $wpdb;
-  global $base_prefix;
+  global $sirv_gbl_base_prefix;
   $wpdb->show_errors();
   $t_images = $wpdb->prefix . 'sirv_images';
-  $t_errors = $base_prefix . 'sirv_fetching_errors';
+  $t_errors = $sirv_gbl_base_prefix . 'sirv_fetching_errors';
 
   if (sirv_is_db_field_exists('sirv_images', 'sirvpath')) {
     $result = $wpdb->query("ALTER TABLE $t_images CHANGE `wp_path` `img_path` VARCHAR(500) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL");
@@ -1234,7 +1265,7 @@ function sirv_oversize_storage_notice(){
 
   $storage_data = sirv_getStorageInfo();
 
-  if (!isset($storage_data['storage'])) return;
+  if ( count($storage_data['storage']) === 0 ) return;
 
   $notice = '';
   $notice_type = 'warning';
@@ -1280,10 +1311,8 @@ function sirv_empty_logins_notice(){
 
   $sirvAPIClient = sirv_getAPIClient();
   $sirvStatus = $sirvAPIClient->preOperationCheck();
-  $isMuted = $sirvAPIClient->isMuted();
 
-  if (!$sirvStatus && !$isMuted) {
-
+  if ( ! $sirvStatus ) {
     $notice = '<p>Please <a href="admin.php?page=' . SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/account.php">configure the Sirv plugin</a> to start using it.</p>';
     echo sirv_get_wp_notice($notice, $notice_id, 'warning', false);
   }
@@ -1407,12 +1436,13 @@ function sirv_review_notice(){
 
 
 function sirv_create_plugin_tables(){
-  global $base_prefix;
+  global $sirv_gbl_base_prefix;
   global $wpdb;
 
-  $t_shortcodes = $base_prefix . 'sirv_shortcodes';
+  $t_shortcodes = $sirv_gbl_base_prefix . 'sirv_shortcodes';
   $t_images = $wpdb->prefix . 'sirv_images';
-  $t_errors = $base_prefix . 'sirv_fetching_errors';
+  $sirv_cache_table = $wpdb->prefix . 'sirv_cache';
+  $t_errors = $sirv_gbl_base_prefix . 'sirv_fetching_errors';
 
   $sql_shortcodes = "CREATE TABLE $t_shortcodes (
       id int unsigned NOT NULL auto_increment,
@@ -1453,11 +1483,25 @@ function sirv_create_plugin_tables(){
       PRIMARY KEY  (id))
       ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
+  $cache_schema = "CREATE TABLE $sirv_cache_table (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT ,
+  `post_id` BIGINT(20) NOT NULL ,
+  `cache_key` VARCHAR(50) NOT NULL ,
+  `cache_value` LONGTEXT NULL DEFAULT NULL ,
+  `cache_status` VARCHAR(30) NULL DEFAULT NULL ,
+  `post_type` VARCHAR(40) NULL DEFAULT NULL ,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  `expired_at` DATETIME NULL DEFAULT NULL ,
+  PRIMARY KEY (`id`),
+  INDEX `post_id` (`post_id`),
+  INDEX `cache_key` (`cache_key`)) ENGINE = InnoDB CHARSET = utf8mb4 COLLATE utf8mb4_unicode_ci;";
+
   require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
   $is_sirv_images_exists = $wpdb->get_results("SHOW TABLES LIKE '$t_images'", ARRAY_N);
   $is_sirv_shortcodes_exists = $wpdb->get_results("SHOW TABLES LIKE '$t_shortcodes'", ARRAY_N);
   $is_sirv_errors_exists = $wpdb->get_results("SHOW TABLES LIKE '$t_errors'", ARRAY_N);
+  $is_sirv_cache_exists = $wpdb->get_results("SHOW TABLES LIKE '$sirv_cache_table'", ARRAY_N);
 
   if (empty($is_sirv_shortcodes_exists)) dbDelta($sql_shortcodes);
   if (empty($is_sirv_images_exists)) dbDelta($sql_sirv_images);
@@ -1467,10 +1511,11 @@ function sirv_create_plugin_tables(){
       $wpdb->insert($t_errors, array('error_msg' => $error_msg));
     }
   }
+  if (empty($is_sirv_cache_exists)) dbDelta($cache_schema);
 }
 
-register_deactivation_hook(__FILE__, 'sirv_deactivation_callback');
 
+register_deactivation_hook(__FILE__, 'sirv_deactivation_callback');
 function sirv_deactivation_callback(){
   //some code here
 }
@@ -2050,13 +2095,13 @@ function sirv_add_sirv_js(){
   $sirv_js_path = getValue::getOption('SIRV_JS_FILE');
 
   global $post;
-  global $sirv_woo_is_enable;
+  global $sirv_gbl_woo_is_enable;
 
   wp_register_script('sirv-js', $sirv_js_path, array(), false, false);
   wp_enqueue_script('sirv-js');
 
   if (isset($post->post_type) && $post->post_type == 'product') {
-    if( $sirv_woo_is_enable ){
+    if($sirv_gbl_woo_is_enable ){
       $woo = new Woo($post->ID);
       $mv_custom_options = $woo->remove_script_tag(get_option('SIRV_WOO_MV_CUSTOM_OPTIONS'));
 
@@ -2067,24 +2112,24 @@ function sirv_add_sirv_js(){
 
 
 function sirv_buffer_start(){
-  global $sirv_ob_lvl;
+  global $sirv_gbl_sirv_ob_lvl;
 
   ob_start("sirv_check_responsive");
 
-  $sirv_ob_lvl = ob_get_level();
+  $sirv_gbl_sirv_ob_lvl = ob_get_level();
 }
 
 
 function sirv_buffer_end(){
   if (!empty($GLOBALS['sirv_wp_foot'])) return;
 
-  global $sirv_ob_lvl;
+  global $sirv_gbl_sirv_ob_lvl;
 
   $GLOBALS['sirv_wp_foot'] = true;
 
-  if( $sirv_ob_lvl == ob_get_level() ){
+  if($sirv_gbl_sirv_ob_lvl == ob_get_level() ){
     ob_end_flush();
-    $sirv_ob_lvl = -1;
+    $sirv_gbl_sirv_ob_lvl = -1;
   }
 
   sirv_processFetchQueue();
@@ -2105,12 +2150,12 @@ function sirv_check_responsive($content){
         $sirv_js_path = getValue::getOption('SIRV_JS_FILE');
 
         global $post;
-        global $sirv_woo_is_enable;
+        global $sirv_gbl_woo_is_enable;
 
         $mv_custom_options_block = '';
 
         if (isset($post->post_type) && $post->post_type == 'product') {
-          if ($sirv_woo_is_enable) {
+          if ($sirv_gbl_woo_is_enable) {
             $woo = new Woo($post->ID);
             $mv_custom_options = $woo->remove_script_tag(get_option('SIRV_WOO_MV_CUSTOM_OPTIONS'));
             $mv_custom_options_block = !empty($mv_custom_options) ?  PHP_EOL . '<script nowprocket>' . PHP_EOL . $mv_custom_options . PHP_EOL . '</script>' . PHP_EOL : '';
@@ -2169,16 +2214,16 @@ function sirv_builder_render_css($css, $nodes, $global_settings){
 
 add_filter('rest_request_before_callbacks', 'sirv_rest_request_before_callbacks', 10, 3);
 function sirv_rest_request_before_callbacks($response, $handler, $request){
-  global $sirv_is_rest_rejected;
+  global $sirv_gbl_sirv_is_rest_rejected;
 
   if(Utils::startsWith($request->get_route(), '/wp/v2/media')){
     $referer = $request->get_header_as_array('referer');
 
     if( !empty($referer) && sirv_is_admin_url($referer[0]) ){
-      $sirv_is_rest_rejected = true;
+      $sirv_gbl_sirv_is_rest_rejected = true;
     }
   }else{
-    $sirv_is_rest_rejected = false;
+    $sirv_gbl_sirv_is_rest_rejected = false;
   }
 
   return $response;
@@ -2187,8 +2232,8 @@ function sirv_rest_request_before_callbacks($response, $handler, $request){
 
 add_action('init', 'sirv_init', 20);
 function sirv_init(){
-  global $isAdmin;
-  global $isLoggedInAccount;
+  global $sirv_gbl_isAdmin;
+  global $sirv_gbl_isLoggedInAccount;
 
   remove_filter('wp_resource_hints', 'et_disable_emojis_dns_prefetch', 10, 2);
   add_filter('wp_resource_hints', 'sirv_fix_et_disable_emojis_dns_prefetch', 10, 2);
@@ -2201,10 +2246,10 @@ function sirv_init(){
 
   $isExclude = Exclude::excludeSirvContent($_SERVER['REQUEST_URI'], 'SIRV_EXCLUDE_PAGES');
 
-  if (is_admin() || $isAdmin) return;
+  if (is_admin() || $sirv_gbl_isAdmin) return;
 
 
-  if (get_option('SIRV_ENABLE_CDN') === '1' && $isLoggedInAccount && !$isExclude) {
+  if (get_option('SIRV_ENABLE_CDN') === '1' && $sirv_gbl_isLoggedInAccount && !$isExclude) {
     add_filter('wp_get_attachment_image_src', 'sirv_wp_get_attachment_image_src', 10000, 4);
     //add_filter('image_downsize', "sirv_image_downsize", 10000, 3);
     add_filter('wp_get_attachment_url', 'sirv_wp_get_attachment_url', 10000, 2);
@@ -2371,13 +2416,13 @@ function sirv_crop_direction($type){
 
 
 function sirv_enqueue_frontend_scripts(){
-  global $isLoggedInAccount;
+  global $sirv_gbl_isLoggedInAccount;
   //wp_enqueue_style('sirv_frontend_style', SIRV_PLUGIN_SUBDIR_URL_PATH . 'css/sirv-responsive-frontend.css');
 
   add_action('wp_print_styles', 'sirv_print_front_styles');
   add_action('wp_print_footer_scripts', 'sirv_print_front_scripts', PHP_INT_MAX - 1000);
 
-  if (get_option('SIRV_ENABLE_CDN') === '1' && $isLoggedInAccount){
+  if (get_option('SIRV_ENABLE_CDN') === '1' && $sirv_gbl_isLoggedInAccount){
       //wp_add_inline_style('sirv_frontend_style', $css_images_styles);
       add_action('wp_print_styles', 'sirv_print_css_images');
   }
@@ -2415,12 +2460,12 @@ function sirv_add_file_to_inline_code($abs_path, $data, $tag){
 
 
 function sirv_get_cached_cdn_url(){
-  global $sirv_cdn_url;
+  global $sirv_gbl_sirv_cdn_url;
 
-  if (!isset($sirv_cdn_url)) {
-    $sirv_cdn_url = get_option('SIRV_CDN_URL');
+  if (!isset($sirv_gbl_sirv_cdn_url)) {
+    $sirv_gbl_sirv_cdn_url = get_option('SIRV_CDN_URL');
   }
-  return $sirv_cdn_url;
+  return $sirv_gbl_sirv_cdn_url;
 }
 
 
@@ -2582,8 +2627,8 @@ function sirv_the_content($content, $type='content'){
 
   if (is_admin()) return $content;
 
-  //global $sirv_logger;
-  //$sirv_logger->time_start("sirv_the_content");
+  //global $sirv_gbl_sirv_logger;
+  //$sirv_gbl_sirv_logger->time_start("sirv_the_content");
 
   global $wpdb;
 
@@ -2697,9 +2742,9 @@ function sirv_the_content($content, $type='content'){
                 }
             } catch (Exception $e) {
               if (IS_DEBUG) {
-                global $sirv_logger;
+                global $sirv_gbl_sirv_logger;
 
-                $sirv_logger->error($e, 'func sirv_the_content')->filename('error.log')->write();
+                $sirv_gbl_sirv_logger->error($e, 'func sirv_the_content')->filename('error.log')->write();
               }
               $file_url = '';
             }
@@ -2713,7 +2758,7 @@ function sirv_the_content($content, $type='content'){
     }
   }
 
-  //$sirv_logger->time_end("sirv_the_content");
+  //$sirv_gbl_sirv_logger->time_end("sirv_the_content");
   return $content;
 }
 
@@ -2828,9 +2873,9 @@ function sirv_is_rest(){
 
 
 function sirv_is_rest_rejected(){
-  global $sirv_is_rest_rejected;
+  global $sirv_gbl_sirv_is_rest_rejected;
 
-  if(sirv_is_rest() && $sirv_is_rest_rejected){
+  if(sirv_is_rest() && $sirv_gbl_sirv_is_rest_rejected){
     return true;
   }
 
@@ -2839,11 +2884,11 @@ function sirv_is_rest_rejected(){
 
 
 function sirv_wp_get_attachment_image_src($image, $attachment_id, $size, $icon){
-  global $isAjax;
+  global $sirv_gbl_isAjax;
 
   if( sirv_is_rest_rejected() ) return $image;
 
-  if ( (is_admin() && !$isAjax) || !is_array($image) || empty($attachment_id) || empty($image[0]) || !sirv_is_allowed_ext($image[0])) return $image;
+  if ( (is_admin() && !$sirv_gbl_isAjax) || !is_array($image) || empty($attachment_id) || empty($image[0]) || !sirv_is_allowed_ext($image[0])) return $image;
 
   if( sirv_is_sirv_item($image[0])){
     $post = get_post($attachment_id);
@@ -2987,11 +3032,10 @@ function clean_protocol($url){
 
 
 function sirv_wp_get_attachment_url($url, $attachment_id){
-  global $isAjax;
+  global $sirv_gbl_isAjax;
   $isExclude = Exclude::excludeSirvContent($url, 'SIRV_EXCLUDE_FILES');
 
-  if( (is_admin() && !$isAjax) || $isExclude || !sirv_is_allowed_ext($url) || sirv_is_rest_rejected() ) return $url;
-  //if( (is_admin() && !$isAjax) || $isExclude ) return $url;
+  if( (is_admin() && !$sirv_gbl_isAjax) || $isExclude || !sirv_is_allowed_ext($url) || sirv_is_rest_rejected() ) return $url;
 
   if (sirv_is_sirv_item($url)) {
     $post = get_post($attachment_id);
@@ -3018,13 +3062,13 @@ function sirv_calculate_image_sizes($sizes, $size, $image_src, $image_meta, $att
 
 
 function sirv_add_custom_image_srcset($sources, $size_array, $image_src, $image_meta, $attachment_id){
-  global $isAjax;
+  global $sirv_gbl_isAjax;
 
   /*
     function that get masterImageSize from $image_meta, if can't get then return null
   */
 
-  if( (is_admin() && !$isAjax) || !is_array($sources) || empty($attachment_id) || !sirv_is_allowed_ext($image_src) ) return $sources;
+  if( (is_admin() && !$sirv_gbl_isAjax) || !is_array($sources) || empty($attachment_id) || !sirv_is_allowed_ext($image_src) ) return $sources;
 
   if (sirv_is_sirv_item($image_src)) {
 
@@ -3418,13 +3462,13 @@ function encode_spaces($string){
 
 
 function sirv_cache_sync_data($attachment_id, $wait = false){
-  global $syncData;
+  global $sirv_gbl_syncData;
 
-  if (!isset($syncData[$attachment_id])) {
-    $syncData[$attachment_id] = sirv_get_cdn_image($attachment_id, $wait);
+  if (!isset($sirv_gbl_syncData[$attachment_id])) {
+    $sirv_gbl_syncData[$attachment_id] = sirv_get_cdn_image($attachment_id, $wait);
   }
 
-  return $syncData[$attachment_id];
+  return $sirv_gbl_syncData[$attachment_id];
 }
 
 
@@ -3450,8 +3494,8 @@ function sirv_set_db_failed($wpdb, $table, $attachment_id, $paths, $error_type =
 
 function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = false){
   global $wpdb;
-  global $isFetchUpload;
-  global $isFetchUrl;
+  global $sirv_gbl_isFetchUpload;
+  global $sirv_gbl_isFetchUrl;
 
   $sirv_images_t = $wpdb->prefix . 'sirv_images';
 
@@ -3520,14 +3564,14 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
           sirv_set_db_failed($wpdb, $sirv_images_t, $attachment_id, $paths);
           return '';
         } else {
-          $isFetchUrl = true;
+          $sirv_gbl_isFetchUrl = true;
         }
       } else {
         if ( is_dir($paths['img_file_path']) ) {
           sirv_set_db_failed($wpdb, $sirv_images_t, $attachment_id, $paths);
           return '';
         } else {
-          $isFetchUrl = false;
+          $sirv_gbl_isFetchUrl = false;
         }
       }
     }
@@ -3591,8 +3635,8 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
     );
 
     $fetch_max_file_size = empty((int)get_option('SIRV_FETCH_MAX_FILE_SIZE')) ? 1000000000 : (int)get_option('SIRV_FETCH_MAX_FILE_SIZE');
-    $isFetchUpload = (int) $image['size'] < $fetch_max_file_size ? true : false;
-    $isFetchUpload = $isFetchUrl ? true : $isFetchUpload;
+    $sirv_gbl_isFetchUpload = (int) $image['size'] < $fetch_max_file_size ? true : false;
+    $sirv_gbl_isFetchUpload = $sirv_gbl_isFetchUrl ? true : $sirv_gbl_isFetchUpload;
 
     $sirv_check_url = sirv_get_full_sirv_url_path($sirv_url_path, $image);
     list($status, $error) = sirv_is_item_exist_on_sirv_server($sirv_check_url);
@@ -3765,13 +3809,13 @@ function sirv_time_checks($image, $count = 5){
 
 
 function sirv_get_cached_wp_img_file_path($attachment_id){
-  global $pathsData;
+  global $sirv_gbl_pathsData;
 
-  if (!isset($pathsData[$attachment_id])) {
-    $pathsData[$attachment_id] = sirv_get_wp_img_file_path($attachment_id);
+  if (!isset($sirv_gbl_pathsData[$attachment_id])) {
+    $sirv_gbl_pathsData[$attachment_id] = sirv_get_wp_img_file_path($attachment_id);
   }
 
-  return $pathsData[$attachment_id];
+  return $sirv_gbl_pathsData[$attachment_id];
 }
 
 
@@ -4155,12 +4199,12 @@ function sirv_filter_wpseo_sitemap_urlimages($images, $post_id){
 
 //-------------------------------------------------------------Ajax requests-------------------------------------------------------------------------//
 function sirv_getAPIClient(){
-  global $APIClient;
-  if ($APIClient) {
-    return $APIClient;
+  global $sirv_gbl_APIClient;
+  if ($sirv_gbl_APIClient) {
+    return $sirv_gbl_APIClient;
   } else {
     require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/sirv.api.class.php');
-    return $APIClient = new SirvAPIClient(
+    return $sirv_gbl_APIClient = new SirvAPIClient(
       get_option('SIRV_CLIENT_ID'),
       get_option('SIRV_CLIENT_SECRET'),
       get_option('SIRV_TOKEN'),
@@ -4172,13 +4216,14 @@ function sirv_getAPIClient(){
 
 
 function sirv_uploadFile($sirv_path, $sirv_path_encoded, $image_path, $img_data, $imgURL = '', $wait = false, $is_synchronious = false){
-  if( sirv_isMuted() ) return false;
+  $endpoint_names = array('v2/files/upload', 'v2/files/fetch');
+  if( sirv_is_muted($endpoint_names) ) return false;
 
-  global $isLocalHost;
-  global $isFetchUpload;
+  global $sirv_gbl_isLocalHost;
+  global $sirv_gbl_isFetchUpload;
   $APIClient = sirv_getAPIClient();
 
-  if ($isLocalHost || !$isFetchUpload) {
+  if ($sirv_gbl_isLocalHost || !$sirv_gbl_isFetchUpload) {
     $response = $APIClient->uploadImage($image_path, $sirv_path_encoded);
 
     if( $response['upload_status'] == 'failed' ){
@@ -4261,7 +4306,8 @@ function sirv_proccess_synchronious_fetch($image){
 
 
 function sirv_processFetchQueue(){
-  if (empty($GLOBALS['sirv_fetch_queue']) || sirv_isMuted()) {
+  $endpoint_name = 'v2/files/fetch';
+  if (empty($GLOBALS['sirv_fetch_queue']) || sirv_is_muted($endpoint_name)) {
     return;
   }
 
@@ -4316,19 +4362,26 @@ function sirv_processFetchQueue(){
 
 
 function sirv_parse_fetch_data($res, $wait, $APIClient){
+  $endpoint_name = 'v2/files/fetch';
   $arr = array('status' => 'NEW', 'error_code' => NULL);
-  if (isset($res->success) && $res->success) {
+  if ( isset($res->success) && $res->success ) {
     $arr['status'] = 'SYNCED';
   } else {
-    if ($wait) {
+    if ( $wait ) {
       try {
-        if (is_array($res->attempts)) {
+        if ( is_array($res->attempts) ) {
           $attempt = end($res->attempts);
-          if (!empty($attempt->error)) {
-            if (isset($attempt->error->httpCode) && $attempt->error->httpCode == 429) {
-              preg_match('/Retry after ([0-9]{4}\-[0-9]{2}\-[0-9]{2}.*?\([a-z]{1,}\))/ims', $attempt->error->message, $m);
-              $time = strtotime($m[1]);
-              $APIClient->muteRequests($time);
+          if ( ! empty($attempt->error) ) {
+            if ( isset($attempt->error->httpCode) && $attempt->error->httpCode == 429 ) {
+              $expired_at_timestamp = time() + HOUR_IN_SECONDS;
+              $expired_at_in_seconds = HOUR_IN_SECONDS;
+
+              if ( preg_match('/Retry after ([0-9]{4}\-[0-9]{2}\-[0-9]{2}.*?\([a-z]{1,}\))/ims', $attempt->error->message, $m) ){
+                $expired_at_timestamp = strtotime($m[1]);
+                $expired_at_in_seconds = $expired_at_timestamp - time();
+              }
+              $APIClient->setMuteRequest($endpoint_name, $expired_at_timestamp, $expired_at_in_seconds);
+
               $arr['error_code'] = 5;
             } else {
               $error_msg = $attempt->error->message;
@@ -4341,9 +4394,9 @@ function sirv_parse_fetch_data($res, $wait, $APIClient){
           $arr['error_code'] = 4;
         }
       } catch (Exception $e) {
-        global $sirv_logger;
+        global $sirv_gbl_sirv_logger;
 
-        $sirv_logger->error($e)->write();
+        $sirv_gbl_sirv_logger->error($e)->write();
         $arr['error_code'] = 4;
       }
       $arr['status'] = 'FAILED';
@@ -4377,8 +4430,77 @@ function sirv_is_item_exist_on_sirv_server($sirv_url){
 }
 
 
-function sirv_isMuted(){
-  return ((int) get_option('SIRV_MUTE') > time());
+/**
+ * @param string/array $endpoint_name
+ * @param bool $is_return_tuple
+ *
+ * $muted_data: associative array with items endpoint_name => expired_at
+ *
+ * @return bool/array [bool, timestamp/false]
+ */
+function sirv_is_muted($endpoint_names, $is_return_tuple = false){
+  $expired_at = false;
+
+  $muted_data = sirv_get_muted_data();
+
+  if( is_array($endpoint_names) ){
+    foreach ($endpoint_names as $endpoint_name){
+      $expired_at = isset($muted_data[$endpoint_name]) ? $muted_data[$endpoint_name] : false;
+      if( $expired_at ) break;
+    }
+  }
+
+  if ( is_string($endpoint_names) ){
+    $expired_at = isset($muted_data[$endpoint_names]) ? $muted_data[$endpoint_names] : false;
+  }
+
+
+  if ( $is_return_tuple ){
+    return array($expired_at > time(), $expired_at);
+  }
+
+  return $expired_at > time();
+}
+
+
+function sirv_get_muted_data(){
+  global $sirv_gbl_muted_data;
+
+  if ( isset($sirv_gbl_muted_data) ) {
+    return $sirv_gbl_muted_data;
+  } else {
+    $sirvAPIClient = sirv_getAPIClient();
+    $sirv_gbl_muted_data = $sirvAPIClient->getAllMuted();
+  }
+
+  return $sirv_gbl_muted_data;
+}
+
+
+/**
+ * @param $endpoint_name: string or array
+ *
+ * $muted_data: associative array with items endpoint_name => expired_at
+ *
+ * @return bool
+ */
+function sirv_get_mute_expired_at($endpoint_name){
+  $muted_data = sirv_get_muted_data();
+
+  $expired_at = 0;
+
+  if ( is_array($endpoint_name) ) {
+    foreach ($endpoint_name as $endpoint){
+      $expired_at = isset($muted_data[$endpoint]) ? $muted_data[$endpoint] : 0;
+      if( $expired_at ) break;
+    }
+  }
+
+  if ( is_string($endpoint_name) ){
+    $expired_at = isset($muted_data[$endpoint_name]) ? $muted_data[$endpoint_name] : 0;
+  }
+
+  return $expired_at;
 }
 
 
@@ -4558,22 +4680,15 @@ function sirv_getStorageInfo($force_update = false){
   }
 
   $sirvAPIClient = sirv_getAPIClient();
-
-  $sirvStatus =  $sirvAPIClient->preOperationCheck();
-
-  if ( ! $sirvStatus ) return array();
-
   $storageInfo = $sirvAPIClient->getStorageInfo();
 
   $lastUpdateTime = time();
 
   $storageInfo['lastUpdate'] = date("H:i:s e",  $lastUpdateTime);
 
-  if ( isset($storageInfo["limits"]) ) {
+  if ( count($storageInfo["limits"]) > 0 ) {
     //remove hided apies
     $storageInfo["limits"] = sirv_filter_limits_info($storageInfo["limits"], $hided_apies);
-  } else {
-    $storageInfo["limits"] = array();
   }
 
   update_option('SIRV_STAT', serialize(array(
@@ -4628,21 +4743,20 @@ function sirv_check_and_create_dir($dir, $perms){
 //use ajax request to get php ini variables data
 add_action('wp_ajax_sirv_get_php_ini_data', 'sirv_get_php_ini_data_callback');
 function sirv_get_php_ini_data_callback(){
-  if (!(is_array($_POST) && isset($_POST['sirv_get_php_ini_data']) && defined('DOING_AJAX') && DOING_AJAX)) {
-    return;
+  if ( ! (is_array($_POST) && isset($_POST['sirv_get_php_ini_data']) && defined('DOING_AJAX') && DOING_AJAX) ) {
+    echo json_encode(array('error' => 'Ajax action not allowed'));
+    wp_die();
   }
 
-  $sirvAPIClient = sirv_getAPIClient();
-  //$accountInfo = json_decode($sirvAPIClient->getAccountInfo(), true);
-  $accountInfo = $sirvAPIClient->getAccountInfo();
-
-  $fileSizeLimit = isset($accountInfo->fileSizeLimit) ? $accountInfo->fileSizeLimit : 33554432;
+  if ( ! sirv_is_allow_ajax_connect('sirv_logic_ajax_validation_nonce', 'edit_posts') ) {
+    echo json_encode(array('error' => 'Access to the requested resource is forbidden'));
+    wp_die();
+  }
 
   $php_ini_data = array();
   $php_ini_data['post_max_size'] = ini_get('post_max_size');
-  $php_ini_data['max_file_uploads'] = ini_get('max_file_uploads');
+  $php_ini_data['max_file_uploads'] = (int) ini_get('max_file_uploads');
   $php_ini_data['max_file_size'] = ini_get('upload_max_filesize');
-  $php_ini_data['sirv_file_size_limit'] = $fileSizeLimit;
 
   echo json_encode($php_ini_data);
 
@@ -4653,7 +4767,8 @@ function sirv_get_php_ini_data_callback(){
 //add_action('wp_ajax_sirv_initialize_process_sync_images', 'sirv_initialize_process_sync_images');
 function sirv_initialize_process_sync_images(){
   if (!(is_array($_POST) && isset($_POST['sirv_initialize_sync']) && defined('DOING_AJAX') && DOING_AJAX)) {
-    return;
+    echo json_encode(array('error' => 'Ajax action not allowed'));
+    wp_die();
   }
 
   if (!sirv_is_allow_ajax_connect('ajax_validation_nonce', 'manage_options')) {
@@ -4682,13 +4797,17 @@ function sirv_process_sync_images(){
     wp_die();
   }
 
-  global $isLocalHost;
-  global $isFetchUpload;
+  global $sirv_gbl_isLocalHost;
+  global $sirv_gbl_isFetchUpload;
   global $wpdb;
   $table_name = $wpdb->prefix . 'sirv_images';
 
-  if (sirv_isMuted()) {
-    sirv_return_limit_error();
+  $endpoint_names = array('v2/files/upload', 'v2/files/fetch');
+
+  if ( sirv_is_muted($endpoint_names) ) {
+    $response = sirv_get_muted_response($endpoint_names);
+
+    echo json_encode($response);
     wp_die();
   }
 
@@ -4701,7 +4820,7 @@ function sirv_process_sync_images(){
     $results = sirv_get_unsynced_images(10);
   }
 
-  ini_set('max_execution_time', ($isLocalHost || !$isFetchUpload) ? 30 : 20);
+  ini_set('max_execution_time', ($sirv_gbl_isLocalHost || !$sirv_gbl_isFetchUpload) ? 30 : 20);
 
   $maxExecutionTime = (int) ini_get('max_execution_time');
 
@@ -4724,8 +4843,10 @@ function sirv_process_sync_images(){
   try {
     sirv_processFetchQueue();
   } catch (Exception $e) {
-    if (sirv_isMuted()) {
-      sirv_return_limit_error();
+    if ( sirv_is_muted($endpoint_names) ) {
+      $response = sirv_get_muted_response($endpoint_names);
+
+      echo json_encode($response);
       wp_die();
     }
   }
@@ -4736,9 +4857,9 @@ function sirv_process_sync_images(){
 }
 
 
-function sirv_return_limit_error(){
-  $sirvAPIClient = sirv_getAPIClient();
-  $errorMsg = $sirvAPIClient->getMuteError();
+function sirv_get_muted_response($endpoint_name){
+  $expired_at = sirv_get_mute_expired_at($endpoint_name);
+  $errorMsg = 'API usage limit reached. Please refresh this page in ' . round(($expired_at - time()) / 60) . ' minutes';
   $cachedInfo = sirv_getCacheInfo();
 
   $cachedInfo['status'] = array(
@@ -4746,13 +4867,13 @@ function sirv_return_limit_error(){
     'errorMsg' => $errorMsg
   );
 
-  echo json_encode($cachedInfo);
+  return $cachedInfo;
 }
 
 
 function sirv_ProcessSirvFillTable(){
   global $wpdb;
-  //global $isLocalHost;
+  //global $sirv_gbl_isLocalHost;
   $table_name = $wpdb->prefix . 'sirv_images';
 
   $unsynced_images = sirv_get_unsynced_images();
@@ -5068,7 +5189,7 @@ function sirv_sanitize_svg($filepath){
 add_action('wp_ajax_sirv_upload_file_by_chunks', 'sirv_upload_file_by_chunks_callback');
 
 function sirv_upload_file_by_chunks_callback(){
-  if (!(is_array($_POST) && isset($_POST['binPart']) && defined('DOING_AJAX') && DOING_AJAX)) {
+  if ( ! (is_array($_POST) && isset($_POST['binPart']) && defined('DOING_AJAX') && DOING_AJAX) ) {
     echo json_encode(array('critical_error' => 'AJAX not allowed'));
     wp_die();
   }
@@ -5278,11 +5399,10 @@ function sirv_save_shortcode_in_db(){
     wp_die();
   }
 
-  global $base_prefix;
+  global $sirv_gbl_base_prefix;
   global $wpdb;
 
-  $error = null;
-  $table_name = $base_prefix . 'sirv_shortcodes';
+  $table_name = $sirv_gbl_base_prefix . 'sirv_shortcodes';
 
 
 
@@ -5344,10 +5464,10 @@ function sirv_get_row_by_id(){
 
 
 
-  global $base_prefix;
+  global $sirv_gbl_base_prefix;
   global $wpdb;
 
-  $table_name = $base_prefix . 'sirv_shortcodes';
+  $table_name = $sirv_gbl_base_prefix . 'sirv_shortcodes';
 
   $id = intval($_POST['row_id']);
 
@@ -5382,10 +5502,10 @@ function sirv_get_shortcodes_data(){
   $limit = $_POST['itemsPerPage'] ? intval($_POST['itemsPerPage']) : 10;
   $sh_page = intval($_POST['shortcodes_page']);
 
-  global $base_prefix;
+  global $sirv_gbl_base_prefix;
   global $wpdb;
 
-  $sh_table = $base_prefix . 'sirv_shortcodes';
+  $sh_table = $sirv_gbl_base_prefix . 'sirv_shortcodes';
 
   $sh_count = $wpdb->get_row("SELECT COUNT(*) AS count FROM $sh_table", ARRAY_A);
   $sh_pages = ceil(intval($sh_count['count']) / $limit);
@@ -5434,9 +5554,9 @@ function sirv_duplicate_shortcodes_data(){
 
   $sh_id = intval($_POST['shortcode_id']);
 
-  global $base_prefix;
+  global $sirv_gbl_base_prefix;
   global $wpdb;
-  $sh_table = $base_prefix . 'sirv_shortcodes';
+  $sh_table = $sirv_gbl_base_prefix . 'sirv_shortcodes';
 
   $data = $wpdb->get_row("
                           SELECT *
@@ -5472,10 +5592,10 @@ function sirv_delete_shortcodes(){
     wp_die();
   }
 
-  global $base_prefix;
+  global $sirv_gbl_base_prefix;
   global $wpdb;
 
-  $sh_table = $base_prefix . 'sirv_shortcodes';
+  $sh_table = $sirv_gbl_base_prefix . 'sirv_shortcodes';
 
   $shortcode_ids = json_decode($_POST['shortcode_ids']);
 
@@ -5514,12 +5634,10 @@ function sirv_update_sc(){
     wp_die();
   }
 
-  global $base_prefix;
+  global $sirv_gbl_base_prefix;
   global $wpdb;
 
-  $error = null;
-
-  $table_name = $base_prefix . 'sirv_shortcodes';
+  $table_name = $sirv_gbl_base_prefix . 'sirv_shortcodes';
 
   $id = intval($_POST['row_id']);
   $data = $_POST['shortcode_data'];
@@ -5698,25 +5816,25 @@ function sirv_get_profiles(){
 
 
 function sirv_getProfilesList(){
-  global $profiles;
+  global $sirv_gbl_profiles;
 
-  if( !isset($profiles) ){
+  if( !isset($sirv_gbl_profiles) ){
     $APIClient = sirv_getAPIClient();
-    $profiles = $APIClient->getProfiles();
-    if ($profiles && !empty($profiles->contents) && is_array($profiles->contents)) {
+    $sirv_gbl_profiles = $APIClient->getProfiles();
+    if ($sirv_gbl_profiles && !empty($sirv_gbl_profiles->contents) && is_array($sirv_gbl_profiles->contents)) {
       $profilesList = array();
-      foreach ($profiles->contents as $profile) {
+      foreach ($sirv_gbl_profiles->contents as $profile) {
         if (preg_match('/\.profile$/ims', $profile->filename) && $profile->filename != 'Default.profile') {
           $profilesList[] = preg_replace('/(.*?)\.profile$/ims', '$1', $profile->filename);
         }
       }
       sort($profilesList);
-      $profiles = $profilesList;
-      return $profiles;
+      $sirv_gbl_profiles = $profilesList;
+      return $sirv_gbl_profiles;
     }
     return array();
   }else{
-    return $profiles;
+    return $sirv_gbl_profiles;
   }
 }
 
@@ -5758,7 +5876,7 @@ function sirv_send_message(){
   $storageInfo = sirv_getStorageInfo();
 
   $text .= PHP_EOL . 'Account name: ' . $account_name;
-  $text .= PHP_EOL . 'Plan: ' . $storageInfo['plan']['name'];
+  $text .= PHP_EOL . 'Plan: ' . isset($storageInfo['plan']['name']) ? $storageInfo['plan']['name'] : 'no data';
 
 
   $headers = array(
@@ -5776,11 +5894,11 @@ function sirv_send_message(){
 add_action('wp_mail_failed', 'sirv_log_sendmail_errors', 10, 1);
 function sirv_log_sendmail_errors($wp_error)
 {
-  global $sirv_logger;
+  global $sirv_gbl_sirv_logger;
 
   $error_message = $wp_error->get_error_message();
 
-  $sirv_logger->error($error_message, 'Error message')->filename('mail.log')->write();
+  $sirv_gbl_sirv_logger->error($error_message, 'Error message')->filename('mail.log')->write();
 }
 
 
@@ -5953,32 +6071,28 @@ function sirv_setup_credentials(){
 
   $sirvAPIClient = sirv_getAPIClient();
 
-  if (!empty($alias)) {
-    $res = $sirvAPIClient->setupClientCredentials($alias);
-    if ($res) {
+  if ( !empty($alias) ) {
+    $response = $sirvAPIClient->setupClientCredentials($alias);
+    if ( $response['status'] ) {
       update_option('SIRV_ACCOUNT_EMAIL', sanitize_email($email));
-      $res = $sirvAPIClient->setupS3Credentials($email);
-      if ($res) {
+      $setup_s3_credentials_res = $sirvAPIClient->setupS3Credentials($email);
+      if ($setup_s3_credentials_res) {
         $sirv_folder = get_option('SIRV_FOLDER');
 
         $sirvAPIClient->createFolder('/' . $sirv_folder);
         $sirvAPIClient->setFolderOptions($sirv_folder, array('scanSpins' => false));
 
-        echo json_encode(
-          array('connected' => '1')
-        );
+        sirv_getStorageInfo(true);
+
+        echo json_encode( array('connected' => '1') );
         wp_die();
       }
     }
-    echo json_encode(
-      array('error' => 'An error occurred.')
-    );
+    echo json_encode( array('error' => $response['error']) );
     wp_die();
   }
 
-  echo json_encode(
-    array('error' => 'An error occurred.')
-  );
+  echo json_encode( array('error' => 'User alias not found') );
 
   wp_die();
 }
@@ -6134,9 +6248,13 @@ function sirv_get_search_data(){
     $res = $sirvAPIClient->search($c_query->getCompiledGlobalSearch(), $from);
   }
 
-
-
   if ($res) {
+    for ($i = 0; $i < count($res->hits); $i++) {
+      $res->hits[$i]->_source->filename = htmlspecialchars($res->hits[$i]->_source->filename, ENT_QUOTES, 'UTF-8');
+      $res->hits[$i]->_source->dirname = htmlspecialchars($res->hits[$i]->_source->dirname, ENT_QUOTES, 'UTF-8');
+      $res->hits[$i]->_source->basename = htmlspecialchars($res->hits[$i]->_source->basename, ENT_QUOTES, 'UTF-8');
+    }
+
     $res->sirv_url = get_option('SIRV_CDN_URL');
     echo json_encode($res);
   } else echo json_encode(array());
@@ -6203,7 +6321,8 @@ add_action('wp_ajax_sirv_empty_view_cache', 'sirv_empty_view_cache');
 
 function sirv_empty_view_cache(){
   if (!(is_array($_POST) && isset($_POST['type']) && defined('DOING_AJAX') && DOING_AJAX)) {
-    return;
+    echo json_encode(array('error' => 'Ajax action not allowed'));
+    wp_die();
   }
 
   if (!sirv_is_allow_ajax_connect('ajax_validation_nonce', 'manage_options')) {
@@ -6211,42 +6330,46 @@ function sirv_empty_view_cache(){
     wp_die();
   }
 
+  $status = get_option('SIRV_WOO_IS_USE_VIEW_FILE') == 'on' ? true : false;
+
+  if ( !$status ) {
+    echo json_encode(array('error' => 'View file cache is disabled'));
+    wp_die();
+  }
+
   $clean_type = $_POST['type'];
 
   global $wpdb;
-  $postmeta_t = $wpdb->prefix . 'postmeta';
+  $cache_table = $wpdb->prefix . 'sirv_cache';
+
+  $cache_key = '_sirv_woo_view_file_cache';
+  $error = null;
+
+  $expired_at = date('Y-m-d H:i:s', strtotime('-1 day'));
 
   if ($clean_type == "all") {
     $result = $wpdb->query(
-      "DELETE FROM $postmeta_t
-        WHERE post_id IN (
-          SELECT tmp.post_id FROM (
-            SELECT post_id FROM $postmeta_t WHERE meta_key = '_sirv_woo_viewf_status')
-          as `tmp`)
-          AND meta_key IN ('_sirv_woo_viewf_data', '_sirv_woo_viewf_status')"
-    );
+      "UPDATE $cache_table SET `cache_status` = 'DELETED', `expired_at` = '$expired_at'
+        WHERE `post_id` IN (SELECT `post_id` FROM $cache_table WHERE `cache_key` = '$cache_key')
+      ");
   } else if($clean_type == "content"){
-    $result = $result = $wpdb->query(
-      "DELETE FROM $postmeta_t
-        WHERE post_id IN (
-          SELECT tmp.post_id FROM (
-            SELECT post_id FROM $postmeta_t WHERE meta_key = '_sirv_woo_viewf_status' AND NOT(meta_value = 'FAILED' OR meta_value = 'EMPTY'))
-          as `tmp`)
-        AND meta_key IN ('_sirv_woo_viewf_data', '_sirv_woo_viewf_status')"
-    );
+    $result = $wpdb->query(
+      "UPDATE $cache_table SET `cache_status` = 'DELETED', `expired_at` = '$expired_at'
+        WHERE `post_id` IN (SELECT `post_id` FROM $cache_table WHERE `cache_key` = '$cache_key' AND `cache_status` = 'SUCCESS')
+      ");
 
   } else if ($clean_type == "no-content") {
-    $result = $result = $wpdb->query(
-      "DELETE FROM $postmeta_t
-        WHERE post_id IN (
-          SELECT tmp.post_id FROM (
-            SELECT post_id FROM $postmeta_t WHERE meta_key = '_sirv_woo_viewf_status' AND (meta_value = 'FAILED' OR meta_value = 'EMPTY'))
-          as `tmp`)
-        AND meta_key IN ('_sirv_woo_viewf_data', '_sirv_woo_viewf_status')"
-    );
+    $result = $wpdb->query(
+      "UPDATE $cache_table SET `cache_status` = 'DELETED', `expired_at` = '$expired_at'
+        WHERE `post_id` IN (SELECT `post_id` FROM $cache_table WHERE `cache_key` = '$cache_key' AND `cache_status` IN ('FAILED', 'EMPTY'))
+      ");
   }
 
-  echo json_encode(array('result' => $result, 'sync_data' => sirv_get_view_cache_info()));
+  if ($result === false) {
+    $error = $wpdb->last_error;
+  }
+
+  echo json_encode(array('result' => $result, 'sync_data' => sirv_get_view_cache_info(), 'error' => $error));
   wp_die();
 }
 
@@ -6880,8 +7003,6 @@ function sirv_flatten_css_files_array($arr){
 
 add_action('admin_init', 'sirv_monitoring_nopriv_ajax');
 function sirv_monitoring_nopriv_ajax(){
-  //if (is_admin() || $isAdmin) return;
-
   $forbidden_actions = array('query-attachments');
 
   if (defined('DOING_AJAX') && DOING_AJAX) {
@@ -6896,12 +7017,11 @@ function sirv_monitoring_nopriv_ajax(){
     if(in_array($action, $forbidden_actions)) return;
 
     if (!empty($action) && sirv_is_frontend_ajax($action)) {
-      //global $isAdmin;
-      global $isLoggedInAccount;
-      global $isAjax;
-      $isAjax = true;
+      global $sirv_gbl_isLoggedInAccount;
+      global $sirv_gbl_isAjax;
+      $sirv_gbl_isAjax = true;
 
-      if (get_option('SIRV_ENABLE_CDN') === '1' && $isLoggedInAccount) {
+      if (get_option('SIRV_ENABLE_CDN') === '1' && $sirv_gbl_isLoggedInAccount) {
         add_filter('wp_get_attachment_image_src', 'sirv_wp_get_attachment_image_src', 10000, 4);
         //add_filter('image_downsize', "sirv_image_downsize", 10000, 3);
         add_filter('wp_get_attachment_url', 'sirv_wp_get_attachment_url', 10000, 2);
@@ -7126,6 +7246,7 @@ function sirv_get_js_module_size(){
 
 function sirv_get_js_compressed_size($url){
   $sizes = array("compressed" => null, "uncompressed" => null, 'error' => null);
+  $user_agent = 'Sirv/Wordpress';
 
   $cache = sirv_get_transient_cache('sirv_js_compressed_sizes');
 
@@ -7140,6 +7261,7 @@ function sirv_get_js_compressed_size($url){
     CURLOPT_ENCODING => "",
     CURLOPT_ACCEPT_ENCODING => "",
     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_NONE,
+    CURLOPT_USERAGENT => $user_agent,
   ));
 
   try {
@@ -7215,7 +7337,8 @@ function sirv_set_transient_cache_data($transient_key, $cache_key, $cache_data, 
 add_action('wp_ajax_sirv_save_troubleshooting_issues_status', 'sirv_save_troubleshooting_issues_status', 10);
 function sirv_save_troubleshooting_issues_status(){
   if (!(is_array($_POST) && defined('DOING_AJAX') && DOING_AJAX)) {
-    return;
+    echo json_encode(array('error' => 'Ajax action not allowed'));
+    wp_die();
   }
 
   if (!sirv_is_allow_ajax_connect('ajax_validation_nonce', 'manage_options')) {
@@ -7240,7 +7363,8 @@ function sirv_save_troubleshooting_issues_status(){
 add_action('wp_ajax_sirv_update_smv_cache', 'sirv_update_smv_cache', 10);
 function sirv_update_smv_cache(){
   if (!(is_array($_POST) && defined('DOING_AJAX') && DOING_AJAX)) {
-    return;
+    echo json_encode(array('error' => 'Ajax action not allowed'));
+    wp_die();
   }
 
   if (!sirv_is_allow_ajax_connect('ajax_sirv_woo_admin_nonce', 'edit_posts')) {
@@ -7248,13 +7372,22 @@ function sirv_update_smv_cache(){
     wp_die();
   }
 
+  $response = array('cache' => array(), 'view_path' => '');
+
   $product_id = intval($_POST['product_id']);
   $is_variation = $_POST['type'] == 'variation';
 
   $woo = new Woo();
   $new_data = $woo->update_smv_cache($product_id, $is_variation);
 
-  echo json_encode( array('cache' => $new_data) );
+  if ( isset($new_data['error']) ) {
+    $response['error'] = $new_data['error'];
+  }
+
+  $response['cache'] = isset($new_data['cache']) ? $new_data['cache'] : array();
+  $response['view_path'] = isset($new_data['view_path']) ? $new_data['view_path'] : '';
+
+  echo json_encode( $response );
   wp_die();
 }
 
@@ -7262,57 +7395,64 @@ function sirv_update_smv_cache(){
 function sirv_get_view_cache_info(){
   global $wpdb;
 
-  $query_statuses = "'" . implode("', '", array('publish', 'draft', 'private', 'future', 'pending')) . "'";
-  $excluded_statuses = "'" . implode("', '", array('trash', 'auto-draft')) . "'";
+  $cache_table = $wpdb->prefix . 'sirv_cache';
 
+  $accepted_cache_statuses = array('SUCCESS', 'EMPTY', 'FAILED', 'EXPIRED');
+  //$query_statuses = "'" . implode("', '", array('publish', 'draft', 'private', 'future', 'pending')) . "'";
+  //$excluded_statuses = "'" . implode("', '", array('trash', 'auto-draft')) . "'";
+  $excluded_statuses = sirv_db_render_IN_arg(array('trash', 'auto-draft'));
 
-  //$prod_count = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->posts WHERE `post_type`='product' AND `post_status` IN ('publish', 'draft')");
-  //$variation_count = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->posts WHERE `post_type`='product_variation' AND `post_status` IN ('publish', 'draft')");
   $total_products = (int) $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->posts WHERE `post_type` IN ('product','product_variation') AND `post_status` NOT IN ($excluded_statuses)");
-  $view_cache_data = $wpdb->get_results("SELECT meta_value as status, COUNT(*) as count FROM $wpdb->postmeta WHERE `meta_key` = '_sirv_woo_viewf_status' GROUP BY `meta_value`", ARRAY_A);
-  //$synced = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->postmeta WHERE `meta_key` = '_sirv_woo_viewf_status'");
-
+  //$view_cache_data = $wpdb->get_results("SELECT meta_value as status, COUNT(*) as count FROM $wpdb->postmeta WHERE `meta_key` = '_sirv_woo_viewf_status' GROUP BY `meta_value`", ARRAY_A);
+  $view_cache_data = $wpdb->get_results("SELECT cache_status as status, COUNT(*) as count FROM $cache_table WHERE `cache_key` = '_sirv_woo_view_file_cache' GROUP BY `cache_status`", ARRAY_A);
   $view_cache = array(
       'SUCCESS' => 0,
       'EMPTY' => 0,
       'FAILED' => 0,
+      'EXPIRED' => 0,
+      'DELETED' => 0,
     );
 
   if ( !empty($view_cache_data) ) {
     foreach ($view_cache_data as $cache_item) {
+      if ( !in_array($cache_item['status'], $accepted_cache_statuses) ) continue;
       $view_cache[$cache_item['status']] = (int) $cache_item['count'];
     }
   }
 
   $synced = array_sum(array_values($view_cache));
 
-  $progress = $total_products > 0 ? round(($synced / $total_products) * 100) : 0;
+  $progress = ($total_products > 0 && $synced > 0) ? round(($synced / $total_products) * 100) : 0;
   $progress = $progress > 100 ? 100 : $progress;
 
   return array("total" => $total_products, "synced" => $synced, "progress" => $progress, 'view_cache' => $view_cache);
 }
 
 
-function sirv_get_view_files_unsynced_products($limit=10){
+function sirv_get_view_files_unsynced_products($limit = 10){
   global $wpdb;
+  $cache_table = $wpdb->prefix . 'sirv_cache';
 
-  $excluded_statuses = "'" . implode("', '", array('trash', 'auto-draft')) . "'";
+  $excluded_statuses = sirv_db_render_IN_arg(array('trash', 'auto-draft'));
 
   $get_not_synced_products_ids = $wpdb->get_results(
     "SELECT id, post_type FROM $wpdb->posts WHERE id
-    NOT IN (SELECT post_id FROM $wpdb->postmeta WHERE `meta_key` = '_sirv_woo_viewf_status')
-    AND `post_type` IN ('product','product_variation') AND `post_status` NOT IN ($excluded_statuses)
-    LIMIT $limit",
+      NOT IN (SELECT post_id FROM $cache_table WHERE `cache_key` = '_sirv_woo_view_file_cache' AND `cache_status` != 'DELETED')
+      AND `post_type` IN ('product','product_variation')
+      AND `post_status` NOT IN ($excluded_statuses)
+      LIMIT $limit",
     ARRAY_A
   );
 
   return $get_not_synced_products_ids;
 }
 
+
 add_action('wp_ajax_sirv_sync_view_files', 'sirv_sync_view_files', 10);
 function sirv_sync_view_files(){
   if (!(is_array($_POST) && defined('DOING_AJAX') && DOING_AJAX)) {
-    return;
+    echo json_encode(array('error' => 'Ajax action not allowed'));
+    wp_die();
   }
 
   if (!sirv_is_allow_ajax_connect('ajax_validation_nonce', 'manage_options')) {
@@ -7320,9 +7460,9 @@ function sirv_sync_view_files(){
     wp_die();
   }
 
-  global $sirv_woo_is_enable;
+  global $sirv_gbl_woo_is_enable;
 
-  if ( !$sirv_woo_is_enable ) {
+  if ( !$sirv_gbl_woo_is_enable ) {
     echo json_encode(array('error' => 'WooCommerce module does not enabled'));
     wp_die();
   }
@@ -7335,7 +7475,13 @@ function sirv_sync_view_files(){
     $woo = new Woo;
 
     foreach ($unsynced_products as $product) {
-      $woo->get_sirv_remote_data($product['id'], $product['post_type'] == 'product_variation');
+      $is_variation = $product['post_type'] == 'product_variation';
+
+      if ( $is_variation ){
+        $woo->get_sirv_remote_data($product['id'], $is_variation, true);
+      } else {
+        $woo->update_woo_smv_cache($product['id']);
+      }
     }
   } else {
     $error = 'Some products could not be found. If progress does not reach 100%, please <a href="https://sirv.com/help/support/#support" target="_blank">tell the Sirv support team</a>';
@@ -7355,7 +7501,7 @@ function sirv_sync_view_files(){
 add_action('wp_ajax_sirv_clear_old_view_files_cache', 'sirv_clear_old_view_files_cache');
 function sirv_clear_old_view_files_cache(){
   if (!(is_array($_POST) && defined('DOING_AJAX') && DOING_AJAX)) {
-    echo json_encode(array('error' => 'Action denied'));
+    echo json_encode(array('error' => 'Ajax action not allowed'));
     wp_die();
   }
 
@@ -7365,9 +7511,19 @@ function sirv_clear_old_view_files_cache(){
   }
 
   global $wpdb;
+  $cache_table = $wpdb->prefix . 'sirv_cache';
+  $post_types = sirv_db_render_IN_arg(array('product', 'product_variation'));
+  $post_statuses = sirv_db_render_IN_arg(array('publish', 'draft', 'private', 'future', 'pending'));
+
   $response = array();
 
-  $query = "DELETE FROM $wpdb->postmeta WHERE post_id NOT IN (SELECT ID FROM $wpdb->posts WHERE `post_type` IN ('product','product_variation') AND `post_status` IN ('publish','draft','private','future','pending')) AND meta_key IN ('_sirv_woo_viewf_data', '_sirv_woo_viewf_status');";
+  $query =
+    "DELETE FROM $cache_table WHERE post_id
+      NOT IN (
+        SELECT ID FROM $wpdb->posts WHERE `post_type` IN ($post_types)
+          AND `post_status` IN ($post_statuses)
+          AND `cache_key` = '_sirv_woo_view_file_cache'
+      )";
 
   $result = $wpdb->query($query);
 
@@ -7388,4 +7544,181 @@ function sirv_clear_old_view_files_cache(){
 }
 
 
+function sirv_processing_delete_filenames($filename){
+  //return rawurlencode(rawurldecode(stripslashes($filename)));
+  return stripslashes($filename);
+}
+
+
+add_action('wp_ajax_sirv_run_remote_delete_job', 'sirv_run_remote_delete_job');
+function sirv_run_remote_delete_job(){
+  if (!(is_array($_POST) && defined('DOING_AJAX') && DOING_AJAX)) {
+    echo json_encode(array('error' => 'Action denied'));
+    wp_die();
+  }
+
+  if (!sirv_is_allow_ajax_connect('sirv_logic_ajax_validation_nonce', 'edit_posts')) {
+    echo json_encode(array('error' => 'Access to the requested resource is forbidden'));
+    wp_die();
+  }
+
+  $filenames = $_POST['filenames'];
+
+  $filenames = array_map('sirv_processing_delete_filenames', $filenames);
+
+  $sirvAPIClient = sirv_getAPIClient();
+
+  $res = $sirvAPIClient->runRemoteJobToDeleteItems($filenames);
+
+  echo json_encode($res);
+
+  wp_die();
+}
+
+
+add_action('wp_ajax_sirv_check_status_remote_delete_job', 'sirv_check_status_remote_delete_job');
+function sirv_check_status_remote_delete_job(){
+  if (!(is_array($_POST) && defined('DOING_AJAX') && DOING_AJAX)) {
+    echo json_encode(array('error' => 'Action denied'));
+    wp_die();
+  }
+
+  if (!sirv_is_allow_ajax_connect('sirv_logic_ajax_validation_nonce', 'edit_posts')) {
+    echo json_encode(array('error' => 'Access to the requested resource is forbidden'));
+    wp_die();
+  }
+
+  $job_id = $_POST['jobId'];
+
+  if ( ! isset($job_id) || empty($job_id) ) {
+    echo json_encode(array('error' => 'Job id is not set'));
+    wp_die();
+  }
+
+  $sirvAPIClient = sirv_getAPIClient();
+
+  $res = $sirvAPIClient->checkStatusOfRemoteJobToDeleteItems($job_id);
+
+  echo json_encode($res);
+  wp_die();
+}
+
+
+function sirv_db_render_IN_arg($values){
+  return "'" . implode("', '", $values) . "'";
+}
+
+
+add_action('updated_option', 'sirv_update_option', 10, 3);
+function sirv_update_option($option, $old_value, $new_value){
+  global $sirv_gbl_woo_cat_is_enable;
+  global $wpdb;
+
+  $cache_status = sirv_is_enable_option('SIRV_WOO_SMV_CACHE_IS_ENABLE', 'on');
+
+  if ( !$cache_status ) return;
+
+  //TODO make check for sirv options. If not return;
+
+  $cache_key = null;
+
+  $pdp_options = array("SIRV_WOO_IS_USE_VIEW_FILE", "SIRV_WOO_VIEW_FOLDER_STRUCTURE", "SIRV_WOO_VIEW_FOLDER_VARIATION_STRUCTURE", "SIRV_WOO_TTL", "SIRV_WOO_SMV_CONTENT_ORDER", "SIRV_WOO_CONTENT_ORDER", "SIRV_WOO_SHOW_VARIATIONS", "SIRV_WOO_SHOW_MAIN_VARIATION_IMAGE", "SIRV_WOO_PIN", "SIRV_WOO_MAX_HEIGHT", "SIRV_WOO_PRODUCTS_PROFILE", "SIRV_WOO_PRODUCTS_MOBILE_PROFILE", "SIRV_WOO_ZOOM_IS_ENABLE", "SIRV_WOO_MV_SKELETON");
+
+  //SIRV_WOO_CAT_IS_ENABLE
+  $cat_options = array("SIRV_WOO_CAT_PROFILE", "SIRV_WOO_CAT_ITEMS", "SIRV_WOO_CAT_CONTENT", "SIRV_WOO_CAT_SOURCE", "SIRV_WOO_CAT_SHOWING_METHOD", "SIRV_WOO_CAT_ZOOM_ON_HOVER", "SIRV_WOO_CAT_SWAP_METHOD");
+
+  if ( in_array($option, $pdp_options) ) {
+    $cache_key = '_sirv_woo_pdp_cache';
+  }
+
+  if ( $sirv_gbl_woo_cat_is_enable && in_array($option, $cat_options) ) {
+    $cache_key = '_sirv_woo_cat_cache';
+  }
+
+  if ( !is_null($cache_key) ) {
+    $cache_table = $wpdb->prefix . 'sirv_cache';
+
+    $expired_at = date('Y-m-d H:i:s', strtotime('-1 day'));
+
+    $result = $wpdb->query("UPDATE $cache_table SET `cache_status` = 'EXPIRED', `expired_at` = '$expired_at' WHERE `cache_key` = '$cache_key'");
+
+    //TODO? error handling and logging
+  }
+
+
+}
+
+
+add_action('shutdown', 'sirv_do_background_jobs', PHP_INT_MAX - 10);
+function sirv_do_background_jobs(){
+  if ( isset($GLOBALS['sirv_jobs']) ) {
+    global $sirv_gbl_background_mode;
+    $sirv_gbl_background_mode = true;
+
+    ignore_user_abort(true);
+    set_time_limit(0);
+
+    require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/jobs.php');
+
+    foreach ($GLOBALS['sirv_jobs'] as $job_callback => $jobs) {;
+      if ( is_callable($job_callback) ) {
+        if ( is_array($jobs) ) {
+          for ($i=0; $i < count($jobs); $i++) {
+            $job = $jobs[$i];
+            $job_callback($job);
+          }
+        } else {
+          $job_callback($jobs);
+        }
+      }
+    }
+  }
+}
+
+
+add_action('wp_ajax_sirv_clear_smv_html_cache', 'sirv_clear_smv_html_cache');
+function sirv_clear_smv_html_cache()
+{
+  if (!(is_array($_POST) && defined('DOING_AJAX') && DOING_AJAX)) {
+    echo json_encode(array('error' => 'Ajax action not allowed'));
+    wp_die();
+  }
+
+  if (!sirv_is_allow_ajax_connect('ajax_validation_nonce', 'manage_options')) {
+    echo json_encode(array('error' => 'Access to the requested resource is forbidden'));
+    wp_die();
+  }
+
+  $cache_option_status = sirv_is_enable_option('SIRV_WOO_SMV_CACHE_IS_ENABLE', 'on');
+  if ( !$cache_option_status ) {
+    echo json_encode(array('error' => 'Cache option is disabled'));
+    wp_die();
+  }
+
+  global $wpdb;
+  $cache_table = $wpdb->prefix . 'sirv_cache';
+  $response = array("error" => '', "cache_count" => 0);
+
+  $expired_at = date('Y-m-d H:i:s', strtotime('-1 day'));
+
+  $result = $wpdb->query(
+    "UPDATE $cache_table SET `cache_status` = 'DELETED', `expired_at` = '$expired_at' WHERE `cache_key` IN ('_sirv_woo_pdp_cache', '_sirv_woo_cat_cache') AND cache_status IN ('SUCCESS', 'EMPTY', 'FAILED', 'EXPIRED')");
+
+  if ( $result !== false ) {
+    $response['affected_rows'] = $result;
+    $cache_count = $wpdb->get_var(
+      "SELECT COUNT(*) FROM $cache_table
+        WHERE cache_key IN ('_sirv_woo_pdp_cache', '_sirv_woo_cat_cache')
+        AND cache_status IN ('SUCCESS', 'EMPTY', 'FAILED', 'EXPIRED')"
+    );
+
+    if ( $cache_count !== false ) $response['cache_count'] = $cache_count;
+  } else {
+    $response['error']  = $wpdb->last_error;
+  }
+
+  echo json_encode($response);
+
+  wp_die();
+}
 ?>

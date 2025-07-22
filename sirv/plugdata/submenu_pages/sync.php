@@ -1,5 +1,10 @@
 <?php
-$storageInfo = sirv_getStorageInfo();
+
+global $sirv_gbl_isLocalHost;
+
+$sync_endpoint_name = $sirv_gbl_isLocalHost ? 'v2/files/upload' : 'v2/files/fetch';
+
+$is_muted_mass_sync = sirv_is_muted($sync_endpoint_name);
 ?>
 
 <h2>Synchronize your WordPress Media Library</h2>
@@ -15,7 +20,9 @@ $storageInfo = sirv_getStorageInfo();
     <?php } ?>
     <tr>
       <th class="sirv-sync-messages no-padding" colspan="2">
-        <?php if ($error) echo Utils::showMessage($error); ?>
+        <?php
+          if ($error) echo Utils::showMessage($error);
+        ?>
       </th>
     </tr>
     <tr>
@@ -52,19 +59,6 @@ $storageInfo = sirv_getStorageInfo();
           </div>
         </div>
       </td>
-      <!-- <td>
-        <div>
-          <div>
-            <span class="sirv-calc-library-size-show-size"><?php echo $wp_media_library_size['size'] ?></span>
-            <span class="sirv-calc-library-size-show-count"><?php echo $wp_media_library_size_count_txt ?></span>
-            <span class="sirv-calc-library-size-show-date"><?php echo $wp_media_library_size['date'] ?></span>
-            <button type="button" class="sirv-calc-library-size-action button-primary"><?php echo $wp_media_library_size_button_txt; ?></button>
-          </div>
-          <span class="sirv-option-responsive-text">
-            Estimage how much storage space you require on Sirv.
-          </span>
-        </div>
-      </td> -->
     </tr>
     <tr>
       <td colspan="2">
@@ -87,11 +81,6 @@ $storageInfo = sirv_getStorageInfo();
               <div class="sirv-progress__bar--line-failed sirv-failed" style="width: <?php echo $cacheInfo['progress_failed'] . '%;'; ?>"></div>
             </div>
           </div>
-          <?php if (!$isMuted) { ?>
-            <!-- <div class="sirv-sync-button-container">
-              <input type="button" name="sirv-sync-images" class="button-primary sirv-sync-images" value="<?php echo $sync_button_text; ?>" <?php echo $is_sync_button_disabled; ?> />
-            </div> -->
-          <?php } ?>
         </div>
         <?php
         $syncedClearCacheActionShow = $isSynced ? '' : 'display: none;';
@@ -179,7 +168,13 @@ $storageInfo = sirv_getStorageInfo();
         </div>
       </th>
     </tr>
-    <?php if (!$isMuted) {
+    <?php if ( $is_muted_mass_sync) {
+      //$mass_sync_muted_message = Utils::showMessage('Option is disabled due to exceeding API usage rate limit. Refresh this page in <b>' . round((sirv_get_mute_expired_at($sync_endpoint_name) - time()) / 60) . ' minutes</b>', 'warning');
+      //'You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for' . Utils::get_minutes(sirv_get_mute_expired_at($endpoint_name)) . 'minutes. Please try again after that or inform the <a href="https://sirv.com/help/support/#support" target="_blank">Sirv support team</a> if you keep seeing this message.';
+      $mass_sync_muted_message = Utils::showMessage('You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for <b>'  . round((sirv_get_mute_expired_at($sync_endpoint_name) - time()) / 60) . ' minutes.</b>', 'warning');
+
+      echo "<tr><td colspan='2'>" . $mass_sync_muted_message . "</td></tr>";
+    } else {
       $fetch_limit = isset($storageInfo['limits']['fetch:file']['limit']) ? $storageInfo['limits']['fetch:file']['limit'] : 2000;
     ?>
       <tr class="sirv-processing-message" style='display: none;'>
@@ -197,9 +192,9 @@ $storageInfo = sirv_getStorageInfo();
       <tr class="sirv-discontinued-images" <?php echo $g_show; ?>>
         <td class="no-padding" colspan="2">
           <?php
-            $message = '<span style="font-size: 15px;font-weight: 800;">Recommendation:</span> <span class="sirv-old-cache-count">'. $cacheInfo['garbage_count'] .'</span> images in plugin database no longer exist.&nbsp;&nbsp;
-            <input type="button" name="optimize_cache" class="button-primary sirv-clear-cache" data-type="garbage" value="Clean up" />&nbsp;
-            <span class="sirv-traffic-loading-ico" style="display: none;"></span>';
+            $message = '<span style="font-size: 15px;font-weight: 800;">Recommendation:</span> <span class="sirv-old-cache-count">' . $cacheInfo['garbage_count'] . '</span> images in plugin database no longer exist.&nbsp;&nbsp;
+              <input type="button" name="optimize_cache" class="button-primary sirv-clear-cache" data-type="garbage" value="Clean up" />&nbsp;
+              <span class="sirv-traffic-loading-ico" style="display: none;"></span>';
 
             echo Utils::showMessage($message, 'warning')
           ?>
@@ -213,10 +208,8 @@ $storageInfo = sirv_getStorageInfo();
       <tr>
         <td colspan="2">
           <div class="sirv-sync-controls">
-            <?php if (!$isMuted) { ?>
-              <input type="button" name="sirv-sync-images" class="button-primary sirv-sync-images" value="<?php echo $sync_button_text; ?>" <?php echo $is_sync_button_disabled; ?> />
-              <!-- <input type="button" name="sirv-check-cache" class="button-secondary" value="Check cache" /> -->
-            <?php } ?>
+                <input type="button" name="sirv-sync-images" class="button-primary sirv-sync-images" value="<?php echo $sync_button_text; ?>" <?php echo $is_sync_button_disabled; ?> />
+                <!-- <input type="button" name="sirv-check-cache" class="button-secondary" value="Check cache" /> -->
           </div>
         </td>
       </tr>
@@ -393,11 +386,11 @@ $storageInfo = sirv_getStorageInfo();
       <tr class="sirv-processing-thumb-images-msg" <?php echo $contunue_msg_show ?>>
         <td class="no-padding" colspan="2">
           <?php
-            $message = '<span style="font-size: 15px;font-weight: 800;">Notice:</span> Plugin detect that you did not finish '. $thumbs_data['type'] .' operation. You may continue it or cancel.<br>
-            <div style="padding-top: 10px;">
-              <input type="button" name="sirv-thumbs-continue-processing" class="button-primary sirv-thumbs-continue-processing" data-type="'. $thumbs_data['type'] .'" value="Continue operation" />&nbsp;
-              <input type="button" name="sirv-thumbs-cancel-processing" class="button-primary sirv-thumbs-cancel-processing" value="Cancel" />&nbsp;
-            </div>';
+            $message = '<span style="font-size: 15px;font-weight: 800;">Notice:</span> Plugin detect that you did not finish ' . $thumbs_data['type'] . ' operation. You may continue it or cancel.<br>
+              <div style="padding-top: 10px;">
+                <input type="button" name="sirv-thumbs-continue-processing" class="button-primary sirv-thumbs-continue-processing" data-type="' . $thumbs_data['type'] . '" value="Continue operation" />&nbsp;
+                <input type="button" name="sirv-thumbs-cancel-processing" class="button-primary sirv-thumbs-cancel-processing" value="Cancel" />&nbsp;
+              </div>';
 
             echo Utils::showMessage($message, 'warning');
           ?>

@@ -174,6 +174,11 @@
     }
 
 
+    public static function get_minutes($timestamp){
+      return round( ((int) $timestamp - time()) / 60 );
+    }
+
+
     public static function get_sirv_item_info($sirv_url){
       $context = stream_context_create(array('http' => array('method' => "GET")));
       $sirv_item_metadata = @json_decode(@file_get_contents($sirv_url . '?info', false, $context));
@@ -271,11 +276,11 @@
       curl_close($ch);
 
       if ($error) {
-        global $sirv_logger;
+        global $sirv_gbl_sirv_logger;
 
-        $sirv_logger->error($url, 'request url')->filename('network_errors.log')->write();
-        $sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
-        $sirv_logger->delimiter()->filename('network_errors.log')->write();
+        $sirv_gbl_sirv_logger->error($url, 'request url')->filename('network_errors.log')->write();
+        $sirv_gbl_sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
+        $sirv_gbl_sirv_logger->delimiter()->filename('network_errors.log')->write();
       }
 
       $response['result'] = $result;
@@ -318,11 +323,11 @@
       curl_close($ch);
 
     if ($error) {
-      global $sirv_logger;
+      global $sirv_gbl_sirv_logger;
 
-      $sirv_logger->error($url, 'request url')->filename('network_errors.log')->write();
-      $sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
-      $sirv_logger->delimiter()->filename('network_errors.log')->write();
+      $sirv_gbl_sirv_logger->error($url, 'request url')->filename('network_errors.log')->write();
+      $sirv_gbl_sirv_logger->error($error, 'error message')->filename('network_errors.log')->write();
+      $sirv_gbl_sirv_logger->delimiter()->filename('network_errors.log')->write();
 
       self::$headers['error'] = $error;
     }

@@ -5,10 +5,12 @@ class WooAdditionalImagesMigrate{
   protected static $db_wai_metakey = '_wc_additional_variation_images';
   protected static $db_sirv_gallery_metakey = "_sirv_woo_gallery_data";
   protected static $db_marked_metakey = '_sirv_parsed_wai_images';
+  protected static $endpoint_names = array('v2/files/upload', 'v2/files/fetch');
   protected static $is_muted = false;
+  protected static $mute_expired_at = false;
 
   public static function migrate($operations_per_time = 10){
-    //TODO: made possible to store all item attributes in the html and save to db
+    //TODO: make possible to store all item attributes in the html and save to db
 
     $wae_data = self::get_wai_unsynced_data($operations_per_time);
     foreach ($wae_data as $wae_variation) {
@@ -18,12 +20,12 @@ class WooAdditionalImagesMigrate{
       if( !empty($attachment_ids) ){
         $items = self::generate_items($variation_id, $attachment_ids);
 
-        if( !self::$is_muted ){
+        if( ! self::$is_muted ){
           $result = self::store_data($variation_id, $items);
         }
       }
 
-      if ( !self::$is_muted ) {
+      if ( ! self::$is_muted ) {
         self::mark_migrated_row($variation_id, $attachment_ids);
       }
     }
@@ -88,8 +90,7 @@ class WooAdditionalImagesMigrate{
     $error = '';
 
     if(self::$is_muted){
-      $sirvAPIClient = sirv_getAPIClient();
-      $error = $sirvAPIClient->getMuteError();
+      $error = 'Migration proccess is disabled due to exceeding API usage rate limit. Refresh this page in <b>' .  Utils::get_minutes(self::$mute_expired_at) . ' minutes</b>';
     }
 
     return (object) array(
@@ -171,6 +172,8 @@ class WooAdditionalImagesMigrate{
 
     foreach ($attachment_ids as $attachment_id) {
       $items[] = self::generate_item($variation_id, $attachment_id);
+
+      if ( self::$is_muted ) break;
     }
 
     return $items;
@@ -182,9 +185,11 @@ class WooAdditionalImagesMigrate{
     $url = sirv_get_cdn_image($attachment_id, true, true);
     $provider = "sirv";
 
-    if( !$url ) {
-      if( sirv_isMuted() ){
+    if( ! $url ) {
+      list($is_muted, $expired_at) = sirv_is_muted(self::$endpoint_names, true);
+      if( $is_muted ) {
         self::$is_muted = true;
+        self::$mute_expired_at = $expired_at;
       }
 
       $url = wp_get_attachment_url($attachment_id);
