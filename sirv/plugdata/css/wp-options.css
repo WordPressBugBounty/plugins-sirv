@@ -2150,6 +2150,7 @@ input[name=SIRV_EMAIL]:focus::placeholder {
     width: 98%;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
 }
 
 .sirv-text-to-input-option-text-part {
@@ -2227,6 +2228,10 @@ label sup, h2 sup {
     border-radius: 3px;
     font-weight: 500;
     font-size: 15px;
+}
+
+.sirv-push-message-container + #sirv-woo-product-ttl {
+    margin-top: 5px;
 }
 
 .sirv-push-message b{

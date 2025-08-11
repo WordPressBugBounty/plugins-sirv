@@ -70,12 +70,18 @@ class SirvProdImageHelper{
     $sirv_metadata = array("sirv_type" => '');
     $allow_dimensions_types = array('image', 'video');
 
-    $sirv_item_metadata = Utils::get_sirv_item_info($sirv_url);
+    $response = Utils::get_sirv_item_info_curl($sirv_url);
+
+    if ( ! $response['error'] && $response['result'] ) {
+      $sirv_item_metadata = @json_decode($response['result']);
+    } else {
+      $sirv_item_metadata = array();
+    }
 
     if ( $sirv_item_type_data['type'] ) {
       $sirv_metadata["sirv_type"] = $sirv_item_type_data['type'];
     } else {
-      if( $sirv_item_metadata ){
+      if( count( (array) $sirv_item_metadata) > 0 ){
         if (isset($sirv_item_metadata->original->File->MIMEType)) {
           $sirv_metadata['sirv_type'] = explode('/', $sirv_item_metadata->original->File->MIMEType)[0];
         }
@@ -86,7 +92,6 @@ class SirvProdImageHelper{
       }else{
         $sirv_metadata['sirv_type'] = 'image';
       }
-
     }
 
     if( in_array($sirv_metadata['sirv_type'], $allow_dimensions_types) ){
@@ -105,9 +110,9 @@ class SirvProdImageHelper{
       }
     }
 
-    $filesize = self::get_filesize($sirv_url, $sirv_metadata['sirv_type'])  ;
+    $response = Utils::get_remote_file_size($sirv_url, $sirv_metadata['sirv_type']);
 
-    if( ! empty($filesize) ) $sirv_metadata['filesize'] = $filesize;
+    $sirv_metadata['filesize'] = $response['filesize'];
 
     return $sirv_metadata;
   }
@@ -115,6 +120,15 @@ class SirvProdImageHelper{
 
   protected static function get_filesize($sirv_url, $sirv_item_type){
     $user_agent = 'Sirv/Wordpress';
+    $referer = Utils::get_site_referer();
+    $current_page_url = Utils::get_current_page_url();
+
+    $request_headers = array(
+      "Accept" => 'Accept: application/json',
+      "Referer" => "Referer: $referer",
+      "X-SIRV-CURRENT-PAGE-URL" => "X-SIRV-CURRENT-PAGE-URL: $current_page_url",
+      "X-SIRV-INITIATOR" => "X-SIRV-INITIATOR: get_filesize",
+    );
     $size = null;
 
     if( $sirv_item_type == 'spin') $sirv_url .= "?image";
@@ -122,6 +136,7 @@ class SirvProdImageHelper{
     $ch = curl_init($sirv_url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_ENCODING, '');
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $request_headers);
     curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
     curl_setopt($ch, CURLINFO_HEADER_OUT, true);
 

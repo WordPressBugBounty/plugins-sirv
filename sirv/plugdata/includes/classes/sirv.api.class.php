@@ -1078,18 +1078,25 @@ class SirvAPIClient
             return $response;
         }
 
-        if (is_null($headers)) $headers = array();
+        if ( is_null($headers) ) $headers = array();
 
-        if (!empty($token)) {
+        if ( ! empty($token) ) {
             $headers['Authorization'] = "Bearer " . ((!empty($token)) ? $token : $this->token);
         } else {
             $headers['Authorization'] = "Bearer " . $this->token;
         }
-        if(!array_key_exists('Content-Type', $headers)) $headers['Content-Type'] = "application/json";
+        if ( ! array_key_exists('Content-Type', $headers) ) $headers['Content-Type'] = "application/json";
 
         foreach ($headers as $k => $v){
             $headers[$k] = "$k: $v";
         }
+
+        $referer = Utils::get_site_referer();
+        $current_page_url = Utils::get_current_page_url();
+
+        $headers["Referer"] = "Referer: $referer";
+        $headers["X-SIRV-CURRENT-PAGE-URL"] = "X-SIRV-CURRENT-PAGE-URL: $current_page_url";
+        $headers["X-SIRV-INITIATOR"] = "X-SIRV-INITIATOR: api sendRequest";
 
         //$fp = fopen(dirname(__FILE__) . '/curl_errorlog.txt', 'w');
 
@@ -1108,6 +1115,7 @@ class SirvAPIClient
             //CURLOPT_CONNECTTIMEOUT => 2,
             //CURLOPT_TIMEOUT => 30,
             //CURLOPT_SSL_VERIFYPEER => false,
+            //CURLINFO_HEADER_OUT => IS_DEBUG ? true : false,
             //CURLOPT_VERBOSE => true,
             //CURLOPT_STDERR => $fp,
         ));
@@ -1116,7 +1124,7 @@ class SirvAPIClient
         $info = curl_getinfo($curl);
         $error = curl_error($curl);
 
-        if($error){
+        if( $error ){
             global $sirv_gbl_sirv_logger;
 
             $sirv_gbl_sirv_logger->error($this->baseURL . $url, 'request url')->filename('network_errors.log')->write();

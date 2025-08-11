@@ -316,6 +316,11 @@ class Woo_options extends Options_generator{
 
     return $html;
   }
+
+
+  protected static function render_ttl_option($option){
+    $html = '<tr>';
+  }
 }
 
 ?>

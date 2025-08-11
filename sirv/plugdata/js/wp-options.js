@@ -708,14 +708,14 @@ jQuery(function ($) {
 
                 if ( (data.q*1 + data.FAILED.count*1) == data.total_count*1) {
                     if (data.FAILED.count * 1 == 0) {
-                        //manageElement('input[name=sirv-sync-images]', disableFlag = true, text = '100% synced', button = true);
+                        //manageElement('input[name=sirv-sync-images]', true, text = '100% synced', button = true);
                         setButtonSyncState('syncedAll');
                     } else {
-                        //manageElement('input[name=sirv-sync-images]', disableFlag = true, text = 'Synced', button = true);
+                        //manageElement('input[name=sirv-sync-images]', true, text = 'Synced', button = true);
                         setButtonSyncState("synced");
                     }
                 }else{
-                    //manageElement('input[name=sirv-sync-images]', disableFlag = false, text = 'Sync images', button = true);
+                    //manageElement('input[name=sirv-sync-images]', false, text = 'Sync images', button = true);
                     setButtonSyncState("sync");
                 }
 
@@ -947,7 +947,7 @@ jQuery(function ($) {
                     }
 
                     if (!!data.status && data.status.isStopSync){
-                        manageElement('input[name=sirv-sync-images]', disableFlag = true, text = 'Can\'t sync', button = true);
+                        manageElement('input[name=sirv-sync-images]', true, 'Can\'t sync', true);
                         showMessage('.sirv-sync-messages', data.status.errorMsg);
                         $('.sirv-processing-message').hide();
                         $('.sirv-progress__bar--line-complited').removeClass('sirv-progress-bar-animated');
@@ -1015,22 +1015,22 @@ jQuery(function ($) {
             switch (state) {
                 case 'sync':
                     $(buttonSelector).on("click", initializeMassSync);
-                    manageElement(buttonSelector, disableFlag = false, text = 'Sync items', button = true);
+                    manageElement(buttonSelector, false, 'Sync items', true);
                     break;
                 case 'syncing':
                     $(buttonSelector).on("click", stopMassSync);
-                    manageElement(buttonSelector, disableFlag = false, text = 'Stop sync', button = true);
+                    manageElement(buttonSelector, false, 'Stop sync', true);
                     break;
 
                 case 'stoping':
-                    manageElement(buttonSelector, disableFlag = true, text = 'Stoping', button = true);
+                    manageElement(buttonSelector, true, 'Stoping', true);
                     break;
                 case 'synced':
-                    manageElement(buttonSelector, disableFlag = true, text = 'Synced', button = true);
+                    manageElement(buttonSelector, true, 'Synced', true);
                     break;
                 case 'syncedAll':
                     //$(buttonSelector).on("click", stopMassSync);
-                    manageElement(buttonSelector, disableFlag = true, text = '100% synced', button = true);
+                    manageElement(buttonSelector, true, '100% synced', true);
                     break;
             }
         }
@@ -1323,7 +1323,7 @@ jQuery(function ($) {
         function savePreventedSizes(e){
             e.preventDefault();
 
-            $button = $(this);
+            const $button = $(this);
 
             let preventedSizesStr = $("#sirv-prevented-sizes-hidden").val();
 
@@ -1616,7 +1616,7 @@ jQuery(function ($) {
             $("#sirv-sync-view-files .sirv-sync-view-files-show-status").text("Processing: syncing...");
             $("#sirv-sync-view-files .sirv-sync-view-files-status").show();
             $("#sirv-sync-view-files .sirv-progress-bar-component-line__complited").addClass("sirv-progress-bar-animated");
-            manageElement(".sirv-sync-view-files-action", disableFlag = false, text = 'Stop');
+            manageElement(".sirv-sync-view-files-action", false, 'Stop');
             $(".sirv-sync-view-files-action").removeClass('sirv-sync-view-files-action__start').addClass('sirv-sync-view-files-action__stop');
 
             massViewSync();
@@ -1627,7 +1627,7 @@ jQuery(function ($) {
         function stopMassViewSync(){
             isStopViewSyncing = true;
             $("#sirv-sync-view-files .sirv-sync-view-files-show-status").text("Processing: stopping...");
-            manageElement(".sirv-sync-view-files-action", disableFlag = true, text = 'Stopping...');
+            manageElement(".sirv-sync-view-files-action", true, 'Stopping...');
             $(".sirv-sync-view-files-action").removeClass('sirv-sync-view-files-action__stop');
         }
 
@@ -1696,7 +1696,7 @@ jQuery(function ($) {
             $("#sirv-sync-view-files .sirv-sync-view-files-show-status").text("Processing: syncing...");
             $("#sirv-sync-view-files .sirv-progress-bar-component-line__complited").removeClass("sirv-progress-bar-animated");
 
-            manageElement(".sirv-sync-view-files-action", disableFlag = false, text = 'Sync Sirv folders');
+            manageElement(".sirv-sync-view-files-action", false, 'Sync Sirv folders');
             $(".sirv-sync-view-files-action").removeClass('sirv-sync-view-files-action__stop').addClass('sirv-sync-view-files-action__start');
         }
 
@@ -1705,7 +1705,7 @@ jQuery(function ($) {
         function clearOldViewFilesCache(e){
             e.preventDefault();
 
-            $button = $(this);
+            const $button = $(this);
 
 
             $.ajax({
@@ -2074,7 +2074,7 @@ jQuery(function ($) {
                 $('.sirv-stats-container').removeClass('sirv-loading');
                 if (!!data) {
                     if(data.error){
-                        showMessage('.sirv-stats-messages', error);
+                        showMessage('.sirv-stats-messages', data.error);
                     }
 
                     window.abc = data.traffic.traffic;
@@ -2215,44 +2215,6 @@ jQuery(function ($) {
         }
 
 
-        function ajaxRequest(ajaxurl, data, type = 'POST', async = true, trafficData, key, value) {
-            $.ajax({
-                url: ajaxurl,
-                data: data,
-                type: type,
-                async: async
-            }).done(function (response) {
-                //console.log(response);
-
-                if (response !== '' && isJsonString(response)) {
-                    let json_obj = JSON.parse(response);
-                    trafficData.push({
-                        size: calcTraffic(json_obj),
-                        date: value[2],
-                        order: value[3]
-                    });
-                } else {
-                    console.error('Server returned non JSON Trafic data');
-                    console.info('Response dump:', response);
-                    trafficData.length = 13;
-                    $('.sirv-tf-loading-error').html("Error during ajax request: Fetch data failed");
-                    $('.sirv-traffic-loading').hide();
-                }
-
-            }).fail(function (jqXHR, status, error) {
-                console.log("Error during ajax request: " + error + status);
-                //hack to check that data is not fetched
-                trafficData.length = 13;
-                if (error) {
-                    $('.sirv-tf-loading-error').html("Error during ajax request: " + error);
-                } else {
-                    $('.sirv-tf-loading-error').html("Error during ajax request: Fetch data failed");
-                }
-                $('.sirv-traffic-loading').hide();
-            });
-        }
-
-
         function getFormatedFileSize(bytes) {
             let negativeFlag = false;
             let position = 0;
@@ -2348,6 +2310,22 @@ jQuery(function ($) {
 
         $('#sirv-woo-product-ttl').on('change', function () {
             manageSelect('#sirv-woo-product-ttl', '#sirv-woo-product-ttl-val', true);
+
+            let isMessageExist = $("#sirv-woo-product-ttl").prev(".sirv-push-message-warning").length > 0;
+
+            if(+$(this).val() === 1){
+                if(isMessageExist) return;
+                $("#sirv-woo-product-ttl").parent().prepend(
+                    `<div class="sirv-push-message-container sirv-push-message-warning">
+                        <div class="sirv-push-message sirv-push-message-warning-icon">
+                            Disabled cache will cause requests to Sirv on every product page load. Do not use it on a live production site - it could slow down page loading. 7 days or 1 month is recommended.
+                        </div>
+                </div>`
+                );
+            }else{
+                if (!isMessageExist) return;
+                $("#sirv-woo-product-ttl").prev(".sirv-push-message-container")[0].remove();
+            }
         });
 
 
@@ -2488,7 +2466,7 @@ jQuery(function ($) {
 
 
         function initializeWooCatItemsState(){
-            activeItem = $("input[name=SIRV_WOO_CAT_ITEMS]:checked").val() || 1;
+            const activeItem = $("input[name=SIRV_WOO_CAT_ITEMS]:checked").val() || 1;
             wooCatItemsState(activeItem);
         }
 
@@ -2542,7 +2520,7 @@ jQuery(function ($) {
         }
 
         function recalcSmvOrderData() {
-            data = [];
+            const data = [];
             $(".sirv-smv-order-item-changeble").each(function () {
                 data.push($(this).attr("data-item-type"));
             });
@@ -2753,7 +2731,7 @@ jQuery(function ($) {
                 $(".sirv-compressed-js-spinner").hide();
 
                 if(!!res.error){
-                    $(".sirv-compressed-js-val").text("Error: " + error);
+                    $(".sirv-compressed-js-val").text("Error: " + res.error);
                 }else{
                     $(".sirv-compressed-js-val").text(`${res.compressed_s} (unzipped ${res.uncompressed_s})`);
                     sirvJsCompressedSizes[modules] = {compressed_s: res.compressed_s, uncompressed_s: res.uncompressed_s};
@@ -2818,7 +2796,7 @@ jQuery(function ($) {
 
                 if(res.synced_percent == 100){
                     $('.sirv-wai-bar-line-complited').removeClass('sirv-progress-bar-animated');
-                    $block = $('.migrate-woo-additional-images-wrapper');
+                    const $block = $('.migrate-woo-additional-images-wrapper');
                     $block.empty();
                     $block.append(
                         `<span class="sirv-option-responsive-text">If you use the WooCommerce Additional Variation Images plugin, you can migrate images from that plugin into Sirv. You don\'t need that plugin if you use Sirv.</span>
@@ -2950,7 +2928,7 @@ jQuery(function ($) {
 
         $("input[name=SIRV_WOO_IS_USE_VIEW_FILE]").on("change", manageViewFileContentOption);
         function manageViewFileContentOption(){
-            $status = $(this).val();
+            const $status = $(this).val();
 
             if($status == 'on'){
                 manageElement('.sync-all-view-data-show-dialog', false);
@@ -3009,7 +2987,7 @@ jQuery(function ($) {
 
         $("input[name=SIRV_WOO_SMV_CACHE_IS_ENABLE]").on("change", manageSmvHtmlCacheOption);
         function manageSmvHtmlCacheOption(){
-            $status = $(this).val();
+            const $status = $(this).val();
 
             if($status == 'on'){
                 manageElement(".sirv-clean-smv-html-cache", false);

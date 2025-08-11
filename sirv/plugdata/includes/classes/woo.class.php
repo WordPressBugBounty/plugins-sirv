@@ -861,7 +861,7 @@ class Woo
       return $this->get_cache_woo_view_file_data($product_id, $isVariation, $force_update);
     }
 
-    return array();
+    return (object) array("items" => array(), "is_main_image_from_view_file" => false);
   }
 
 
@@ -896,10 +896,6 @@ class Woo
     }
 
     $ttl = $this->get_view_file_ttl();
-    if ( $ttl == 1 ) {
-      $view_file = $this->load_view_file_data($product_id, $view_path);
-      return $view_file['data'];
-    }
 
     $cache = $this->get_woo_cache_row($product_id, $cache_key);
     if ( empty($cache) ) {
@@ -915,7 +911,7 @@ class Woo
 
       $result = $this->save_data_to_cache($cache);
 
-    } else if ( $is_force_update || in_array($cache['cache_status'], array('EXPIRED', 'DELETED')) ) {
+    } else if ( $is_force_update || in_array($cache['cache_status'], array('EXPIRED', 'DELETED')) || $ttl === 1 ) {
 
       $view_file_data = (object) json_decode($cache['cache_value']);
 
@@ -945,6 +941,7 @@ class Woo
       if ( ! is_null($cache['expired_at']) && time() > strtotime($cache['expired_at']) ) {
         global $sirv_gbl_background_mode;
 
+        //if false that means that we not in shutdown event and can add background job, if true than we need do jobs instead add new background job.
         if ( ! $sirv_gbl_background_mode ) {
           $GLOBALS['sirv_jobs']['sirv_update_view_file_cache'][] = array("cache" => $cache, "ttl" => $ttl, "view_file_path" => $view_path);
         } else {
@@ -964,23 +961,6 @@ class Woo
     $ttl_time = $ttl_time == 0 ? 24 * 60 * 60 : $ttl_time;
 
     return $ttl_time;
-  }
-
-
-  protected function get_HEAD_request($url)
-  {
-
-    $context = stream_context_create(
-      array(
-        'http' => array(
-          'method' => 'HEAD'
-        )
-      )
-    );
-
-    $headers = get_headers($url, true, $context);
-
-    return $headers;
   }
 
 
@@ -1035,9 +1015,14 @@ class Woo
 
     $is_skip_items_to_main_image = false;
     $is_parse_main_image = get_option('SIRV_WOO_MAIN_PRODUCT_IMAGE_FROM_VIEW_FILE') == 'on' ? true : false;
-    $context = stream_context_create(array('http' => array('method' => "GET")));
-    $json_data = @file_get_contents($view_file_path . '.view?info', false, $context);
-    $view_data = @json_decode($json_data);
+
+    $response = Utils::get_sirv_item_info_curl($view_file_path . '.view');
+
+    if( ! $response['error'] && $response['result'] ){
+      $view_data = @json_decode($response['result']);
+    } else {
+      $view_data = array();
+    }
 
     if ( (is_object($view_data) && !isset($view_data->_isplaceholder)) && !empty($view_data->assets) && count($view_data->assets) ) {
       $sirv_view_data['status'] = 'SUCCESS';
@@ -1450,7 +1435,6 @@ class Woo
     $sirv_remote_variation = $this->get_sirv_remote_data($variation_id, true, true);
 
     $sirv_local_variation = $this->fix_item_viewIds($variation_id, $sirv_local_variation);
-
 
     if (!empty($sirv_local_variation->items) && !empty($sirv_remote_variation)) {
       $variation_data = $this->merge_object_data($sirv_local_variation->items, $sirv_remote_variation->items, true);

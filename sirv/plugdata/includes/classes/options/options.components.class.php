@@ -75,6 +75,7 @@ class Options_components extends HTML_form_components{
       <tr ' . $id_selector . '>
         ' . self::render_option_title($option['label']) . '
         <td>
+        '. self::render_message($option) . '
         '.  self::render_mute_message($is_muted, $expired_at_timestamp ) . '
         '. self::render_select_component($option, $is_muted) . '
         ' . self::render_below_text($below_text) . '

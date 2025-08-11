@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           8.0.0
+ * Version:           8.0.1
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '8.0.0');
+define('SIRV_PLUGIN_VERSION', '8.0.1');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -3558,8 +3558,9 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
         return '';
       }
     } else {
-      if ( !file_exists($paths['img_file_path']) ) {
-        $headers = @get_headers($paths['image_full_url'], 1);
+      if ( ! file_exists($paths['img_file_path']) ) {
+        $headers = Utils::get_headers_curl($paths['image_full_url']);
+
         if (!isset($headers['Content-Length'])) {
           sirv_set_db_failed($wpdb, $sirv_images_t, $attachment_id, $paths);
           return '';
@@ -7247,12 +7248,22 @@ function sirv_get_js_module_size(){
 function sirv_get_js_compressed_size($url){
   $sizes = array("compressed" => null, "uncompressed" => null, 'error' => null);
   $user_agent = 'Sirv/Wordpress';
+  $referer = Utils::get_site_referer();
+  $current_page_url = Utils::get_current_page_url();
+
+  $request_headers = array(
+    "Accept" => 'Accept: application/json',
+    "Referer" => "Referer: $referer",
+    "X-SIRV-CURRENT-PAGE-URL" => "X-SIRV-CURRENT-PAGE-URL: $current_page_url",
+    "X-SIRV-INITIATOR" => "X-SIRV-INITIATOR: sirv_get_js_compressed_size",
+  );
 
   $cache = sirv_get_transient_cache('sirv_js_compressed_sizes');
 
   if ( isset($cache[$url]) ) return $cache[$url];
 
   $curl = curl_init($url);
+  //show request headers
   //curl_setopt($ch, CURLINFO_HEADER_OUT, true);
 
   curl_setopt_array($curl, array(
@@ -7261,6 +7272,7 @@ function sirv_get_js_compressed_size($url){
     CURLOPT_ENCODING => "",
     CURLOPT_ACCEPT_ENCODING => "",
     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_NONE,
+    CURLOPT_HTTPHEADER => $request_headers,
     CURLOPT_USERAGENT => $user_agent,
   ));
 
@@ -7292,9 +7304,11 @@ function sirv_get_js_compressed_size($url){
 
 
 function sirv_get_js_uncomressed_size($url){
-  $headers_data = get_headers($url, true);
+  $headers_data = Utils::get_headers_curl($url);
 
-  return $headers_data['Content-Length'];
+  $content_length = isset($headers_data['Content-Length']) ? $headers_data['Content-Length'] : 0;
+
+  return $content_length;
 }
 
 

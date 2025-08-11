@@ -179,6 +179,20 @@
     }
 
 
+    public static function get_site_referer(){
+      return isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : get_site_url();
+    }
+
+
+    public static function get_current_page_url(){
+      //htmlspecialchars($_SERVER['REQUEST_URI'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+      $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : get_site_url();
+      $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+
+      return "https://$host$request_uri";
+    }
+
+
     public static function get_sirv_item_info($sirv_url){
       $context = stream_context_create(array('http' => array('method' => "GET")));
       $sirv_item_metadata = @json_decode(@file_get_contents($sirv_url . '?info', false, $context));
@@ -194,12 +208,21 @@
     }
 
 
-    public static function get_remote_file_size($url){
-      $site_url = get_site_url();
+    //this function return very aproximate file size (ofren much less that real size). We don't have ability to get exact file size without downloading file
+    public static function get_remote_file_size($url, $item_type = null){
+      $referer = self::get_site_referer();
+      $current_page_url = self::get_current_page_url();
+
       $request_headers = array(
         "Accept" => 'Accept: application/json',
-        "Referer" => "Referer: $site_url",
+        "Referer" => "Referer: $referer",
+        "X-SIRV-CURRENT-PAGE-URL" => "X-SIRV-CURRENT-PAGE-URL: $current_page_url",
+        "X-SIRV-INITIATOR" => "X-SIRV-INITIATOR: get_remote_file_size",
       );
+
+      if( !is_null($item_type) && $item_type == 'spin' ) {
+        $url .= "?image";
+      }
 
       $ch = curl_init();
       curl_setopt_array($ch, array(
@@ -243,10 +266,14 @@
       $headers = array();
       $error = NULL;
 
-      $site_url = get_site_url();
+      $referer = self::get_site_referer();
+      $current_page_url = self::get_current_page_url();
+
       $request_headers = array(
         "Accept" => 'Accept: application/json',
-        "Referer" => "Referer: $site_url",
+        "Referer" => "Referer: $referer",
+        "X-SIRV-CURRENT-PAGE-URL" => "X-SIRV-CURRENT-PAGE-URL: $current_page_url",
+        "X-SIRV-INITIATOR" => "X-SIRV-INITIATOR: get_sirv_item_info_curl",
       );
 
       $request_url = $url . '?info';
@@ -295,9 +322,14 @@
       self::$headers = array();
       $error = NULL;
 
-      $site_url = get_site_url();
+      $referer = self::get_site_referer();
+      $current_page_url = self::get_current_page_url();
+
       $request_headers = array(
-        "Referer" => "Referer: $site_url",
+        "Accept" => 'Accept: application/json',
+        "Referer" => "Referer: $referer",
+        "X-SIRV-CURRENT-PAGE-URL" => "X-SIRV-CURRENT-PAGE-URL: $current_page_url",
+        "X-SIRV-INITIATOR" => "X-SIRV-INITIATOR: get_headers_curl",
       );
 
       $ch = curl_init();

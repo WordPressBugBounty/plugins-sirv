@@ -139,6 +139,19 @@ class HTML_form_components{
   }
 
 
+  protected static function render_message($option){
+    $is_message = isset($option['render_message']) ? true : false;
+
+    if ( $is_message ) {
+      extract($option['render_message']);
+      if ( $show_on_value == $option['value'] ) {
+        return Utils::showMessage($message, $type);
+      }
+  }
+  return '';
+}
+
+
   protected static function render_mute_message($is_muted, $expired_at_timestamp){
 
     if ( ! $is_muted || ! isset($expired_at_timestamp) || $expired_at_timestamp == 0 ) return '';

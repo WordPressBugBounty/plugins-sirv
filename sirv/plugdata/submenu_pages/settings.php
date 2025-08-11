@@ -68,54 +68,62 @@
         <th><label>Domain</label></th>
         <td>
           <?php
-            if ($is_accountInfo_muted) {
-              //$domains_mute_message = 'Option is disabled due to exceeding API usage rate limit. Refresh this page in <b>' . Utils::get_minutes(sirv_get_mute_expired_at($accountInfoEndpoint)) . ' minutes</b>';
-              $domains_mute_message = 'You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for <b>' . Utils::get_minutes(sirv_get_mute_expired_at($accountInfoEndpoint)) . ' minutes</b>. Please try again after that or inform the <a href="https://sirv.com/help/support/#support" target="_blank">Sirv support team</a> if you keep seeing this message.';
-              echo '<div class="sirv-message-container">' . Utils::showMessage($domains_mute_message, 'warning') . '</div>';
-            }
+          if ($is_accountInfo_muted) {
+            //$domains_mute_message = 'Option is disabled due to exceeding API usage rate limit. Refresh this page in <b>' . Utils::get_minutes(sirv_get_mute_expired_at($accountInfoEndpoint)) . ' minutes</b>';
+            $domains_mute_message = 'You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for <b>' . Utils::get_minutes(sirv_get_mute_expired_at($accountInfoEndpoint)) . ' minutes</b>. Please try again after that or inform the <a href="https://sirv.com/help/support/#support" target="_blank">Sirv support team</a> if you keep seeing this message.';
+            echo '<div class="sirv-message-container">' . Utils::showMessage($domains_mute_message, 'warning') . '</div>';
+          }
           ?>
           <select id="sirv-choose-domain" name="SIRV_CDN_URL" <?php echo ($is_accountInfo_muted || count($domains) <= 1) ? 'disabled' : ''; ?>>
             <?php
-              if ( count($domains) > 1 ) {
-                foreach ($domains as $domain) {
-                  $selected = '';
-                  if ($domain == $sirvCDNurl) {
-                    $selected = 'selected';
-                  }
-                  echo '<option ' . $selected . ' value="' . $domain . '">' . $domain . '</option>';
+            if (count($domains) > 1) {
+              foreach ($domains as $domain) {
+                $selected = '';
+                if ($domain == $sirvCDNurl) {
+                  $selected = 'selected';
                 }
-              } else {
-                echo '<option selected value="' . $sirvCDNurl . '">' . $sirvCDNurl . '</option>';
+                echo '<option ' . $selected . ' value="' . $domain . '">' . $domain . '</option>';
               }
+            } else {
+              echo '<option selected value="' . $sirvCDNurl . '">' . $sirvCDNurl . '</option>';
+            }
             ?>
           </select>
         </td>
       </tr>
+      <?php
+      $sirv_folder = get_option('SIRV_FOLDER');
+      ?>
       <tr>
-        <?php
-        $sirv_folder = get_option('SIRV_FOLDER');
-        ?>
         <th>
           <label>Folder name on Sirv</label>
         </th>
         <td style="padding-top:0;">
-          <div class="sirv-text-to-input-option">
-            <div class="sirv-text-to-input-option-option">
-              <div class="sirv-text-to-input-option-text-part">
-                <div>
-                  <span class="sirv--grey"><?php echo htmlspecialchars($sirvCDNurl); ?>/</span><?php echo htmlspecialchars($sirv_folder); ?>
+          <div class="sirv-text-to-input-option-block">
+            <div class="sirv-text-to-input-option" style="width: 100%;">
+              <div class="sirv-text-to-input-option-text-part" style="">
+                <div title="<?php echo $sirv_folder; ?>">
+                  <span class="sirv--grey"><?php echo htmlspecialchars($sirvCDNurl); ?>/</span>
+                  <span class="sirv-text-to-input-option-rendered-value"><?php echo htmlspecialchars($sirv_folder); ?></span>
                 </div>
-                <a class="sirv-option-edit" href="#">Change</a>
               </div>
               <div class="sirv-text-to-input-option-input-part" style="display: none;">
                 <span class="sirv--grey"><?php echo htmlspecialchars($sirvCDNurl); ?>/</span>
-                <input class="regular-text" type="text" name="SIRV_FOLDER" value="<?php echo htmlspecialchars($sirv_folder); ?>">
+                <input
+                  class="regular-text"
+                  type="text"
+                  style="min-width: auto;"
+                  placeholder="<?php echo htmlspecialchars($sirv_folder); ?>"
+                  value="<?php echo htmlspecialchars($sirv_folder); ?>"
+                  name="SIRV_FOLDER" data-restore-value="<?php echo htmlspecialchars($sirv_folder); ?>"
+                >
               </div>
+              <a class="sirv-option-edit" href="#" data-type="render">Change</a>
             </div>
-            <div class="sirv-push-message-container sirv-push-message-warning sirv-hide sirv-warning-on-folder-change">
-              <div class="sirv-push-message sirv-push-message-warning-icon">
-                <span style="font-size: 15px;font-weight: 800;">Important!</span><br>Changing folder name will clear the image cache, so images will re-synchronize on first request or use <a class="sirv-show-sync-tab">Sync Images</a> to pre-sync entire library.
-              </div>
+          </div>
+          <div class="sirv-push-message-container sirv-push-message-warning sirv-hide sirv-warning-on-folder-change">
+            <div class="sirv-push-message sirv-push-message-warning-icon">
+              <span style="font-size: 15px;font-weight: 800;">Important!</span><br>Changing folder name will clear the image cache, so images will re-synchronize on first request or use <a class="sirv-show-sync-tab">Sync Images</a> to pre-sync entire library.
             </div>
           </div>
         </td>
@@ -236,25 +244,25 @@
         </th>
         <td>
           <?php
-            $endpoint_name = 'v2/files/readdir';
-            $is_muted_profiles = sirv_is_muted($endpoint_name);
-            if ($is_muted_profiles) {
-              //$profiles_mute_message = 'Option is disabled due to exceeding API usage rate limit. Refresh this page in <b>' . Utils::get_minutes(sirv_get_mute_expired_at($endpoint_name)) . ' minutes</b>';
-              $profiles_mute_message = 'You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for <b>' . Utils::get_minutes(sirv_get_mute_expired_at($endpoint_name)) . ' minutes</b>. Please try again after that or inform the <a href="https://sirv.com/help/support/#support" target="_blank">Sirv support team</a> if you keep seeing this message.';
+          $endpoint_name = 'v2/files/readdir';
+          $is_muted_profiles = sirv_is_muted($endpoint_name);
+          if ($is_muted_profiles) {
+            //$profiles_mute_message = 'Option is disabled due to exceeding API usage rate limit. Refresh this page in <b>' . Utils::get_minutes(sirv_get_mute_expired_at($endpoint_name)) . ' minutes</b>';
+            $profiles_mute_message = 'You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for <b>' . Utils::get_minutes(sirv_get_mute_expired_at($endpoint_name)) . ' minutes</b>. Please try again after that or inform the <a href="https://sirv.com/help/support/#support" target="_blank">Sirv support team</a> if you keep seeing this message.';
 
-              echo '<div class="sirv-message-container">' . Utils::showMessage($profiles_mute_message, 'warning') . '</div>';
-            }
+            echo '<div class="sirv-message-container">' . Utils::showMessage($profiles_mute_message, 'warning') . '</div>';
+          }
           ?>
           <!-- <span class="sirv-traffic-loading-ico sirv-shortcodes-profiles"></span> -->
           <select id="sirv-cdn-profiles" <?php echo $is_muted_profiles ? 'disabled' : ''; ?>>
             <?php
-              $profiles_cdn_value = htmlspecialchars(get_option('SIRV_CDN_PROFILES'));
+            $profiles_cdn_value = htmlspecialchars(get_option('SIRV_CDN_PROFILES'));
 
-              if (isset($profiles)) echo sirv_renderProfilesOptopns($profiles);
+            if (isset($profiles)) echo sirv_renderProfilesOptopns($profiles);
 
-              if ($is_muted_profiles) {
-                echo '<option disabled>Choose profile</option><option value="' . $profiles_cdn_value . '">' . $profiles_cdn_value . '</option>';
-              }
+            if ($is_muted_profiles) {
+              echo '<option disabled>Choose profile</option><option value="' . $profiles_cdn_value . '">' . $profiles_cdn_value . '</option>';
+            }
             ?>
           </select>
           <input type="hidden" id="sirv-cdn-profiles-val" name="SIRV_CDN_PROFILES" value="<?php echo $profiles_cdn_value; ?>">
@@ -273,19 +281,19 @@
         <td>
           <!-- <span class="sirv-traffic-loading-ico sirv-shortcodes-profiles"></span> -->
           <?php
-            if ($is_muted_profiles) {
-              echo '<div class="sirv-message-container">' . Utils::showMessage($profiles_mute_message, 'warning') . '</div>';
-            }
+          if ($is_muted_profiles) {
+            echo '<div class="sirv-message-container">' . Utils::showMessage($profiles_mute_message, 'warning') . '</div>';
+          }
           ?>
           <select id="sirv-shortcodes-profiles" <?php echo $is_muted_profiles ? 'disabled' : ''; ?>>
             <?php
-              $profiles_shortcodes_value = htmlspecialchars(get_option('SIRV_SHORTCODES_PROFILES'));
+            $profiles_shortcodes_value = htmlspecialchars(get_option('SIRV_SHORTCODES_PROFILES'));
 
-              if (isset($profiles)) echo sirv_renderProfilesOptopns($profiles);
+            if (isset($profiles)) echo sirv_renderProfilesOptopns($profiles);
 
-              if ($is_muted_profiles) {
-                echo '<option disabled>Choose profile</option><option value="' . $profiles_shortcodes_value . '">' . $profiles_shortcodes_value . '</option>';
-              }
+            if ($is_muted_profiles) {
+              echo '<option disabled>Choose profile</option><option value="' . $profiles_shortcodes_value . '">' . $profiles_shortcodes_value . '</option>';
+            }
             ?>
           </select>
           <input type="hidden" id="sirv-shortcodes-profiles-val" name="SIRV_SHORTCODES_PROFILES" value="<?php echo $profiles_shortcodes_value; ?>">
