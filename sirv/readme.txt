@@ -5,7 +5,7 @@ Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
 Tested up to: 6.8.2
-Stable tag: 8.0.1
+Stable tag: 8.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -222,6 +222,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 18. To upload images to your Sirv library, go to the Media Library page within the Sirv sub-menu (in the left navigation column).
 
 == Changelog ==
+
+= 8.0.2 (2025-09-12) =
+* Fixed issue with incorrect display of "Folder name on Sirv".
+* Added validation for option "Folder name on Sirv".
+* Added option to use "/" to exclude home page from image replacement.
 
 = 8.0.1 (2025-08-11) =
 * Fixed issue that could prevent "Folder name on Sirv" from working.

@@ -4,7 +4,7 @@
  *
  * This template for displaying Sirv Media Viewer in WC product pages
  *
- * @version 9.0.0
+ * @version 9.7.0
  */
 
   defined('ABSPATH') or die('No script kiddies please!');

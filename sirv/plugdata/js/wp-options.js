@@ -37,8 +37,6 @@ jQuery(function ($) {
         }
 
         Validator.prototype.email = function(fieldValue){
-            //let regex = /^((?!\.)[\w-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/i;
-            //let regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
             let regex = /^[a-z0-9!#$%&'"*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'"*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i;
             return !regex.test(fieldValue);
         }
@@ -62,6 +60,19 @@ jQuery(function ($) {
             let result = [];
             result = stringsArr.filter(function(str){return fieldValue.indexOf(str) !== -1});
             return result.length > 0;
+        }
+
+
+        Validator.prototype.url = function(fieldValue){
+            const regex = /^http(s)?:\/\//i;
+            return regex.test(fieldValue);
+        }
+
+
+        Validator.prototype.folder = function(fieldValue){
+            const regex = /^[a-zA-Z0-9\-\+\_\.\!\*\'\( \)\/\s]+$/i;
+
+            return !regex.test(fieldValue);
         }
 
 
@@ -810,13 +821,67 @@ jQuery(function ($) {
 
         //sanitize folder name on sirv
         $('#sirv-save-options').on('submit', function () {
-            let folderOnSirv = $("[name='SIRV_FOLDER']").val();
-            let sanitizedFolderOnSirv = folderOnSirv == '' ? 'WP_' + get_current_domain() : folderOnSirv.replace(/^[\/]*(.*?)[\/]*$/ig, '$1');
-            if(sanitizedFolderOnSirv == '') sanitizedFolderOnSirv = 'WP_' + get_current_domain();
-            $("[name='SIRV_FOLDER']").val(sanitizedFolderOnSirv);
+            const folderOnSirv = $("[name='SIRV_FOLDER']").val().trim();
+            const $folderOptionIssuesBlock = $(".sirv-option-folder-issues");
+            const validator = new Validator();
+            const issues = [];
+
+            $folderOptionIssuesBlock.empty();
+
+            if(validator.invalidValidate(folderOnSirv, validator.empty)){
+                issues.push("Folder cannot be empty");
+            }
+
+            if (folderOnSirv.startsWith("/") || folderOnSirv.endsWith("/")) {
+                issues.push("Folder cannot start or end with /");
+            }
+
+            if(validator.invalidValidate(folderOnSirv, validator.url)){
+                issues.push("Folder cannot be a URL");
+            }
+
+            if (validator.invalidValidate(folderOnSirv, validator.folder)) {
+                issues.push("Folder can contain only letters, numbers, - + _ . ! * ' ( ) / or space.");
+            }
+
+            if (issues.length > 0) {
+                showInputIssues($folderOptionIssuesBlock, issues);
+
+                return false
+            }
+
+            /* let sanitizedFolderOnSirv = folderOnSirv == '' ? 'WP_' + get_current_domain() : folderOnSirv.replace(/^[\/]*(.*?)[\/]*$/ig, '$1');
+            if(sanitizedFolderOnSirv == '') sanitizedFolderOnSirv = 'WP_' + get_current_domain(); */
+            $("[name='SIRV_FOLDER']").val(folderOnSirv);
 
             return true;
         });
+
+        //event listener for option sirv-text-to-input-option-text-cancel
+        $(document).on('sirv-text-to-input-option-text-cancel', function(e) {
+            const id = e.detail.id;
+
+            switch (id) {
+                case "foldername":
+                    $(".sirv-option-folder-issues").empty();
+                    $(".sirv-warning-on-folder-change").addClass("sirv-hide");
+                    break;
+
+                default:
+                    break;
+            }
+        });
+
+
+        function showInputIssues(element, issues) {
+            const documentFragment = $(document.createDocumentFragment());
+
+            issues.forEach(issue => {
+                documentFragment.append($(`<li>${issue}</li>`));
+            });
+
+            element.append(documentFragment);
+        }
 
 
         function get_current_domain(){
@@ -854,6 +919,7 @@ jQuery(function ($) {
             e.preventDefault();
 
             const $button = $(this);
+            const id = $button.attr('data-id') || "";
             const type = $button.attr('data-type')
             const $showValuePart = $(this).parent().find('.sirv-text-to-input-option-text-part');
             const $inputValuePart = $(this).parent().find('.sirv-text-to-input-option-input-part');
@@ -872,6 +938,16 @@ jQuery(function ($) {
                 $input.val($input.attr('data-restore-value'));
                 $showValuePart.show();
                 $inputValuePart.hide();
+
+                if (id){
+                    document.dispatchEvent(
+                        new CustomEvent('sirv-text-to-input-option-text-cancel', {
+                            detail: {
+                                id
+                            },
+                        })
+                    );
+                }
             }
         }
 

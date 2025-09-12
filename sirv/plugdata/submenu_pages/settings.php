@@ -69,7 +69,6 @@
         <td>
           <?php
           if ($is_accountInfo_muted) {
-            //$domains_mute_message = 'Option is disabled due to exceeding API usage rate limit. Refresh this page in <b>' . Utils::get_minutes(sirv_get_mute_expired_at($accountInfoEndpoint)) . ' minutes</b>';
             $domains_mute_message = 'You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for <b>' . Utils::get_minutes(sirv_get_mute_expired_at($accountInfoEndpoint)) . ' minutes</b>. Please try again after that or inform the <a href="https://sirv.com/help/support/#support" target="_blank">Sirv support team</a> if you keep seeing this message.';
             echo '<div class="sirv-message-container">' . Utils::showMessage($domains_mute_message, 'warning') . '</div>';
           }
@@ -89,6 +88,11 @@
             }
             ?>
           </select>
+
+          <?php if ($is_accountInfo_muted || count($domains) <= 1) { ?>
+            <input type="hidden" id="sirv_choose_domain" name="SIRV_CDN_URL" value="<?php echo $sirvCDNurl; ?>">
+          <?php } ?>
+
         </td>
       </tr>
       <?php
@@ -113,14 +117,14 @@
                   class="regular-text"
                   type="text"
                   style="min-width: auto;"
-                  placeholder="<?php echo htmlspecialchars($sirv_folder); ?>"
+                  placeholder="e.g. WordPress or WP/media"
                   value="<?php echo htmlspecialchars($sirv_folder); ?>"
-                  name="SIRV_FOLDER" data-restore-value="<?php echo htmlspecialchars($sirv_folder); ?>"
-                >
+                  name="SIRV_FOLDER" data-restore-value="<?php echo htmlspecialchars($sirv_folder); ?>">
               </div>
-              <a class="sirv-option-edit" href="#" data-type="render">Change</a>
+              <a class="sirv-option-edit" href="#" data-type="render" data-id="foldername">Change</a>
             </div>
           </div>
+          <ul class="sirv-option-folder-issues"></ul>
           <div class="sirv-push-message-container sirv-push-message-warning sirv-hide sirv-warning-on-folder-change">
             <div class="sirv-push-message sirv-push-message-warning-icon">
               <span style="font-size: 15px;font-weight: 800;">Important!</span><br>Changing folder name will clear the image cache, so images will re-synchronize on first request or use <a class="sirv-show-sync-tab">Sync Images</a> to pre-sync entire library.

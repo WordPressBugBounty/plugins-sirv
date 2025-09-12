@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           8.0.1
+ * Version:           8.0.2
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '8.0.1');
+define('SIRV_PLUGIN_VERSION', '8.0.2');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -2023,7 +2023,7 @@ function sirv_set_exclude_pages($old_value, $new_value){
 function sirv_parse_exclude_data($new_data){
   $exclude_str = '';
 
-  if(!empty($new_data)){
+  if( !empty($new_data) ){
     $data = Exclude::parseExcludePaths($new_data);
     $home_url = home_url();
 
@@ -6068,12 +6068,12 @@ function sirv_setup_credentials(){
 
 
   $email = trim(strtolower($_POST['email']));
-  $alias = $_POST['sirv_account'];
+  $account_token = $_POST['sirv_account'];
 
   $sirvAPIClient = sirv_getAPIClient();
 
-  if ( !empty($alias) ) {
-    $response = $sirvAPIClient->setupClientCredentials($alias);
+  if ( !empty($account_token) ) {
+    $response = $sirvAPIClient->setupClientCredentials($account_token);
     if ( $response['status'] ) {
       update_option('SIRV_ACCOUNT_EMAIL', sanitize_email($email));
       $setup_s3_credentials_res = $sirvAPIClient->setupS3Credentials($email);

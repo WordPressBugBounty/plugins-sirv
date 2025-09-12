@@ -2338,3 +2338,12 @@ label sup, h2 sup {
     align-items: center;
     gap: 5px;
 }
+
+ul.sirv-option-folder-issues {
+    color: red;
+    margin-top: 0;
+}
+
+ul.sirv-option-folder-issues li {
+    margin-bottom: 0;
+}
