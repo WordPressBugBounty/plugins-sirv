@@ -27,16 +27,16 @@ function sirv_getStatus()
 
 function sirv_get_cache_count($isGarbage, $cacheInfo)
 {
-  $q = (int) $cacheInfo['total_count'];
+  $synced = $cacheInfo['total_count'];
   if ($isGarbage) {
-    if ((int) $cacheInfo['q'] - (int) $cacheInfo['garbage_count'] > (int) $cacheInfo['total_count']) {
-      $q = (int) $cacheInfo['total_count'];
+    if ( $cacheInfo['SYNCED']['count'] - $cacheInfo['garbage_count'] > $cacheInfo['total_count'] ) {
+      $synced = $cacheInfo['total_count'];
     } else {
-      $q = (int) $cacheInfo['q'] - (int) $cacheInfo['garbage_count'];
+      $synced = $cacheInfo['SYNCED']['count'] - $cacheInfo['garbage_count'];
     }
   }
 
-  return $q;
+  return $synced;
 }
 
 
@@ -45,7 +45,7 @@ function sirv_get_sync_button_text($isAllSynced, $cacheInfo)
   $sync_button_text = 'Sync images';
 
   if ($isAllSynced) {
-    if ((int) $cacheInfo['FAILED']['count'] == 0 && (int) $cacheInfo['PROCESSING']['count'] == 0) {
+    if ( $cacheInfo['FAILED']['count'] == 0 && $cacheInfo['PROCESSING']['count'] == 0 ) {
       $sync_button_text = '100% synced';
     } else {
       $sync_button_text = 'Synced';
@@ -86,19 +86,19 @@ if ($sirvStatus) {
   $storageInfo = sirv_getStorageInfo();
 
 
-  $isOverCache = (int) $cacheInfo['q'] > (int) $cacheInfo['total_count'] ? true : false;
-  $isSynced = (int) $cacheInfo['SYNCED']['count'] > 0 ? true : false;
-  $isFailed = (int) $cacheInfo['FAILED']['count'] > 0 ? true : false;
-  $isGarbage = (int) $cacheInfo['garbage_count'] > 0 ? true : false;
+  $isOverCache = $cacheInfo['SYNCED']['count'] >  $cacheInfo['total_count'] ? true : false;
+  $isSynced = $cacheInfo['SYNCED']['count'] > 0 ? true : false;
+  $isFailed = $cacheInfo['FAILED']['count'] > 0 ? true : false;
+  $isGarbage = $cacheInfo['garbage_count'] > 0 ? true : false;
 
-  if ($isOverCache) $cacheInfo['q'] = sirv_get_cache_count($isGarbage, $cacheInfo);
+  if ($isOverCache) $cacheInfo['SYNCED']['count'] = sirv_get_cache_count($isGarbage, $cacheInfo);
 
 
-  $isAllSynced = ((int) $cacheInfo['q'] + (int) $cacheInfo['FAILED']['count'] + (int) $cacheInfo['PROCESSING']['count']) == (int) $cacheInfo['total_count'];
+  $isAllSynced = ($cacheInfo['SYNCED']['count'] + $cacheInfo['FAILED']['count'] + $cacheInfo['PROCESSING']['count']) == $cacheInfo['total_count'];
   $is_sync_button_disabled = $isAllSynced ? 'disabled' : '';
   $sync_button_text = sirv_get_sync_button_text($isAllSynced, $cacheInfo);
-  $is_show_resync_block = (int) $cacheInfo['q'] > 0 || $cacheInfo['FAILED']['count'] > 0 ? '' : 'display: none';
-  $is_show_failed_block = (int) $cacheInfo['FAILED']['count'] > 0 ? '' : 'display: none';
+  $is_show_resync_block = $cacheInfo['SYNCED']['count'] > 0 || $cacheInfo['FAILED']['count'] > 0 ? '' : 'display: none';
+  $is_show_failed_block = $cacheInfo['FAILED']['count'] > 0 ? '' : 'display: none';
 } else {
   wp_safe_redirect(add_query_arg(array('page' => SIRV_PLUGIN_RELATIVE_SUBDIR_PATH . 'submenu_pages/account.php'), admin_url('admin.php')));
 }

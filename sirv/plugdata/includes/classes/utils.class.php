@@ -194,7 +194,15 @@
 
 
     public static function get_sirv_item_info($sirv_url){
-      $context = stream_context_create(array('http' => array('method' => "GET")));
+      $context = stream_context_create(
+        array(
+          'http' => array(
+            'method' => "GET",
+            'header' => "Accept: application/json\r\n" . "User-Agent: Sirv/Wordpress\r\n",
+          )
+        )
+      );
+
       $sirv_item_metadata = @json_decode(@file_get_contents($sirv_url . '?info', false, $context));
 
       return empty($sirv_item_metadata) ? false : $sirv_item_metadata;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Sirv Media Viewer for Single Product Image
  *
@@ -7,7 +8,7 @@
  * @version 9.7.0
  */
 
-  defined('ABSPATH') or die('No script kiddies please!');
+defined('ABSPATH') or die('No script kiddies please!');
 ?>
 
 <style>
@@ -73,7 +74,13 @@
 
   @media only screen and (max-width: 768px) {
     .sirv-woo-wrapper {
-      width: 100% !important;
+      width: 100%;
+    }
+  }
+
+  @media only screen and (min-width: 420px) and (max-width: 768px) {
+    .sirv-woo-wrapper {
+      width: 50%;
     }
   }
 
@@ -100,7 +107,8 @@
 <?php
 
 if (!function_exists("sirv_sanitize_custom_styles")) {
-  function sirv_sanitize_custom_styles($data){
+  function sirv_sanitize_custom_styles($data)
+  {
     $string = $data;
     $string = str_replace('\r', "", $string);
     $string = str_replace('\n', "", $string);

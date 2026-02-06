@@ -112,6 +112,10 @@ nav.nav-tab-wrapper {
     /* font-weight: 300; */
 }
 
+#woo-content.sirv-optiontable-holder table{
+    table-layout: fixed;
+}
+
 .sirv-optiontable-holder {
     padding: 10px;
     border: 1px solid #ddd;
@@ -634,6 +638,11 @@ input.cmn-toggle-round:checked+label+span:before {
 
 .sirv-queued{
     background-color: #FBD16B;
+}
+
+.sirv-unsynced{
+    background-color: #cfdfec;
+    /* border: 1px solid #000; */
 }
 
 .sirv-failed{
@@ -2140,53 +2149,63 @@ input[name=SIRV_EMAIL]:focus::placeholder {
 /*--------------------------------empty-view-cache-option END----------------------------------------*/
 
 /*--------------------------------sirv-text-to-input-option------------------------------------------*/
-.sirv-text-to-input-option-block {
-    display: flex;
-    flex-direction: column;
-}
-
-.sirv-text-to-input-option {
-    display: flex;
-    width: 98%;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.sirv-text-to-input-option-text-part {
-    display: flex;
-    gap: 10px;
-    line-height: 38px;
-}
-
-.sirv-text-to-input-option-text-part > div {
-    display: flex;
-    max-width: 535px;
-    flex-direction: row;
-}
-
-.sirv-text-to-input-option-text-part > div span {
-    display: block;
-}
-
-span.sirv-text-to-input-option-rendered-value {
+.sirv-ellipsis-text{
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    width: 75%;
 }
 
-.sirv-text-to-input-option-input-part {
+.sirv-editable-option {
     display: flex;
-    width: 90%;
-    align-content: center;
-    align-items: center;
     flex-direction: row;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
     line-height: 38px;
 }
 
-.sirv-text-to-input-option-input-part input {
-    padding-left: 2px;
+.sirv-editable-option_full-path {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 90%;
+    flex: 1;
+    min-width: 0;
+}
+.sirv-editable-option_domain {
+    min-width: 0;
+    max-width: 40%;
+    flex-grow: 0;
+    flex-shrink: 1;
+    flex-basis: auto;
+}
+
+.sirv-editable-option_relative-path {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 0;
+}
+
+.sirv-editable-option-text {
+    display: block;
+    width: 95%;
+}
+
+input.sirv-editable-option-input {
+    min-width: 100% !important;
+}
+
+button.sirv-editable-option_edit {
+    border: none;
+    background-color: transparent;
+    color: #2271b1;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+button.sirv-editable-option_edit:hover {
+    text-decoration: underline;
 }
 /*----------------------------sirv-text-to-input-option EMD------------------------------------------*/
 
@@ -2347,3 +2366,6 @@ ul.sirv-option-folder-issues {
 ul.sirv-option-folder-issues li {
     margin-bottom: 0;
 }
+
+
+

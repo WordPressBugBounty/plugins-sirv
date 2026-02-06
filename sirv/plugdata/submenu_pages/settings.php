@@ -102,26 +102,29 @@
         <th>
           <label>Folder name on Sirv</label>
         </th>
-        <td style="padding-top:0;">
-          <div class="sirv-text-to-input-option-block">
-            <div class="sirv-text-to-input-option" style="width: 100%;">
-              <div class="sirv-text-to-input-option-text-part" style="">
-                <div title="<?php echo $sirv_folder; ?>">
-                  <span class="sirv--grey"><?php echo htmlspecialchars($sirvCDNurl); ?>/</span>
-                  <span class="sirv-text-to-input-option-rendered-value"><?php echo htmlspecialchars($sirv_folder); ?></span>
+        <td colspan="2" style="padding-top:0;">
+          <div class="sirv-editable-option-block">
+            <div class="sirv-editable-option" id="sirv-editable-option-foldername">
+              <div class="sirv-editable-option_full-path">
+                <div class="sirv-editable-option_domain sirv--grey sirv-ellipsis-text" title="<?php echo htmlspecialchars($sirvCDNurl); ?>">
+                  <?php echo htmlspecialchars($sirvCDNurl) . '/'; ?>
+                </div>
+                <div class="sirv-editable-option_relative-path">
+                  <span class="sirv-editable-option-text sirv-ellipsis-text" title="<?php echo htmlspecialchars($sirv_folder); ?>">
+                    <?php echo htmlspecialchars($sirv_folder); ?>
+                  </span>
+                  <input
+                    class="regular-text sirv-editable-option-input sirv-block-hide"
+                    type="text"
+                    style="min-width: auto;"
+                    placeholder="e.g. WordPress or WP/media"
+                    value="<?php echo htmlspecialchars($sirv_folder); ?>"
+                    name="SIRV_FOLDER" data-restore-value="<?php echo htmlspecialchars($sirv_folder); ?>">
                 </div>
               </div>
-              <div class="sirv-text-to-input-option-input-part" style="display: none;">
-                <span class="sirv--grey"><?php echo htmlspecialchars($sirvCDNurl); ?>/</span>
-                <input
-                  class="regular-text"
-                  type="text"
-                  style="min-width: auto;"
-                  placeholder="e.g. WordPress or WP/media"
-                  value="<?php echo htmlspecialchars($sirv_folder); ?>"
-                  name="SIRV_FOLDER" data-restore-value="<?php echo htmlspecialchars($sirv_folder); ?>">
+              <div class="sirv-editable-option-actions">
+                <button type="button" class="sirv-editable-option_edit" data-type="render" data-event-id="foldername" data-id="sirv-editable-option-foldername">Change</button>
               </div>
-              <a class="sirv-option-edit" href="#" data-type="render" data-id="foldername">Change</a>
             </div>
           </div>
           <ul class="sirv-option-folder-issues"></ul>
@@ -217,14 +220,13 @@
         <td>
           <span>Disable lazy loading & responsive scaling on specific images, such as your website logo:</span>
           <textarea class="sirv-font-monospace" name="SIRV_EXCLUDE_RESPONSIVE_FILES" value="<?php echo get_option('SIRV_EXCLUDE_RESPONSIVE_FILES'); ?>" rows="6" placeholder="e.g.
-  /wp-content/uploads/2021/04/Logo.jpg
-  /wp-content/plugins/a-plugin/*.png
+  2021/04/Logo.jpg
+  2021/04/*.png
   ExampleClass
   ExampleAltTag
   ExampleID"><?php echo get_option('SIRV_EXCLUDE_RESPONSIVE_FILES'); ?></textarea>
           <span class="sirv-option-responsive-text">
-            Enter file path starting with /wp-content/or use * to apply on all files with a certain path/name.
-            You can also exclude images via their img alt, class or data attribute. <a href="https://sirv.com/help/articles/using-sirv-wordpress/#disable-lazy-loading-and-responsive-scaling">Learn more</a>.
+            Enter the folder path to the file or use * to apply to all files with a certain path/file. You can also exclude images via their img alt, class or data attribute. <a target="_blank" href="https://sirv.com/help/articles/using-sirv-wordpress/#disable-lazy-loading-and-responsive-scaling">Learn more</a>.
           </span>
         </td>
       </tr>
@@ -509,8 +511,8 @@ var SirvOptions = {
           <td>
             <span>Files that should not served by Sirv:</span>
             <textarea class="sirv-font-monospace" name="SIRV_EXCLUDE_FILES" value="<?php echo get_option('SIRV_EXCLUDE_FILES'); ?>" rows="5" placeholder="e.g.
-  /wp-content/plugins/a-plugin/*.png
-  /wp-content/uploads/2021/04/an-image.jpg"><?php echo get_option('SIRV_EXCLUDE_FILES'); ?></textarea>
+  2021/04/*.png
+  2021/04/an-image.jpg"><?php echo get_option('SIRV_EXCLUDE_FILES'); ?></textarea>
             <span class="sirv-option-responsive-text">
               You can enter full URLs and the domain will be stripped.<br>
               Use * to specify all files at a certain path.

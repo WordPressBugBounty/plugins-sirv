@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           8.0.2
+ * Version:           8.1.0
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '8.0.2');
+define('SIRV_PLUGIN_VERSION', '8.1.0');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -99,7 +99,7 @@ function get_enqueued_scripts(){
 //add_action('wp_enqueue_scripts', 'tstss', PHP_INT_MAX - 100);
 function tstss(){
   $scripts = wp_scripts();
-  sirv_debug_msg($scripts->queue);
+  sirv_qdebug($scripts->queue);
 }
 
 add_action('admin_head', 'sirv_global_logo_fix');
@@ -281,7 +281,7 @@ function sirv_query_attachments($where){
 
 function sirv_post_thumbnail_html($html, $post_id, $post_thumbnail_id, $size, $attr = null){
 
-  sirv_debug_msg($html);
+  sirv_qdebug($html);
 
   return $html;
 
@@ -625,27 +625,6 @@ function sirv_is_admin_url($url){
     $pattern = '/wp-admin/';
 
     return (bool) preg_match($pattern, $url);
-}
-
-
-function sirv_debug_msg($msg, $isBoolVar = false){
-  $path = realpath(dirname(__FILE__));
-  $fn = fopen($path . DIRECTORY_SEPARATOR . 'debug.txt', 'a+');
-  //fwrite( $fn, print_r(debug_backtrace(), true) . PHP_EOL);
-  if (is_array($msg)) {
-    fwrite($fn, print_r($msg, true) . PHP_EOL);
-  } else if (is_object($msg)) {
-    fwrite($fn, print_r(json_decode(json_encode($msg), true), true) . PHP_EOL);
-  } else {
-    if ($isBoolVar) {
-      $data = var_export($msg, true);
-      fwrite($fn, $data . PHP_EOL);
-    } else {
-      fwrite($fn, $msg . PHP_EOL);
-    }
-  }
-
-  fclose($fn);
 }
 
 
@@ -1812,10 +1791,10 @@ function sirv_add_defer_to_js($tag, $handle){
   print_r($handle);
   print('<br>-------------------<br>'); */
 
-  //sirv_debug_msg($handle);
+  //sirv_qdebug($handle);
 
   //global $wp_scripts;
-  //sirv_debug_msg($wp_scripts);
+  //sirv_qdebug($wp_scripts);
 
   if ('sirv-js' !== $handle) {
     return $tag;
@@ -1955,19 +1934,6 @@ function sirv_set_folder_config($new_value, $old_value, $option_name){
   }
 
   return $old_value;
-}
-
-//clear all cache if disable ttl
-add_action('update_option_SIRV_WOO_TTL', 'sirv_set_woo_ttl', 10, 2);
-function sirv_set_woo_ttl($old_value, $new_value){
-  if ($old_value !== $new_value) {
-    if((int) $new_value === 1){
-      global $wpdb;
-      $post_meta_table = $wpdb->postmeta;
-      $result = $wpdb->query("DELETE FROM $post_meta_table WHERE meta_key IN ('_sirv_woo_viewf_data', '_sirv_woo_viewf_status')");
-    }
-    update_option('SIRV_WOO_MV_CUSTOM_OPTIONS', $new_value);
-  }
 }
 
 
@@ -2492,13 +2458,9 @@ function sirv_do_responsive_images($attr, $attachment, $size){
   if( is_admin() ||  !sirv_is_sirv_item($attr['src']) ) return $attr;
 
   $isExclude = Exclude::excludeSirvContent($attr['src'], 'SIRV_EXCLUDE_FILES');
+  $isResponsiveExclude = Exclude::excludeSirvContent($attr, 'SIRV_EXCLUDE_RESPONSIVE_FILES');
 
-  //get img src like sirv url and need convert it to relative disc path
-  $attrsToCheck = $attr;
-  $attrsToCheck['src'] = str_replace(home_url(), '', $attachment->guid);
-  $isResponsiveExclude = Exclude::excludeSirvContent($attrsToCheck, 'SIRV_EXCLUDE_RESPONSIVE_FILES');
-
-  if ($isResponsiveExclude || $isExclude) return $attr;
+  if ( $isResponsiveExclude || $isExclude ) return $attr;
 
   $placeholder_type = get_option('SIRV_RESPONSIVE_PLACEHOLDER');
   $img_size = sirv_get_responsive_size($attr['src'], $size);
@@ -2841,10 +2803,10 @@ function sirv_render_img_tag($attrs){
 /* add_filter( 'wp_embed_handler_video', 'sirv_test_video');
 function sirv_test_video(string $video, array $attr, string $url, array $rawattr){
 
-  sirv_debug_msg($video);
-  sirv_debug_msg($attr);
-  sirv_debug_msg($url);
-  sirv_debug_msg($rawattr);
+  sirv_qdebug($video);
+  sirv_qdebug($attr);
+  sirv_qdebug($url);
+  sirv_qdebug($rawattr);
 
   return $video;
 } */
@@ -3492,10 +3454,21 @@ function sirv_set_db_failed($wpdb, $table, $attachment_id, $paths, $error_type =
 }
 
 
+add_filter('wp_save_image_editor_file', 'sirv_wp_save_image_editor_file', 10, 5);
+function sirv_wp_save_image_editor_file($override, $filename, $image, $mime_type, $post_id){
+
+  $GLOBALS['sirv_jobs']['sirv_sync_images'][] = array("attachment_id" => $post_id);
+
+  return $override;
+}
+
+
 function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = false){
   global $wpdb;
   global $sirv_gbl_isFetchUpload;
   global $sirv_gbl_isFetchUrl;
+
+  $is_image_modified = false;
 
   $sirv_images_t = $wpdb->prefix . 'sirv_images';
 
@@ -3524,7 +3497,9 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
 
     if( !$file_current_mtime || ($file_current_mtime && ($file_current_mtime == $stored_mtime_timestamp)) || $image['img_path'] == $paths['image_rel_path'] ){
       return sirv_get_full_sirv_url_path($sirv_url_path, $image);
-    }else{
+    } else {
+      $is_image_modified = true;
+
       $data = array();
 
       $data['img_path'] = $paths['image_rel_path'];
@@ -3537,23 +3512,24 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
       $data['timestamp_checks'] = NULL;
 
       $result = $wpdb->update($sirv_images_t, $data, array('attachment_id' => $attachment_id));
-      if($result == 1){
+      if( $result == 1 ){
+        $image['img_path'] = $data['img_path'];
         $image['size'] = $data['size'];
         $image['status'] = 'NEW';
-      }else{
+      } else {
         //error boundary here
       }
     }
   }
 
 
-  if (!$image) {
+  if ( !$image ) {
     $headers = array();
 
     if ( !isset($paths['img_file_path']) ) {
-      if( isset($paths['sirv_item']) ){
+      if( isset($paths['sirv_item']) ) {
         return sirv_set_sirv_item_to_db($paths['sirv_item'], $wpdb, $sirv_images_t, $attachment_id);
-      }else {
+      } else {
         sirv_set_db_failed($wpdb, $sirv_images_t, $attachment_id, $paths);
         return '';
       }
@@ -3577,7 +3553,7 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
       }
     }
 
-    $image_size = empty($headers) ? filesize($paths['img_file_path']) : (int) $headers['Content-Length'];
+    $image_size = isset($headers['Content-Length']) ? (int) $headers['Content-Length'] : filesize($paths['img_file_path']);
 
     if( !empty($image_size) && $image_size > 32000000 ){
       $data = array(
@@ -3592,9 +3568,9 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
       return '';
     }
 
-    $image_created_timestamp = empty($headers)
-      ? date("Y-m-d H:i:s", filemtime($paths['img_file_path']))
-      : date("Y-m-d H:i:s", strtotime($headers['Last-Modified']));
+    $image_created_timestamp = isset($headers['Last-Modified'])
+      ? date("Y-m-d H:i:s", strtotime($headers['Last-Modified']))
+      : date("Y-m-d H:i:s", filemtime($paths['img_file_path']));
 
     $data = array();
     $data['attachment_id'] = $attachment_id;
@@ -3620,12 +3596,15 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
   }
 
 
-  if ($image && $image['status'] == 'NEW') {
+  if ( $image && $image['status'] == 'NEW' ) {
 
-    if (!isset($image['img_file_path'])) {
+    $sirv_full_path_encoded  = '';
+    if ( $is_image_modified ) $sirv_full_path_encoded  = $sirv_folder . dirname($image['sirv_path']) . '/' . urlencode(basename($image['sirv_path']));
+
+    if ( !isset($image['img_file_path']) ) {
       $image['img_file_path'] = $paths['img_file_path'];
-      $image['sirv_full_path'] = $paths['sirv_full_path'];
-      $image['sirv_full_path_encoded'] = $paths['sirv_full_path_encoded'];
+      $image['sirv_full_path'] = $is_image_modified ? $sirv_folder . $image['sirv_path'] : $paths['sirv_full_path'];
+      $image['sirv_full_path_encoded'] = $is_image_modified ? $sirv_full_path_encoded : $paths['sirv_full_path_encoded'];
       $image['image_full_url'] = $paths['image_full_url'];
     }
 
@@ -3639,32 +3618,36 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
     $sirv_gbl_isFetchUpload = (int) $image['size'] < $fetch_max_file_size ? true : false;
     $sirv_gbl_isFetchUpload = $sirv_gbl_isFetchUrl ? true : $sirv_gbl_isFetchUpload;
 
-    $sirv_check_url = sirv_get_full_sirv_url_path($sirv_url_path, $image);
-    list($status, $error) = sirv_is_item_exist_on_sirv_server($sirv_check_url);
+    if ( !$is_image_modified ){
+      $sirv_check_url = sirv_get_full_sirv_url_path($sirv_url_path, $image);
+      list($status, $error) = sirv_is_item_exist_on_sirv_server($sirv_check_url);
 
-    if( $status ){
-      $wpdb->update($sirv_images_t, array(
-        'timestamp_synced' => date("Y-m-d H:i:s"),
-        'status' => 'SYNCED'
-      ), array('attachment_id' => $attachment_id));
-
-      return $sirv_check_url;
-    }else{
-      if( !is_null($error) ){
-        //code here?
-      }
-    }
-
-    $file = sirv_uploadFile($image['sirv_full_path'], $image['sirv_full_path_encoded'], $image['img_file_path'], $img_data, $image['image_full_url'], $wait, $is_synchronious);
-
-    if ( is_array($file) ) {
-      if ($file['upload_status'] == 'uploaded') {
+      if ( $status ) {
         $wpdb->update($sirv_images_t, array(
           'timestamp_synced' => date("Y-m-d H:i:s"),
           'status' => 'SYNCED'
         ), array('attachment_id' => $attachment_id));
 
-        sirv_set_image_meta('/' . $paths['sirv_full_path_encoded'], $image['attachment_id']);
+        return $sirv_check_url;
+      } else {
+        if ( !is_null($error) ) {
+          //code here?
+        }
+      }
+    }
+
+    $file = sirv_uploadFile($image['sirv_full_path'], $image['sirv_full_path_encoded'], $image['img_file_path'], $img_data, $image['image_full_url'], $wait, $is_synchronious, $is_image_modified);
+
+    if ( is_array($file) ) {
+      if ( $file['upload_status'] == 'uploaded' ) {
+        $wpdb->update($sirv_images_t, array(
+          'timestamp_synced' => date("Y-m-d H:i:s"),
+          'status' => 'SYNCED'
+        ), array('attachment_id' => $attachment_id));
+
+        $sirv_path = $is_image_modified && isset($image['sirv_full_path_encoded']) ? $image['sirv_full_path_encoded'] : $paths['sirv_full_path_encoded'];
+
+        if ( !$is_image_modified ) sirv_set_image_meta('/' . $sirv_path, $image['attachment_id'] );
 
         return sirv_get_full_sirv_url_path($sirv_url_path, $image);
       } else {
@@ -3685,8 +3668,9 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
 
     //TODO: check why plugin try sync image all the time in massive mode instead of check once and leave.
 
-    if (sirv_time_checks($image, $checks_count)) {
-      $sirv_url = !empty($paths['sirv_item']) ? $paths['sirv_item'] : $paths['sirv_full_url_path'];
+    if ( sirv_time_checks($image, $checks_count) ) {
+      $sirv_full_url_path = $sirv_url_path . $image['sirv_path'];
+      $sirv_url = isset($paths['sirv_item']) ? $paths['sirv_item'] : $sirv_full_url_path;
       list($status, $error) = sirv_is_item_exist_on_sirv_server($sirv_url);
 
       if ( $status ) {
@@ -3697,9 +3681,8 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
           'checks' => (int) $image['checks'] + 1,
         ), array('attachment_id' => $attachment_id));
 
-        if( isset($paths['sirv_full_path_encoded']) ){
-          sirv_set_image_meta('/' . $paths['sirv_full_path_encoded'], $attachment_id);
-        }
+        $sirv_full_path_encoded  = $sirv_folder . dirname($image['sirv_path']) . '/' . urlencode(basename($image['sirv_path']));
+        sirv_set_image_meta($sirv_full_path_encoded, $attachment_id);
 
         return $sirv_url;
       } else {
@@ -3724,7 +3707,7 @@ function sirv_get_cdn_image($attachment_id, $wait = false, $is_synchronious = fa
       ), array('attachment_id' => $attachment_id));
 
       return '';
-    }else{
+    } else {
       return '';
     }
   }
@@ -3832,7 +3815,7 @@ function sirv_get_wp_img_file_path($attachment_id){
   if (!$img_file_path) return array('wrong_file' => 'File name/path missing from WordPress media library');
 
   if(sirv_is_sirv_item($img_file_path)){
-    $exclude_path = $url_images_path . '/';
+    $exclude_path =  $root_images_path . '/';
     $sirv_path = str_replace($exclude_path, '', $img_file_path);
     return array(
       'sirv_item' => $sirv_path,
@@ -4001,38 +3984,58 @@ function sirv_get_unsynced_images($limit = 100){
 
   global $wpdb;
   $sirv_images_t = $wpdb->prefix . 'sirv_images';
-  $posts_t = $wpdb->prefix . 'posts';
 
-  $image_query = "$posts_t.post_mime_type LIKE 'image/%'";
-  $video_query = "$posts_t.post_mime_type LIKE 'video/%'";
+  $sub_query = sirv_get_items_query('ps');
 
-  $query = get_option('SIRV_PARSE_VIDEOS') === 'on' ? "$image_query OR $video_query" : "$image_query";
-
-  return $wpdb->get_results("
-      SELECT $posts_t.ID as attachment_id, $posts_t.guid as image_url FROM $posts_t
-      WHERE $posts_t.ID NOT IN (SELECT attachment_id FROM $sirv_images_t)
-      AND $posts_t.post_type = 'attachment'
-      AND ($query)
-      AND ($posts_t.post_status = 'inherit')
-      ORDER BY $posts_t.post_date DESC LIMIT $limit
-      ", ARRAY_A);
+  return $wpdb->get_results(
+    "SELECT
+      ps.ID as attachment_id, ps.guid as image_url
+    FROM
+        $wpdb->posts AS ps
+    LEFT JOIN
+        $sirv_images_t AS si ON ps.ID = si.attachment_id
+    WHERE
+        si.attachment_id IS NULL
+        AND ps.post_type = 'attachment'
+        AND ps.post_status = 'inherit'
+        AND ( $sub_query )
+    ORDER BY
+      ps.post_date DESC
+    LIMIT
+      $limit",
+    ARRAY_A
+  );
 }
 
 
 function sirv_get_all_post_images_count(){
   global $wpdb;
-  $posts_t = $wpdb->prefix . 'posts';
 
-  $image_query = "$posts_t.post_mime_type LIKE 'image/%'";
-  $video_query = "$posts_t.post_mime_type LIKE 'video/%'";
-
-  $query = get_option('SIRV_PARSE_VIDEOS') === 'on' ? "$image_query OR $video_query" : "$image_query";
+  $sub_query = sirv_get_items_query();
 
   return $wpdb->get_var("
-        SELECT count(*) FROM $posts_t WHERE ($query)
-        AND $posts_t.post_type = 'attachment'
-        AND $posts_t.post_status = 'inherit'
+        SELECT count(*) FROM $wpdb->posts WHERE ( $sub_query )
+        AND post_type = 'attachment'
+        AND post_status = 'inherit'
       ");
+}
+
+
+/**
+ * Get query for getting all post images and videos (optional) from posts table
+ *
+ * @param string $table_alias Table alias for posts table. Example: $table_alias  = 'ps' -> SELECT * FROM `posts` as ps;
+ *
+ * @return string
+ */
+function sirv_get_items_query($table_alias = null) {
+
+  $tbl_prefix = is_null($table_alias) ? '' : $table_alias . '.';
+
+  $image_query = "{$tbl_prefix}post_mime_type LIKE 'image/%'";
+  $video_query = "{$tbl_prefix}post_mime_type LIKE 'video/%'";
+
+  return get_option('SIRV_PARSE_VIDEOS') === 'on' ? "$image_query OR $video_query" : "$image_query";
 }
 
 
@@ -4047,20 +4050,22 @@ function sirv_get_synced_count(){
 function sirv_get_unsynced_images_count(){
   global $wpdb;
   $sirv_images_t = $wpdb->prefix . 'sirv_images';
-  $posts_t = $wpdb->prefix . 'posts';
 
-  $image_query = "$posts_t.post_mime_type LIKE 'image/%'";
-  $video_query = "$posts_t.post_mime_type LIKE 'video/%'";
+  $sub_query = sirv_get_items_query('ps');
 
-  $query = get_option('SIRV_PARSE_VIDEOS') === 'on' ? "$image_query OR $video_query" : "$image_query";
-
-
-  return $wpdb->get_var("
-      SELECT count(*) FROM $posts_t WHERE $posts_t.ID NOT IN (SELECT attachment_id FROM $sirv_images_t)
-      AND ($query)
-      AND $posts_t.post_type = 'attachment'
-      AND $posts_t.post_status = 'inherit'
-      ", ARRAY_A);
+  return $wpdb->get_var(
+    "SELECT
+      COUNT(ps.ID)
+    FROM
+        $wpdb->posts AS ps
+    LEFT JOIN
+        $sirv_images_t AS si ON ps.ID = si.attachment_id
+    WHERE
+        si.attachment_id IS NULL
+        AND ps.post_type = 'attachment'
+        AND ps.post_status = 'inherit'
+        AND ( $sub_query )
+  ");
 }
 
 
@@ -4216,7 +4221,7 @@ function sirv_getAPIClient(){
 }
 
 
-function sirv_uploadFile($sirv_path, $sirv_path_encoded, $image_path, $img_data, $imgURL = '', $wait = false, $is_synchronious = false){
+function sirv_uploadFile($sirv_path, $sirv_path_encoded, $image_path, $img_data, $imgURL = '', $wait = false, $is_synchronious = false, $is_dirrect_upload = false){
   $endpoint_names = array('v2/files/upload', 'v2/files/fetch');
   if( sirv_is_muted($endpoint_names) ) return false;
 
@@ -4224,7 +4229,7 @@ function sirv_uploadFile($sirv_path, $sirv_path_encoded, $image_path, $img_data,
   global $sirv_gbl_isFetchUpload;
   $APIClient = sirv_getAPIClient();
 
-  if ($sirv_gbl_isLocalHost || !$sirv_gbl_isFetchUpload) {
+  if ($sirv_gbl_isLocalHost || !$sirv_gbl_isFetchUpload || $is_dirrect_upload) {
     $response = $APIClient->uploadImage($image_path, $sirv_path_encoded);
 
     if( $response['upload_status'] == 'failed' ){
@@ -4308,9 +4313,8 @@ function sirv_proccess_synchronious_fetch($image){
 
 function sirv_processFetchQueue(){
   $endpoint_name = 'v2/files/fetch';
-  if (empty($GLOBALS['sirv_fetch_queue']) || sirv_is_muted($endpoint_name)) {
-    return;
-  }
+
+  if ( !isset($GLOBALS['sirv_fetch_queue']) || count($GLOBALS['sirv_fetch_queue']) === 0 || sirv_is_muted($endpoint_name) ) return;
 
   $APIClient = sirv_getAPIClient();
   global $wpdb;
@@ -4536,19 +4540,15 @@ function sirv_getCacheInfo(){
     'PROCESSING' => array('count' => 0, 'count_s' => '0', 'size' => 0, 'size_s' => '-'),
     'SYNCED' => array('count' => 0, 'count_s' => '0', 'size' => 0, 'size_s' => '-'),
     'FAILED' => array('count' => 0, 'count_s' => '0', 'size' => 0, 'size_s' => '-'),
-    'q' => 0,
-    'q_s' => '0',
-    'size' => 0,
-    'size_s' => '-',
+    'UNSYNCED' => array('count' => 0, 'count_s' => '0', 'size' => 0, 'size_s' => '-'),
     'total_count' => $total_count,
     'total_count_s' => sirv_get_formated_number($total_count),
     'garbage_count' => 0,
-    'queued' => 0,
-    'queued_s' => '0',
     'progress' => 0,
     'progress_complited' => 0,
     'progress_queued' => 0,
     'progress_failed' => 0,
+    'progress_unsynced' => 0,
   );
 
   $results = $wpdb->get_results("SELECT status, count(*) as `count`, SUM(size) as size FROM $images_t GROUP BY status", ARRAY_A);
@@ -4562,47 +4562,42 @@ function sirv_getCacheInfo(){
       );
     }
 
+    $sub_query = sirv_get_items_query('wps');
 
-    $stat['size'] = (int) $stat['SYNCED']['size'];
-    $stat['size_s'] = $stat['SYNCED']['size_s'];
-    $stat['q'] = ( ((int) $stat['SYNCED']['count']) > $stat['total_count'] ) ? $stat['total_count']: (int) $stat['SYNCED']['count'];
-    $stat['q_s'] = sirv_get_formated_number($stat['q']);
 
-    $oldCache = (int) $wpdb->get_var("
-          SELECT count(attachment_id) FROM $images_t WHERE attachment_id NOT IN (SELECT $posts_t.ID FROM $posts_t)
-      ");
+    $oldCache = $wpdb->get_var(
+      "SELECT
+            COUNT(s_img.attachment_id)
+        FROM
+            $images_t AS s_img
+        LEFT JOIN
+            $posts_t AS wps ON s_img.attachment_id = wps.ID
+            AND wps.post_type = 'attachment'
+            AND wps.post_status = 'inherit'
+            AND ( $sub_query )
+        WHERE
+            wps.ID IS NULL");
 
-    $stat['garbage_count'] = $oldCache;
-    $stat['garbage_count_s'] = sirv_get_formated_number($oldCache);
+    $stat['garbage_count'] = (int) $oldCache;
+    $stat['garbage_count_s'] = sirv_get_formated_number($stat['garbage_count']);
 
-    $queued = $stat['total_count'] - $stat['q'] - $stat['FAILED']['count'];
-    $stat['queued'] = $queued < 0 ? 0 : $queued;
-    $stat['queued_s'] = sirv_get_formated_number($stat['queued']);
+    $unsynced = $stat['total_count'] - $stat['SYNCED']['count'] - $stat['FAILED']['count'] - $stat['PROCESSING']['count'];
+    $stat['UNSYNCED']['count'] = $unsynced < 0 ? 0 : $unsynced;
+    $stat['UNSYNCED']['count_s'] = sirv_get_formated_number($stat['UNSYNCED']['count']);
 
-    $progress_complited = $stat['total_count'] != 0 ? ($stat['q']) / $stat['total_count'] * 100 : 0;
-    $progress_queued = $stat['total_count'] != 0 ? $stat['queued'] / $stat['total_count'] * 100 : 0;
+    $progress_complited = $stat['total_count'] != 0 ? ($stat['SYNCED']['count']) / $stat['total_count'] * 100 : 0;
+    $progress_queued = $stat['total_count'] != 0 ? $stat['PROCESSING']['count'] / $stat['total_count'] * 100 : 0;
     $progress_failed = $stat['total_count'] != 0 ? $stat['FAILED']['count'] / $stat['total_count'] * 100 : 0;
+    $progress_unsynced = $stat['total_count'] != 0 ? $stat['UNSYNCED']['count'] / $stat['total_count'] * 100 : 0;
 
     $stat['progress'] = (int) $progress_complited;
     $stat['progress_complited'] = $progress_complited;
     $stat['progress_queued'] = $progress_queued;
     $stat['progress_failed'] = $progress_failed;
+    $stat['progress_unsynced'] = $progress_unsynced;
   }
 
   return $stat;
-}
-
-
-function sirv_getGarbage(){
-  global $wpdb;
-  $sirv_images_t = $wpdb->prefix . 'sirv_images';
-  $posts_t = $wpdb->prefix . 'posts';
-
-  $t = (int) $wpdb->get_var("
-      SELECT count(attachment_id) FROM $sirv_images_t WHERE attachment_id NOT IN (SELECT $posts_t.ID FROM $posts_t)
-  ");
-
-  return array($t > 0, $t);
 }
 
 
@@ -4813,8 +4808,8 @@ function sirv_process_sync_images(){
   }
 
   $sql = "SELECT * FROM $table_name
-          WHERE status != 'FAILED'  AND status != 'SYNCED'
-          ORDER BY IF(status='NEW',0,1), IF(status='PROCESSING', checks , 10) LIMIT 10";
+          WHERE status = 'NEW'
+          LIMIT 10";
   $results = $wpdb->get_results($sql, ARRAY_A);
 
   if (empty($results) || count($results) == 0) {
@@ -4954,11 +4949,22 @@ function sirv_clear_cache_callback(){
   } else if ($clean_cache_type == 'synced') {
     $result = $wpdb->delete($images_t, array('status' => 'SYNCED'));
   } else if ($clean_cache_type == 'garbage') {
-    $atch_ids = $wpdb->get_results("SELECT attachment_id as attachment_id
-                              FROM $images_t
-                              WHERE attachment_id
-                              NOT IN (SELECT $posts_t.ID FROM $posts_t)
-      ", ARRAY_N);
+    $sub_query = sirv_get_items_query('wps');
+
+    $atch_ids = $wpdb->get_results(
+      "SELECT
+            s_img.attachment_id as attachment_id
+        FROM
+            $images_t AS s_img
+        LEFT JOIN
+            $posts_t AS wps ON s_img.attachment_id = wps.ID
+            AND wps.post_type = 'attachment'
+            AND wps.post_status = 'inherit'
+            AND ( $sub_query )
+        WHERE
+            wps.ID IS NULL",
+      ARRAY_N
+    );
 
     //$ids = implode( ",", sirv_flattern_array($a_ids));
     $ids_chunks = array_chunk(sirv_flattern_array($atch_ids), 500);
@@ -6168,7 +6174,7 @@ function sirv_get_error_data(){
 
       $record = array();
 
-      $record['img_path'] = sirv_get_correct_img_path($row['img_path'], $row['sirv_path'], $url_images_path);
+      $record['img_path'] = sirv_get_correct_img_path($row['img_path'], $row['sirv_path'], $url_images_path, $report_type);
       $record['attempts'] = $row['checks'];
       $record['last_attempt_date'] = sirv_get_failed_image_date($row['timestamp_synced'], $row['timestamp_checks']);
       $record['filesize'] = $size == '-' ? '' : $size;
@@ -6192,20 +6198,32 @@ function sirv_get_error_data(){
 }
 
 
-function sirv_get_correct_img_path($img_path, $sirv_path, $url_images_path){
+function sirv_get_correct_img_path($img_path, $sirv_path, $url_images_path, $report_type){
   $err_msgs = array('File name/path missing from WordPress media library', 'Empty attachment');
 
   if( $img_path == 'sirv_item'){
-    $sirv_url = !empty($sirv_path) ? sirv_get_sirv_path($sirv_path) : "sirv path does not exists";
+    $sirv_item_msg = "(sirv product/variation item) ";
+    $response = "sirv path does not exists";
 
-    return "(sirv product/variation item) <a href=\"{$sirv_url}\" target=\"_blank\">{$sirv_url}</a>";
+    if( !empty($sirv_path) ) {
+      $sirv_url = sirv_get_sirv_path($sirv_path);
+
+      $response = $report_type == 'html' ? "<a href=\"{$sirv_url}\" target=\"_blank\">{$sirv_url}</a>" : $sirv_url;
+    }
+
+    return $sirv_item_msg . $response;
   }
 
   $isError = in_array($img_path, $err_msgs) ? true : false;
   $full_path = $url_images_path . $img_path;
+  $link_tag = $img_path;
 
+  if ( $report_type === 'html' ) {
+    $link_tag = stripos($img_path, 'http') !== false ? "<a href=\"{$img_path}\" target=\"_blank\">{$img_path}</a>" : "<a href=\"{$full_path}\" target=\"_blank\">{$full_path}</a>";
+  } else {
+    $link_tag = stripos($img_path, 'http') !== false ? $img_path : $full_path;
+  }
 
-  $link_tag = stripos($img_path, 'http') !== false ? "<a href=\"{$img_path}\" target=\"_blank\">{$img_path}</a>" : "<a href=\"{$full_path}\" target=\"_blank\">{$full_path}</a>";
 
   return $isError ? $img_path : $link_tag;
 }
@@ -6349,20 +6367,37 @@ function sirv_empty_view_cache(){
   $expired_at = date('Y-m-d H:i:s', strtotime('-1 day'));
 
   if ($clean_type == "all") {
+
     $result = $wpdb->query(
-      "UPDATE $cache_table SET `cache_status` = 'DELETED', `expired_at` = '$expired_at'
-        WHERE `post_id` IN (SELECT `post_id` FROM $cache_table WHERE `cache_key` = '$cache_key')
+      "UPDATE
+          $cache_table
+      SET
+          `cache_status` = 'DELETED', `expired_at` = '$expired_at'
+      WHERE
+          `cache_key` = '$cache_key'
       ");
+
   } else if($clean_type == "content"){
+
     $result = $wpdb->query(
-      "UPDATE $cache_table SET `cache_status` = 'DELETED', `expired_at` = '$expired_at'
-        WHERE `post_id` IN (SELECT `post_id` FROM $cache_table WHERE `cache_key` = '$cache_key' AND `cache_status` = 'SUCCESS')
+      "UPDATE
+          $cache_table
+      SET
+          `cache_status` = 'DELETED', `expired_at` = '$expired_at'
+      WHERE
+          `cache_key` = '$cache_key'
+          AND `cache_status` = 'SUCCESS'
       ");
 
   } else if ($clean_type == "no-content") {
     $result = $wpdb->query(
-      "UPDATE $cache_table SET `cache_status` = 'DELETED', `expired_at` = '$expired_at'
-        WHERE `post_id` IN (SELECT `post_id` FROM $cache_table WHERE `cache_key` = '$cache_key' AND `cache_status` IN ('FAILED', 'EMPTY'))
+      "UPDATE
+          $cache_table
+      SET
+          `cache_status` = 'DELETED', `expired_at` = '$expired_at'
+      WHERE
+          `cache_key` = '$cache_key'
+          AND `cache_status` IN ('FAILED', 'EMPTY')
       ");
   }
 
@@ -6394,76 +6429,6 @@ function sirv_set_image_meta($filename, $attachment_id){
 
 add_action('wp_ajax_sirv_wp_media_library_size', 'sirv_wp_media_library_size');
 function sirv_wp_media_library_size(){
-  if (!(is_array($_POST) && defined('DOING_AJAX') && DOING_AJAX)) {
-    return;
-  }
-
-  if (!sirv_is_allow_ajax_connect('ajax_validation_nonce', 'manage_options')) {
-    echo json_encode(array('error' => 'Access to the requested resource is forbidden'));
-    wp_die();
-  }
-
-  /* $start_time = time();
-  $start_microtime = microtime(true); */
-
-  $upload_dir     = wp_upload_dir();
-  $upload_space   = sirv_foldersize( $upload_dir['basedir'] );
-  $post_images_count = sirv_get_all_post_images_count();
-
-  /* $ops_time = time() - $start_time;
-  $ops_microtime = microtime(true) - $start_microtime;
-
-  $media_storage_data =  array(
-        'time' => $ops_time,
-        'date' => date('\o\n F d, Y'),
-        'microtime_start' => $start_microtime,
-        'microtime_end' => microtime(true),
-        'microtime' => round($ops_microtime * 1000),
-        'size' => Utils::getFormatedFileSize($upload_space),
-        'count' => $post_images_count
-  ); */
-  $media_storage_data =  array(
-        'date' => date('\o\n F j, Y'),
-        'size' => Utils::getFormatedFileSize($upload_space),
-        'img_count' => $post_images_count
-  );
-
-  $media_storage_data_json = json_encode($media_storage_data);
-
-  update_option('SIRV_WP_MEDIA_LIBRARY_SIZE', $media_storage_data_json);
-
-  echo $media_storage_data_json;
-
-  wp_die();
-}
-
-
-function sirv_foldersize($path){
-  $total_size = 0;
-  $total_files = 0;
-  $files = scandir($path);
-  $cleanPath = rtrim($path, '/') . '/';
-
-  foreach ($files as $t) {
-    if ('.' != $t && '..' != $t) {
-      $currentFile = $cleanPath . $t;
-      if (is_dir($currentFile)) {
-        $size = sirv_foldersize($currentFile);
-        $total_size += $size;
-      } else {
-        $size = filesize($currentFile);
-        $total_size += $size;
-        $total_files++;
-      }
-    }
-  }
-
-  return $total_size;
-}
-
-
-add_action('wp_ajax_sirv_wp_media_library_size_new', 'sirv_wp_media_library_size_new');
-function sirv_wp_media_library_size_new(){
   if (!(is_array($_POST) && defined('DOING_AJAX') && DOING_AJAX)) {
     echo json_encode(array('error' => 'Action is prohibited'));
     wp_die();
@@ -6550,7 +6515,29 @@ function sirv_calc_wp_media_size_approximately($size, $img_count, $all_img_count
 
 
 function sirv_db_get_wp_attachment_metadata($wpdb, $offset=0, $limit=5){
-  $query = $wpdb->prepare("SELECT meta_value FROM $wpdb->postmeta WHERE meta_key = '_wp_attachment_metadata' ORDER BY post_id ASC LIMIT %d OFFSET %d", $limit, $offset );
+
+  $sub_query = sirv_get_items_query('ps');
+
+  $query = $wpdb->prepare(
+    "SELECT
+        pm.meta_value
+    FROM
+        $wpdb->postmeta AS pm
+    INNER JOIN
+        $wpdb->posts AS ps ON pm.post_id = ps.ID
+    WHERE
+        pm.meta_key = '_wp_attachment_metadata'
+        AND ps.post_type = 'attachment'
+        AND ps.post_status = 'inherit'
+        AND ( $sub_query )
+    ORDER BY
+        pm.post_id ASC
+    LIMIT
+        %d
+    OFFSET
+        %d",
+    $limit,
+      $offset );
 
   return $wpdb->get_col($query);
 }
@@ -6570,7 +6557,6 @@ function sirv_get_part_of_wp_media_size($wpdb, $offset=0, $limit=5){
       $file_data = maybe_unserialize($serialized_file_data);
       if( isset($file_data['filesize']) ){
         $size += (int) $file_data['filesize'];
-        $img_count ++;
       }else{
         //try to get size from file if exists
         if(isset($file_data['file']) && file_exists($base_images_dir . $file_data['file'])){
@@ -6578,10 +6564,10 @@ function sirv_get_part_of_wp_media_size($wpdb, $offset=0, $limit=5){
 
           if($file_size){
             $size += $file_size;
-            $img_count ++;
           }
         }
       }
+      $img_count++;
     }
   }else{
     $status = 'done';
@@ -7047,6 +7033,22 @@ function sirv_is_frontend_ajax($action){
 }
 
 
+add_filter( 'attachment_fields_to_edit', 'sirv_attachment_fields_to_edit', 10, 2 );
+function sirv_attachment_fields_to_edit( $form_fields, $post ) {
+
+  $image_url = sirv_get_cdn_image($post->ID);
+
+  $form_fields['sirv_image_url'] = array(
+    'label' => __('Sirv URL'),
+    'input' => 'html',
+    'html'  => "<input type='text' class='text urlfield' readonly name='sirv-url' placeholder=\" File not synced to Sirv \" value='" . esc_attr($image_url) . "' /><br />",
+    'value' => $image_url,
+    'helps' => __('File location in your Sirv account.'),
+  );
+  return $form_fields;
+}
+
+
 add_action('delete_attachment', 'sirv_delete_image_from_sirv', 10 , 2);
 function sirv_delete_image_from_sirv($post_id, $post){
 
@@ -7072,12 +7074,8 @@ function sirv_delete_image_from_sirv($post_id, $post){
 add_action('add_attachment', 'sirv_sync_on_image_upload', 10);
 function sirv_sync_on_image_upload($post_id){
 
-  if( !empty($post_id) ){
-    $isOn = get_option('SIRV_SYNC_ON_UPLOAD') == 'on';
-    if($isOn){
-      $res = sirv_get_cdn_image($post_id);
-      sirv_processFetchQueue();
-    }
+  if( isset($post_id) && get_option('SIRV_SYNC_ON_UPLOAD') == 'on' ) {
+      $GLOBALS['sirv_jobs']['sirv_sync_images'][] = array("attachment_id" => $post_id, "run_fetch_queue" => true);
   }
 }
 
@@ -7412,12 +7410,10 @@ function sirv_get_view_cache_info(){
   $cache_table = $wpdb->prefix . 'sirv_cache';
 
   $accepted_cache_statuses = array('SUCCESS', 'EMPTY', 'FAILED', 'EXPIRED');
-  //$query_statuses = "'" . implode("', '", array('publish', 'draft', 'private', 'future', 'pending')) . "'";
-  //$excluded_statuses = "'" . implode("', '", array('trash', 'auto-draft')) . "'";
+  //product statuses: 'publish', 'draft', 'private', 'future', 'pending', 'trash', 'auto-draft'
   $excluded_statuses = sirv_db_render_IN_arg(array('trash', 'auto-draft'));
 
   $total_products = (int) $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->posts WHERE `post_type` IN ('product','product_variation') AND `post_status` NOT IN ($excluded_statuses)");
-  //$view_cache_data = $wpdb->get_results("SELECT meta_value as status, COUNT(*) as count FROM $wpdb->postmeta WHERE `meta_key` = '_sirv_woo_viewf_status' GROUP BY `meta_value`", ARRAY_A);
   $view_cache_data = $wpdb->get_results("SELECT cache_status as status, COUNT(*) as count FROM $cache_table WHERE `cache_key` = '_sirv_woo_view_file_cache' GROUP BY `cache_status`", ARRAY_A);
   $view_cache = array(
       'SUCCESS' => 0,
@@ -7449,16 +7445,27 @@ function sirv_get_view_files_unsynced_products($limit = 10){
 
   $excluded_statuses = sirv_db_render_IN_arg(array('trash', 'auto-draft'));
 
-  $get_not_synced_products_ids = $wpdb->get_results(
-    "SELECT id, post_type FROM $wpdb->posts WHERE id
-      NOT IN (SELECT post_id FROM $cache_table WHERE `cache_key` = '_sirv_woo_view_file_cache' AND `cache_status` != 'DELETED')
-      AND `post_type` IN ('product','product_variation')
-      AND `post_status` NOT IN ($excluded_statuses)
-      LIMIT $limit",
-    ARRAY_A
+  $query = $wpdb->prepare(
+    "SELECT
+        ps.ID as id,
+        ps.post_type
+    FROM
+        $wpdb->posts AS ps
+    LEFT JOIN
+        $cache_table AS ct ON ps.ID = ct.post_id
+        AND ct.cache_key = '_sirv_woo_view_file_cache'
+        AND ct.cache_status != 'DELETED'
+    WHERE
+        ct.post_id IS NULL
+        AND ps.post_type IN ('product', 'product_variation')
+        AND ps.post_status NOT IN ($excluded_statuses)
+    LIMIT
+        %d
+    ",
+    $limit
   );
 
-  return $get_not_synced_products_ids;
+  return $wpdb->get_results($query, ARRAY_A);
 }
 
 
@@ -7674,7 +7681,7 @@ function sirv_do_background_jobs(){
 
     require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/jobs.php');
 
-    foreach ($GLOBALS['sirv_jobs'] as $job_callback => $jobs) {;
+    foreach ($GLOBALS['sirv_jobs'] as $job_callback => $jobs) {
       if ( is_callable($job_callback) ) {
         if ( is_array($jobs) ) {
           for ($i=0; $i < count($jobs); $i++) {

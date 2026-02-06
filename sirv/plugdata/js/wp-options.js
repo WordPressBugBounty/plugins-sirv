@@ -689,22 +689,23 @@ jQuery(function ($) {
 
         function updateCacheInfo(data){
             if(!!data){
-                let isGarbage = data.garbage_count*1 > 0 ? true : false;
-                if(data.q*1 > data.total_count*1){
-                    data.q = isGarbage
-                        ? data.q*1 - data.garbage_count*1 > data.total_count
+                let isGarbage = data.garbage_count * 1 > 0 ? true : false;
+                if(data.SYNCED.count * 1 > data.total_count * 1){
+                    data.SYNCED.count = isGarbage
+                        ? data.SYNCED.count * 1 - data.garbage_count * 1 > data.total_count
                             ? data.total_count
-                            : data.q * 1 - data.garbage_count * 1
+                            : data.SYNCED.count * 1 - data.garbage_count * 1
                         : data.total_count;
                 }
 
-                $('.sirv-progress-data__complited--text').html(data.q_s);
-                $('.sirv-progress-data__complited--size').html(data.size_s);
-                $('.sirv-progress-data__queued--text').html(data.queued_s);
+                $('.sirv-progress-data__complited--text').html(data.SYNCED.count_s);
+                $('.sirv-progress-data__complited--size').html(data.SYNCED.size_s);
+                $('.sirv-progress-data__queued--text').html(data.PROCESSING.count_s);
+                $('.sirv-progress-data__unsynced--text').html(data.UNSYNCED.count_s);
                 $('.sirv-progress-data__failed--text').html(data.FAILED.count_s);
 
                 $('.sirv-progress__text--percents').html(data.progress + '%');
-                $('.sirv-progress__text--complited span').html(data.q_s + ' out of ' + data.total_count_s);
+                $('.sirv-progress__text--complited span').html(data.SYNCED.count_s + ' out of ' + data.total_count_s);
 
                 $('.sirv-progress__bar--line-complited').css('width', data.progress_complited + '%');
                 $('.sirv-progress__bar--line-queued').css('width', data.progress_queued + '%');
@@ -717,7 +718,7 @@ jQuery(function ($) {
                     $('.failed-images-block').hide();
                 }
 
-                if ( (data.q*1 + data.FAILED.count*1) == data.total_count*1) {
+                if ( (data.SYNCED.count * 1 + data.FAILED.count * 1) == data.total_count * 1) {
                     if (data.FAILED.count * 1 == 0) {
                         //manageElement('input[name=sirv-sync-images]', true, text = '100% synced', button = true);
                         setButtonSyncState('syncedAll');
@@ -857,11 +858,11 @@ jQuery(function ($) {
             return true;
         });
 
-        //event listener for option sirv-text-to-input-option-text-cancel
-        $(document).on('sirv-text-to-input-option-text-cancel', function(e) {
-            const id = e.detail.id;
+        //event listener for option sirv-editable-option
+        $(document).on('sirv-editable-option-event-cancel', function(e) {
+            const eventId = e.detail.eventId;
 
-            switch (id) {
+            switch (eventId) {
                 case "foldername":
                     $(".sirv-option-folder-issues").empty();
                     $(".sirv-warning-on-folder-change").addClass("sirv-hide");
@@ -913,37 +914,34 @@ jQuery(function ($) {
             }
         }
 
-
-        $('.sirv-option-edit').on('click', optionEdit);
-        function optionEdit(e){
-            e.preventDefault();
-
+        $(".sirv-editable-option_edit").on("click", editabaleOptionChange);
+        function editabaleOptionChange(e){
             const $button = $(this);
-            const id = $button.attr('data-id') || "";
+            const blockId = $button.attr('data-id') || "";
+            const eventId = $button.attr('data-event-id') || "";
             const type = $button.attr('data-type')
-            const $showValuePart = $(this).parent().find('.sirv-text-to-input-option-text-part');
-            const $inputValuePart = $(this).parent().find('.sirv-text-to-input-option-input-part');
-            const $input = $inputValuePart.find('input');
+            const $text = $(`.sirv-editable-option#${blockId} .sirv-editable-option-text`);
+            const $input = $(`.sirv-editable-option#${blockId} .sirv-editable-option-input`);
 
             if (type === 'render'){
                 $button.attr('data-type', 'edit');
                 $button.text('Cancel');
-                $showValuePart.hide();
-                $inputValuePart.show();
+                $text.hide();
+                $input.show();
             }
 
             if (type == 'edit'){
                 $button.attr("data-type", "render");
                 $button.text("Change");
                 $input.val($input.attr('data-restore-value'));
-                $showValuePart.show();
-                $inputValuePart.hide();
+                $text.show();
+                $input.hide();
 
-                if (id){
+                if (eventId){
                     document.dispatchEvent(
-                        new CustomEvent('sirv-text-to-input-option-text-cancel', {
+                        new CustomEvent('sirv-editable-option-event-cancel', {
                             detail: {
-                                id
+                                eventId
                             },
                         })
                     );
@@ -993,13 +991,14 @@ jQuery(function ($) {
                         showMessage('.sirv-sync-messages', data.error);
                     }
 
-                    $('.sirv-progress-data__complited--text').html(data.q_s);
-                    $('.sirv-progress-data__complited--size').html(data.size_s);
-                    $('.sirv-progress-data__queued--text').html(data.queued_s);
+                    $('.sirv-progress-data__complited--text').html(data.SYNCED.count_s);
+                    $('.sirv-progress-data__complited--size').html(data.SYNCED.size_s);
+                    $('.sirv-progress-data__queued--text').html(data.PROCESSING.count_s);
+                    $('.sirv-progress-data__unsynced--text').html(data.UNSYNCED.count_s);
                     $('.sirv-progress-data__failed--text').html(data.FAILED.count_s);
 
                     $('.sirv-progress__text--percents').html(data.progress + '%');
-                    $('.sirv-progress__text--complited span').html(data.q_s + ' out of ' + data.total_count_s);
+                    $('.sirv-progress__text--complited span').html(data.SYNCED.count_s + ' out of ' + data.total_count_s);
 
                     $('.sirv-progress__bar--line-complited').css('width', data.progress_complited + '%');
                     $('.sirv-progress__bar--line-queued').css('width', data.progress_queued + '%');
@@ -1030,7 +1029,7 @@ jQuery(function ($) {
                         return;
                     }
 
-                    if ((data.q * 1 + data.FAILED.count * 1 ) < data.total_count * 1) {
+                    if (data.UNSYNCED.count > 0) {
                         massSyncImages();
                     } else {
                         $('.sirv-progress__bar--line-complited').removeClass('sirv-progress-bar-animated');
@@ -2630,7 +2629,7 @@ jQuery(function ($) {
             $.ajax({
                 url: ajaxurl,
                 data: {
-                    action: 'sirv_wp_media_library_size_new',
+                    action: 'sirv_wp_media_library_size',
                     _ajax_nonce: sirv_options_data.ajaxnonce,
                 },
                 type: 'POST',

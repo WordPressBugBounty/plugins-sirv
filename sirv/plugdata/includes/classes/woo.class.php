@@ -214,15 +214,16 @@ class Woo
 
   protected static function render_sirv_product_image_html($product_id, $item_pattern)
   {
-
-    $saved_img_url = htmlentities(html_entity_decode(self::get_post_sirv_data($product_id, 'sirv_woo_product_image', false, false)));
+    $encoded_img_url = self::get_post_sirv_data($product_id, 'sirv_woo_product_image', false, false);
+    $encoded_img_url = is_null($encoded_img_url) ? '' : $encoded_img_url;
+    $saved_img_url = htmlentities(html_entity_decode($encoded_img_url));
     $attachment_id = self::get_post_sirv_data($product_id, 'sirv_woo_product_image_attachment_id', false, false);
 
     $no_image_placeholder = plugin_dir_url(__FILE__) . "../../assets/no_thumb.png";
 
     $img_url = $no_image_placeholder;
 
-    if (!empty($saved_img_url)) {
+    if ( !empty($saved_img_url) ) {
       $img_url = $saved_img_url . $item_pattern;
     } else {
       $saved_img_url = '';
@@ -631,6 +632,25 @@ class Woo
   }
 
 
+  /**
+   * Get cache value by cache key
+   *
+   * @param int $post_id/$product_id
+   * @param string $cache_key
+   * @param bool $is_json  is stored value is json stirng or not
+   * @return mixed if $is_json is true or empty result then return object, otherwise return string
+   */
+  public function get_woo_cache_value($post_id, $cache_key, $is_json = true){
+    $cache_row = $this->get_woo_cache_row($post_id, $cache_key);
+
+    if ( !empty($cache_row) ) {
+      return $is_json ? json_decode($cache_row['cache_value']) : $cache_row['cache_value'];
+    }
+
+    return (object) array();
+  }
+
+
   //insert or update data in cache table
   public function save_data_to_cache($data_object)
   {
@@ -713,15 +733,10 @@ class Woo
   protected function get_sirv_items_data($isVariation, $isEnableCheck)
   {
     $sirv_local_data = (object) $this->get_sirv_local_data($this->product_id);
+    $sirv_remote_data = (object) $this->get_sirv_remote_data($this->product_id, $isVariation, $isEnableCheck);
 
-    if ( $isEnableCheck ) {
-      $sirv_remote_data = (object) $this->get_sirv_remote_data($this->product_id, $isVariation);
-    } else {
-      $sirv_remote_data = (object) self::get_post_sirv_data($this->product_id, '_sirv_woo_viewf_data');
-    }
-
-    if (!isset($sirv_local_data->items)) $sirv_local_data->items = array();
-    if (!isset($sirv_remote_data->items)) $sirv_remote_data->items = array();
+    if ( !isset($sirv_local_data->items) ) $sirv_local_data->items = array();
+    if ( !isset($sirv_remote_data->items) ) $sirv_remote_data->items = array();
 
     return $this->merge_object_data($sirv_local_data->items, $sirv_remote_data->items, true);
   }
@@ -881,8 +896,6 @@ class Woo
   protected function get_cache_woo_view_file_data($product_id, $is_variation, $is_force_update = false)
   {
     $cache_key = '_sirv_woo_view_file_cache';
-    //$data = self::get_post_sirv_data($product_id, '_sirv_woo_viewf_data');
-    //$status = self::get_post_sirv_data($product_id, '_sirv_woo_viewf_status', false);
     $view_file_data = array('items' => array(), 'is_main_image_from_view_file' => false);
 
     $view_path = $this->get_product_path($product_id, $is_variation);
@@ -1094,15 +1107,13 @@ class Woo
 
   protected function replace_path_params($product_id, $path, $isVariation)
   {
-
     $pattern = '/{(product-sku|variation-sku|product-id|variation-id|category-slug)\s*(.*?)}/ims';
-    $old_pattern = '/{(.*?)}/mis';
-    preg_match_all($pattern, $path, $vars, PREG_SET_ORDER);
 
+    preg_match_all($pattern, $path, $vars, PREG_SET_ORDER);
     $vars_data = array();
 
-    foreach ($vars as $var) {
-      $vars_data[$var[0]] = $this->get_folder_var($var[1], $var[2], $product_id, $isVariation);
+    for( $i = 0; $i < count($vars); $i++ ){
+      $vars_data[$vars[$i][0]] = $this->get_folder_var($vars[$i][1], $vars[$i][2], $product_id, $isVariation);
     }
 
     if(
@@ -1160,6 +1171,28 @@ class Woo
   }
 
 
+  function convert_slash_to_hyphen($str){
+    return $this->convert_symbols($str, array('/' => '-', '\\' => '-'));
+  }
+
+
+  /**
+   * Convert symbols to another in string
+   *
+   * @param string $str
+   * @param array $rules array(from => to) Example: array('/' => '-', '\' => '-')
+   * @return string
+   */
+  function convert_symbols($str, $rules){
+    if ( !is_array($rules) || count($rules) == 0 || !is_string($str) || $str == '' ) return $str;
+
+    $search = array_keys($rules);
+    $replace = array_values($rules);
+
+    return str_replace($search, $replace, $str);
+  }
+
+
   protected function get_category_slug($product_id)
   {
     $terms = get_the_terms($product_id, 'product_cat');
@@ -1194,7 +1227,8 @@ class Woo
 
     try {
       $product = new WC_Product($product_id);
-      $sku = $product->get_sku();
+      $sku = $this->convert_slash_to_hyphen($product->get_sku());
+
       $sirv_gbl_product_sku_cache[$product_id] = $sku;
     } catch (Exception $e) {
       $sku = '';
@@ -1215,7 +1249,7 @@ class Woo
 
     try {
       $variation = new WC_Product_Variation($product_id);
-      $sku = $variation->get_sku();
+      $sku = $this->convert_slash_to_hyphen($variation->get_sku());
       $sirv_gbl_variation_sku_cache[$product_id] = $sku;
     } catch (Exception $e) {
       $sku = '';

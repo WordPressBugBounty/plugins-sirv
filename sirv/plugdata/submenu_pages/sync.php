@@ -21,7 +21,7 @@ $is_muted_mass_sync = sirv_is_muted($sync_endpoint_name);
     <tr>
       <th class="sirv-sync-messages no-padding" colspan="2">
         <?php
-          if ($error) echo Utils::showMessage($error);
+          if ( $error ) echo Utils::showMessage($error);
         ?>
       </th>
     </tr>
@@ -72,7 +72,7 @@ $is_muted_mass_sync = sirv_is_muted($sync_endpoint_name);
           <div class="sirv-progress">
             <div class="sirv-progress__text">
               <div class="sirv-progress__text--percents"><?php echo $cacheInfo['progress'] . '%'; ?></div>
-              <div class="sirv-progress__text--complited"><span><?php echo $cacheInfo['q_s'] . ' out of ' . $cacheInfo['total_count_s']; ?></span> images completed</div>
+              <div class="sirv-progress__text--complited"><span><?php echo $cacheInfo['SYNCED']['count_s'] . ' out of ' . $cacheInfo['total_count_s']; ?></span> images completed</div>
             </div>
             <!-- <div class="sirv-progress__bar <?php if ($isAllSynced) echo 'sirv-failed-imgs-bar'; ?>"> -->
             <div class="sirv-progress__bar">
@@ -94,10 +94,10 @@ $is_muted_mass_sync = sirv_is_muted($sync_endpoint_name);
               </td>
               <td>Synced</td>
               <td>
-                <div class="sirv-progress-data__complited--text"><?php echo $cacheInfo['q_s']; ?></div>
+                <div class="sirv-progress-data__complited--text"><?php echo $cacheInfo['SYNCED']['count_s']; ?></div>
               </td>
               <td>
-                <div class="sirv-progress-data__complited--size"><?php echo $cacheInfo['size_s']; ?></div>
+                <div class="sirv-progress-data__complited--size"><?php echo $cacheInfo['SYNCED']['size_s']; ?></div>
               </td>
               <td>
                 <div class="sirv-synced-clear-cache-action" style="<?php echo $syncedClearCacheActionShow; ?>">
@@ -123,12 +123,27 @@ $is_muted_mass_sync = sirv_is_muted($sync_endpoint_name);
                 </div>
               </td>
               <td>
-                <div class="sirv-progress-data__queued--text"><?php echo $cacheInfo['queued_s']; ?></div>
+                <div class="sirv-progress-data__queued--text"><?php echo $cacheInfo['PROCESSING']['count_s']; ?></div>
               </td>
               <td></td>
               <td></td>
             </tr>
             <tr class="sirv-progress-data-third-row">
+              <td>
+                <div class="sirv-progress-data__label sirv-unsynced"></div>
+              </td>
+              <td>
+                <div style="display: flex; align-content: center;">
+                  <span>Unsynced</span>&nbsp;
+                </div>
+              </td>
+              <td>
+                <div class="sirv-progress-data__unsynced--text"><?php echo $cacheInfo['UNSYNCED']['count_s']; ?></div>
+              </td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr class="sirv-progress-data-forth-row">
               <td>
                 <div class="sirv-progress-data__label sirv-failed"></div>
               </td>
@@ -168,7 +183,7 @@ $is_muted_mass_sync = sirv_is_muted($sync_endpoint_name);
         </div>
       </th>
     </tr>
-    <?php if ( $is_muted_mass_sync) {
+    <?php if ( $is_muted_mass_sync ) {
       //$mass_sync_muted_message = Utils::showMessage('Option is disabled due to exceeding API usage rate limit. Refresh this page in <b>' . round((sirv_get_mute_expired_at($sync_endpoint_name) - time()) / 60) . ' minutes</b>', 'warning');
       //'You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for' . Utils::get_minutes(sirv_get_mute_expired_at($endpoint_name)) . 'minutes. Please try again after that or inform the <a href="https://sirv.com/help/support/#support" target="_blank">Sirv support team</a> if you keep seeing this message.';
       $mass_sync_muted_message = Utils::showMessage('You\'ve exceeded your hourly API limit. This option is temporarily inaccessible for <b>'  . round((sirv_get_mute_expired_at($sync_endpoint_name) - time()) / 60) . ' minutes.</b>', 'warning');
@@ -208,8 +223,8 @@ $is_muted_mass_sync = sirv_is_muted($sync_endpoint_name);
       <tr>
         <td colspan="2">
           <div class="sirv-sync-controls">
-                <input type="button" name="sirv-sync-images" class="button-primary sirv-sync-images" value="<?php echo $sync_button_text; ?>" <?php echo $is_sync_button_disabled; ?> />
-                <!-- <input type="button" name="sirv-check-cache" class="button-secondary" value="Check cache" /> -->
+            <input type="button" name="sirv-sync-images" class="button-primary sirv-sync-images" value="<?php echo $sync_button_text; ?>" <?php echo $is_sync_button_disabled; ?> />
+            <!-- <input type="button" name="sirv-check-cache" class="button-secondary" value="Check cache" /> -->
           </div>
         </td>
       </tr>

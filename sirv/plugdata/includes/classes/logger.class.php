@@ -250,31 +250,31 @@ class SirvLogger
       "level" => $log_lvl,
       "var_name" => $var_name,
       "msg"   => $msg,
+      "function_name" => null,
     );
 
     $dbg_backtrace = debug_backtrace();
+
     $log_line_data['file'] = $dbg_backtrace[$func_lvl]['file'];
     $log_line_data['line'] = $dbg_backtrace[$func_lvl]['line'];
+    $log_line_data['function_name'] = isset($dbg_backtrace[$func_lvl + 1]['function']) ? $dbg_backtrace[$func_lvl + 1]['function'] : null;
 
     return $this->format_log_data($log_line_data);
   }
 
 
   protected function format_log_data( $log_data ){
-    $log_line = '';
+    if( count($log_data) == 0 ) return '';
 
-    if(! empty($log_data) ){
-      $log_line .= '[' . date('d-M-Y H:i:s e', $log_data['timestamp']) . "] ";
-      $log_line .= "file: " . $this->get_short_path($log_data['file']);
-      $log_line .= ":" . $log_data['line'] . " ";
-      $log_line .= "[" . strtoupper($log_data['level']) . "] : ";
-      if($log_data['var_name']){
-        $log_line .= $log_data['var_name'] . ' => ';
-      }
-      $log_line .= $this->stringify_data($log_data['msg']);
-    }
+    $date = '[' . date('d-M-Y H:i:s e', $log_data['timestamp']) . "] ";
+    $file = "file: " . $this->get_short_path($log_data['file']);
+    $line = ":" . $log_data['line'] . " ";
+    $level = "[" . strtoupper($log_data['level']) . "] : ";
+    $func_name = !is_null($log_data['function_name']) ? $log_data['function_name'] . ': ' : '';
+    $var_name = $log_data['var_name'];
+    $msg = $this->stringify_data($log_data['msg']);
 
-    return $log_line;
+    return $date . $file . $line . $level . $func_name . $var_name . " => " . $msg;
   }
 
 

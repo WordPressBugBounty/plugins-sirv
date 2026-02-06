@@ -7,16 +7,17 @@ class Exclude{
   * $currentPath - string or array
   */
   public static function excludeSirvContent($currentPath, $excludeType){
-    //$excludeType SIRV_EXCLUDE_FILES SIRV_EXCLUDE_PAGES
-    //sirv_debug_msg($currentPath);
+    //$excludeType SIRV_EXCLUDE_FILES SIRV_EXCLUDE_PAGES, SIRV_EXCLUDE_RESPONSIVE_FILES
 
     $excludeInput = get_option($excludeType);
+
+    if( !isset($excludeInput) || $excludeInput == '' ) return false;
+
     if ( $excludeType == 'SIRV_EXCLUDE_FILES' ) {
       $currentPath = self::clearCurrentPath($currentPath);
     } else if ( $excludeType == 'SIRV_EXCLUDE_RESPONSIVE_FILES' ) {
         $currentPath['src'] = self::clearCurrentPath($currentPath['src']);
     }
-    if( !isset($excludeInput) || empty($excludeInput) ) return false;
 
     $excludePaths = self::parseExcludePaths($excludeInput);
 

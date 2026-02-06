@@ -75,8 +75,13 @@ function sirv_update_view_file_cache($args){
 }
 
 
-function sirv_sync_images($fetch_queue_data){
-  //code here
+function sirv_sync_images($args){
+
+  if ( !isset($args['attachment_id']) ) return;
+
+  sirv_get_cdn_image($args['attachment_id'], false, false);
+
+  sirv_processFetchQueue();
 }
 
 ?>

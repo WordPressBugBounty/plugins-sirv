@@ -104,35 +104,35 @@ class Options_components extends HTML_form_components{
   }
 
 
-  protected static function render_text_to_input_option($option){
+  protected static function render_editable_option($option)
+  {
     $above_text = (isset($option['above_text']) && $option['above_text']) ? self::render_above_text($option['above_text']) : '';
     $below_text = (isset($option['below_text']) && $option['below_text']) ? self::render_below_text($option['below_text']) : '';
+    $event_id = isset($option['event_id']) ? ' data-event-id="'. $option['event_id'] .'" ' : '';
 
     $option['attrs']['data-restore-value'] = $option['value'];
 
     $html = '
       <tr>
         ' . self::render_option_title($option['label']) . '
-        <td colspan="2" style="padding-top:0;" >
-          <div class="sirv-text-to-input-option-block">
-            <div class="sirv-text-to-input-option_above-text">
-              ' . $above_text . '
-            </div>
-            <div class="sirv-text-to-input-option">
-              <div class="sirv-text-to-input-option-text-part">
-                <div title="'. htmlspecialchars($option['value']) .'">
-                  <span class="sirv--grey">' . htmlspecialchars($option['const_text']) . '</span><span class="sirv-text-to-input-option-rendered-value">' . htmlspecialchars($option['value']) . '</span>
+        <td colspan="2" style="padding-top:0;">
+          <div class="sirv-editable-option-block">
+            <div class="sirv-editable-option_above-text">' . $above_text . '</div>
+            <div class="sirv-editable-option" id="'. $option['action_id'] . '">
+              <div class="sirv-editable-option_full-path">
+                <div class="sirv-editable-option_domain sirv--grey sirv-ellipsis-text" title="' . htmlspecialchars($option['const_text']) . '">
+                  ' . htmlspecialchars($option['const_text']) . '/
+                </div>
+                <div class="sirv-editable-option_relative-path">
+                  <span class="sirv-editable-option-text sirv-ellipsis-text" title="' . htmlspecialchars($option['value']) . '">' . htmlspecialchars($option['value']) . '</span>
+                  ' . self::render_text_component($option) . '
                 </div>
               </div>
-              <div class="sirv-text-to-input-option-input-part" style="display: none;">
-                <span class="sirv--grey">' . htmlspecialchars($option['const_text']) . '</span>
-                ' . self::render_text_component($option) . '
+              <div class="sirv-editable-option-actions">
+                <button type="button" class="sirv-editable-option_edit" data-type="render" data-id="'. $option['action_id'] .'"'. $event_id .'>Change</button>
               </div>
-              <a class="sirv-option-edit" href="#" data-type="render">Change</a>
             </div>
-            <div class="sirv-text-to-input-option_below-text">
-              ' . $below_text . '
-            </div>
+            <div class="sirv-editable-option_below-text">' . $below_text . '</div>
           </div>
         </td>
         ' . PHP_EOL . self::render_tooltip($option) . '

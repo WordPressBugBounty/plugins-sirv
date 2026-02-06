@@ -115,7 +115,7 @@ class resizeHelper{
     $editor = wp_get_image_editor($file);
 
     if (is_wp_error($editor)) {
-      sirv_debug_msg(__FILE__ . ' editor error: image '. $file .' cannot be edited');
+      sirv_qdebug(__FILE__ . ' editor error: image '. $file .' cannot be edited');
       return array();
     }
 
