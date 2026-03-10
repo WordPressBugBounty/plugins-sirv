@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           8.1.0
+ * Version:           8.2.0
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '8.1.0');
+define('SIRV_PLUGIN_VERSION', '8.2.0');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -1182,7 +1182,6 @@ if (function_exists('register_block_type')) {
   if (!function_exists('sirv_addmedia_block')) {
     function sirv_addmedia_block()
     {
-
       wp_register_script(
         'sirv-addmedia-block-editor-js',
         SIRV_PLUGIN_SUBDIR_URL_PATH . 'gutenberg/addmedia-block/editor-script.js',
@@ -1191,16 +1190,16 @@ if (function_exists('register_block_type')) {
         true
       );
 
-      /*wp_register_style(
+      wp_register_style(
         'sirv-addmedia-block-css',
-        SIRV_PLUGIN_SUBDIR_URL_PATH  . 'gutenberg/addmedia-block/style.css',
+        SIRV_PLUGIN_SUBDIR_URL_PATH  . 'gutenberg/addmedia-block/sirv-addmeddia-style.css',
         array( 'wp-edit-blocks' ),
-        filemtime( SIRV_PLUGIN_SUBDIR_URL_PATH  . 'gutenberg/addmedia-block/style.css' )
-      );*/
+        filemtime(SIRV_PLUGIN_SUBDIR_PATH  . 'gutenberg/addmedia-block/sirv-addmeddia-style.css' )
+      );
 
       wp_register_style(
         'sirv-addmedia-block-editor-css',
-        SIRV_PLUGIN_SUBDIR_URL_PATH . '/gutenberg/addmedia-block/editor-style.css',
+        SIRV_PLUGIN_SUBDIR_URL_PATH . 'gutenberg/addmedia-block/editor-style.css',
         array('wp-edit-blocks'),
         filemtime(SIRV_PLUGIN_SUBDIR_PATH  . 'gutenberg/addmedia-block/editor-style.css')
       );
@@ -1208,7 +1207,7 @@ if (function_exists('register_block_type')) {
       register_block_type('sirv/addmedia-block', array(
         'editor_script' => 'sirv-addmedia-block-editor-js',
         'editor_style'  => 'sirv-addmedia-block-editor-css',
-        //'style'         => 'sirv-addmedia-block-css'
+        'style'         => 'sirv-addmedia-block-css'
       ));
     }
 
@@ -1244,7 +1243,7 @@ function sirv_oversize_storage_notice(){
 
   $storage_data = sirv_getStorageInfo();
 
-  if ( count($storage_data['storage']) === 0 ) return;
+  if ( empty($storage_data['storage']) ) return;
 
   $notice = '';
   $notice_type = 'warning';
@@ -1809,6 +1808,8 @@ function sirv_admin_init(){
 
   sirv_tinyMCE_plugin_shortcode_view_styles();
   sirv_redirect_to_options();
+
+  sirv_register_settings();
 }
 
 
@@ -1840,26 +1841,14 @@ function sirv_redirect_to_options(){
 
 
 function sirv_register_settings(){
+  //register only settings that will be presents in options page
+
   register_setting('sirv-settings-group', 'SIRV_FOLDER');
   register_setting('sirv-settings-group', 'SIRV_ENABLE_CDN');
   register_setting('sirv-settings-group', 'SIRV_NETWORK_TYPE');
   register_setting('sirv-settings-group', 'SIRV_PARSE_STATIC_IMAGES');
   register_setting('sirv-settings-group', 'SIRV_PARSE_VIDEOS');
-  register_setting('sirv-settings-group', 'SIRV_CLIENT_ID');
-  register_setting('sirv-settings-group', 'SIRV_CLIENT_SECRET');
-  register_setting('sirv-settings-group', 'SIRV_TOKEN');
-  register_setting('sirv-settings-group', 'SIRV_TOKEN_EXPIRE_TIME');
-  register_setting('sirv-settings-group', 'SIRV_MUTE');
-  register_setting('sirv-settings-group', 'SIRV_MUTE_ERROR_MESSAGE');
-  register_setting('sirv-settings-group', 'SIRV_ACCOUNT_EMAIL');
-  register_setting('sirv-settings-group', 'SIRV_ACCOUNT_NAME');
   register_setting('sirv-settings-group', 'SIRV_CDN_URL');
-  register_setting('sirv-settings-group', 'SIRV_CUSTOM_DOMAINS');
-  register_setting('sirv-settings-group', 'SIRV_STAT');
-  register_setting('sirv-settings-group', 'SIRV_FETCH_MAX_FILE_SIZE');
-  register_setting('sirv-settings-group', 'SIRV_CSS_BACKGROUND_IMAGES');
-  register_setting('sirv-settings-group', 'SIRV_CSS_BACKGROUND_IMAGES_SYNC_DATA');
-
   register_setting('sirv-settings-group', 'SIRV_DELETE_FILE_ON_SIRV');
   register_setting('sirv-settings-group', 'SIRV_SYNC_ON_UPLOAD');
 
@@ -1870,8 +1859,6 @@ function sirv_register_settings(){
   register_setting('sirv-settings-group', 'SIRV_SHORTCODES_PROFILES');
   register_setting('sirv-settings-group', 'SIRV_CDN_PROFILES');
   register_setting('sirv-settings-group', 'SIRV_USE_SIRV_RESPONSIVE');
-
-  register_setting('sirv-settings-group', 'SIRV_VERSION_PLUGIN_INSTALLED');
   register_setting('sirv-settings-group', 'SIRV_JS');
   register_setting('sirv-settings-group', 'SIRV_JS_MODULES');
   register_setting('sirv-settings-group', 'SIRV_CUSTOM_CSS');
@@ -1879,22 +1866,33 @@ function sirv_register_settings(){
 
   register_setting('sirv-settings-group', 'SIRV_CROP_SIZES');
   register_setting('sirv-settings-group', 'SIRV_RESPONSIVE_PLACEHOLDER');
-
-  register_setting('sirv-settings-group', 'SIRV_WP_NETWORK_WIDE');
-
-
   register_setting('sirv-settings-group', 'SIRV_PREVENT_CREATE_WP_THUMBS');
   register_setting('sirv-settings-group', 'SIRV_PREVENTED_SIZES');
-
-  register_setting('sirv-settings-group', 'SIRV_THUMBS_DATA');
-  register_setting('sirv-settings-group', 'SIRV_TROUBLESHOOTING_ISSUES_STATUS');
-
-
   register_setting('sirv-settings-group', 'SIRV_HTTP_AUTH_CHECK');
   register_setting('sirv-settings-group', 'SIRV_HTTP_AUTH_USER');
   register_setting('sirv-settings-group', 'SIRV_HTTP_AUTH_PASS');
+  register_setting('sirv-settings-group', 'SIRV_WOO_SHOW_ADD_MEDIA_BUTTON');
 
-  register_setting('sirv-settings-group', 'SIRV_WP_MEDIA_LIBRARY_SIZE');
+  //register_setting('sirv-settings-group', 'SIRV_CLIENT_ID');
+  //register_setting('sirv-settings-group', 'SIRV_CLIENT_SECRET');
+  //register_setting('sirv-settings-group', 'SIRV_TOKEN');
+  //register_setting('sirv-settings-group', 'SIRV_TOKEN_EXPIRE_TIME');
+  //register_setting('sirv-settings-group', 'SIRV_MUTE');
+  //register_setting('sirv-settings-group', 'SIRV_MUTE_ERROR_MESSAGE');
+  //register_setting('sirv-settings-group', 'SIRV_ACCOUNT_EMAIL');
+  //register_setting('sirv-settings-group', 'SIRV_ACCOUNT_NAME');
+  //register_setting('sirv-settings-group', 'SIRV_CUSTOM_DOMAINS');
+  //register_setting('sirv-settings-group', 'SIRV_STAT');
+  //register_setting('sirv-settings-group', 'SIRV_FETCH_MAX_FILE_SIZE');
+  //register_setting('sirv-settings-group', 'SIRV_CSS_BACKGROUND_IMAGES');
+  //register_setting('sirv-settings-group', 'SIRV_CSS_BACKGROUND_IMAGES_SYNC_DATA');
+  //register_setting('sirv-settings-group', 'SIRV_VERSION_PLUGIN_INSTALLED');
+  //register_setting('sirv-settings-group', 'SIRV_WP_NETWORK_WIDE');
+  //register_setting('sirv-settings-group', 'SIRV_THUMBS_DATA');
+  //register_setting('sirv-settings-group', 'SIRV_TROUBLESHOOTING_ISSUES_STATUS');
+
+
+  //register_setting(self::$options_group, 'SIRV_WP_MEDIA_LIBRARY_SIZE');
 
   require_once (SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/options/options.helper.class.php');
   OptionsHelper::register_settings();
@@ -1982,6 +1980,20 @@ add_action('update_option_SIRV_EXCLUDE_PAGES', 'sirv_set_exclude_pages', 10, 2);
 function sirv_set_exclude_pages($old_value, $new_value){
   if ($old_value !== $new_value) {
     update_option('SIRV_EXCLUDE_PAGES', sirv_parse_exclude_data($new_value));
+  }
+}
+
+
+add_action('update_option_SIRV_WOO_THUMBS_SIZE', 'sirv_set_woo_thumbs_size', 10, 2);
+function sirv_set_woo_thumbs_size($old_value, $new_value){
+  if ($old_value !== $new_value) {
+
+    if ( is_numeric($new_value) and $new_value > 0 ) {
+      update_option('SIRV_WOO_THUMBS_SIZE', $new_value);
+    }
+    else {
+      update_option('SIRV_WOO_THUMBS_SIZE', 80);
+    }
   }
 }
 
@@ -2589,9 +2601,6 @@ function sirv_the_content($content, $type='content'){
 
   if (is_admin()) return $content;
 
-  //global $sirv_gbl_sirv_logger;
-  //$sirv_gbl_sirv_logger->time_start("sirv_the_content");
-
   global $wpdb;
 
   $uploads_dir = wp_get_upload_dir();
@@ -2613,7 +2622,6 @@ function sirv_the_content($content, $type='content'){
   $file_exts = sirv_get_file_extensions_by_type($ext_types);
   $file_exts_str = implode("|", $file_exts);
 
-  /* $image_pattern = '/<img[^<]+?(' . $quoted_base_url . '\/([^\s]*?)(\-[0-9]{1,}(?:x|&#215;)[0-9]{1,})?\.((?:' . $file_exts_str . ')))[^>]+?>/ims'; */
   $image_short_pattern = '/<img[^<]+?('. $quoted_base_url .'\/[^\s]*?\.(?:'. $file_exts_str .'))[^>]+?>/ims';
   $all_pattern = '/' . $quoted_base_url . '\/([^\s]*?)(\-[0-9]{1,}(?:x|&#215;)[0-9]{1,})?\.((?:' . $file_exts_str . '))/ims';
 
@@ -2621,8 +2629,6 @@ function sirv_the_content($content, $type='content'){
 
   switch ($type) {
     case 'content':
-      /* <img[^<]+?((?:https?\:)?\/\/eynna\-hair\.ba\/wp\-content\/uploads\/([^\s]*?)(\-[0-9]{1,}(?:x|&#215;)[0-9]{1,})?\.((?:tif|tiff|bmp|jpg|jpeg|gif|png|apng|svg|webp|heif|avif|ico)))[^>]+?> */
-      /* preg_match_all('/<img[^<]+?(' . $quoted_base_url . '\/([^\s]*?)(\-[0-9]{1,}(?:x|&#215;)[0-9]{1,})?\.((?:' . $file_exts_str . ')))[^>]+?>/ims', $content, $m, PREG_SET_ORDER); */
       preg_match_all($all_pattern, $content, $m, PREG_SET_ORDER);
       preg_match_all($image_short_pattern, $content, $images_html, PREG_SET_ORDER);
 
@@ -2720,7 +2726,6 @@ function sirv_the_content($content, $type='content'){
     }
   }
 
-  //$sirv_gbl_sirv_logger->time_end("sirv_the_content");
   return $content;
 }
 
@@ -2732,7 +2737,7 @@ function sirv_get_attachment_id_from_css_class($class_str){
     return $m[1];
   }
 
-  return false;
+  return null;
 }
 
 
@@ -2814,13 +2819,23 @@ function sirv_test_video(string $video, array $attr, string $url, array $rawattr
 
 //------------------------------------------------------------------------------------------------------------------
 function sirv_wp_prepare_attachment_for_js($response, $attachment, $meta){
-  if (!empty($response['sizes'])) {
-    if (preg_match('/^image/ims', $response['type'])) {
-      foreach ($response['sizes'] as $size => $image) {
-        $response['sizes'][$size]['url'] = preg_replace('/(.*)(?:\-[0-9]{1,}x[0-9]{1,}(\.[a-z]{1,})$)/ims', '$1$2?w=' . $image['width'] . '&h=' . $image['height'], $image['url']);
+  // if $response['sizes'] is exists then it is an image. For other types of media, WP does not create sizes array
+  if ( isset($response['sizes']) && is_array($response['sizes']) && count($response['sizes']) > 0 ) {
+    foreach ($response['sizes'] as $size => $image) {
+      $params = '';
+      $width = isset($image['width']) ? 'w=' . $image['width'] : '';
+      $height = isset($image['height']) ? 'h=' . $image['height'] : '';
+
+      if ( $width && $height ) {
+        $params = "?$width&$height";
+      } else if ( $width || $height ) {
+        $params = "?$width$height";
       }
+    //(.*)(?:\-[0-9]{1,}x[0-9]{1,}(\.[a-z]{1,})$)
+    $response['sizes'][$size]['url'] = preg_replace('/^(.+?)(?:-\d+x\d+)?(\.[a-z]+)$/i', '$1$2' . $params, $image['url']);
     }
   }
+
   return $response;
 }
 
@@ -3985,7 +4000,7 @@ function sirv_get_unsynced_images($limit = 100){
   global $wpdb;
   $sirv_images_t = $wpdb->prefix . 'sirv_images';
 
-  $sub_query = sirv_get_items_query('ps');
+  $sub_query = sirv_get_items_query();
 
   return $wpdb->get_results(
     "SELECT
@@ -3998,7 +4013,7 @@ function sirv_get_unsynced_images($limit = 100){
         si.attachment_id IS NULL
         AND ps.post_type = 'attachment'
         AND ps.post_status = 'inherit'
-        AND ( $sub_query )
+        AND ps.post_mime_type IN ( $sub_query )
     ORDER BY
       ps.post_date DESC
     LIMIT
@@ -4013,29 +4028,33 @@ function sirv_get_all_post_images_count(){
 
   $sub_query = sirv_get_items_query();
 
-  return $wpdb->get_var("
-        SELECT count(*) FROM $wpdb->posts WHERE ( $sub_query )
-        AND post_type = 'attachment'
-        AND post_status = 'inherit'
-      ");
+  return $wpdb->get_var(
+    "SELECT
+        count(*)
+    FROM
+        $wpdb->posts
+    WHERE
+      post_mime_type IN ( $sub_query )
+      AND post_type = 'attachment'
+      AND post_status = 'inherit'"
+  );
 }
 
 
 /**
  * Get query for getting all post images and videos (optional) from posts table
  *
- * @param string $table_alias Table alias for posts table. Example: $table_alias  = 'ps' -> SELECT * FROM `posts` as ps;
- *
  * @return string
  */
-function sirv_get_items_query($table_alias = null) {
+function sirv_get_items_query() {
 
-  $tbl_prefix = is_null($table_alias) ? '' : $table_alias . '.';
+  $file_extensions = Utils::get_file_extensions();
 
-  $image_query = "{$tbl_prefix}post_mime_type LIKE 'image/%'";
-  $video_query = "{$tbl_prefix}post_mime_type LIKE 'video/%'";
+  $image_exts = "'image/" . implode("', 'image/", $file_extensions['image']) . "'";
+  $video_exts = "'video/" . implode("', 'video/", $file_extensions['video']) . "'";
+  $sirv_ext = "'image/sirv'";
 
-  return get_option('SIRV_PARSE_VIDEOS') === 'on' ? "$image_query OR $video_query" : "$image_query";
+  return get_option('SIRV_PARSE_VIDEOS') === 'on' ? "$image_exts, $sirv_ext, $video_exts" : "$image_exts, $sirv_ext";
 }
 
 
@@ -4051,7 +4070,7 @@ function sirv_get_unsynced_images_count(){
   global $wpdb;
   $sirv_images_t = $wpdb->prefix . 'sirv_images';
 
-  $sub_query = sirv_get_items_query('ps');
+  $sub_query = sirv_get_items_query();
 
   return $wpdb->get_var(
     "SELECT
@@ -4064,7 +4083,7 @@ function sirv_get_unsynced_images_count(){
         si.attachment_id IS NULL
         AND ps.post_type = 'attachment'
         AND ps.post_status = 'inherit'
-        AND ( $sub_query )
+        AND ps.post_mime_type IN ( $sub_query )
   ");
 }
 
@@ -4531,7 +4550,6 @@ function sirv_get_formated_number($num){
 function sirv_getCacheInfo(){
   global $wpdb;
   $images_t = $wpdb->prefix . 'sirv_images';
-  $posts_t = $wpdb->prefix . 'posts';
 
   $total_count = (int) sirv_get_all_post_images_count();
 
@@ -4551,7 +4569,17 @@ function sirv_getCacheInfo(){
     'progress_unsynced' => 0,
   );
 
-  $results = $wpdb->get_results("SELECT status, count(*) as `count`, SUM(size) as size FROM $images_t GROUP BY status", ARRAY_A);
+  //$results = $wpdb->get_results("SELECT status, count(*) as `count`, SUM(size) as size FROM $images_t GROUP BY status", ARRAY_A);
+  $results = $wpdb->get_results(
+    "SELECT
+      s_img.status, count(*) as `count`, SUM(s_img.size) as size
+    FROM
+      $images_t as s_img
+    JOIN
+      $wpdb->posts as ps ON s_img.attachment_id = ps.ID
+    GROUP BY s_img.status",
+    ARRAY_A
+  );
   if ($results) {
     foreach ($results as $row) {
       $stat[$row['status']] = array(
@@ -4562,21 +4590,15 @@ function sirv_getCacheInfo(){
       );
     }
 
-    $sub_query = sirv_get_items_query('wps');
-
-
     $oldCache = $wpdb->get_var(
       "SELECT
             COUNT(s_img.attachment_id)
         FROM
             $images_t AS s_img
         LEFT JOIN
-            $posts_t AS wps ON s_img.attachment_id = wps.ID
-            AND wps.post_type = 'attachment'
-            AND wps.post_status = 'inherit'
-            AND ( $sub_query )
+            $wpdb->posts AS ps ON s_img.attachment_id = ps.ID
         WHERE
-            wps.ID IS NULL");
+            ps.ID IS NULL");
 
     $stat['garbage_count'] = (int) $oldCache;
     $stat['garbage_count_s'] = sirv_get_formated_number($stat['garbage_count']);
@@ -4949,20 +4971,15 @@ function sirv_clear_cache_callback(){
   } else if ($clean_cache_type == 'synced') {
     $result = $wpdb->delete($images_t, array('status' => 'SYNCED'));
   } else if ($clean_cache_type == 'garbage') {
-    $sub_query = sirv_get_items_query('wps');
-
     $atch_ids = $wpdb->get_results(
       "SELECT
             s_img.attachment_id as attachment_id
         FROM
             $images_t AS s_img
         LEFT JOIN
-            $posts_t AS wps ON s_img.attachment_id = wps.ID
-            AND wps.post_type = 'attachment'
-            AND wps.post_status = 'inherit'
-            AND ( $sub_query )
+            $posts_t AS ps ON s_img.attachment_id = ps.ID
         WHERE
-            wps.ID IS NULL",
+            ps.ID IS NULL",
       ARRAY_N
     );
 
@@ -5447,7 +5464,7 @@ function sirv_santize_shorcode_data($data){
     if ( is_array($value) ) {
       $data[$key] = sirv_santize_shorcode_data($value);
     } else {
-      $data[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+      $data[$key] = htmlspecialchars(stripslashes($value), ENT_QUOTES, 'UTF-8');
     }
   }
 
@@ -6516,7 +6533,7 @@ function sirv_calc_wp_media_size_approximately($size, $img_count, $all_img_count
 
 function sirv_db_get_wp_attachment_metadata($wpdb, $offset=0, $limit=5){
 
-  $sub_query = sirv_get_items_query('ps');
+  $sub_query = sirv_get_items_query();
 
   $query = $wpdb->prepare(
     "SELECT
@@ -6529,7 +6546,7 @@ function sirv_db_get_wp_attachment_metadata($wpdb, $offset=0, $limit=5){
         pm.meta_key = '_wp_attachment_metadata'
         AND ps.post_type = 'attachment'
         AND ps.post_status = 'inherit'
-        AND ( $sub_query )
+        AND ps.post_mime_type IN ( $sub_query )
     ORDER BY
         pm.post_id ASC
     LIMIT
@@ -6537,7 +6554,7 @@ function sirv_db_get_wp_attachment_metadata($wpdb, $offset=0, $limit=5){
     OFFSET
         %d",
     $limit,
-      $offset );
+    $offset );
 
   return $wpdb->get_col($query);
 }
@@ -7290,7 +7307,7 @@ function sirv_get_js_compressed_size($url){
   } catch (Exception $e) {
     $sizes['error'] = $e;
   }finally{
-    curl_close($curl);
+    if (PHP_VERSION_ID < 80000) curl_close($curl);
 
     sirv_set_transient_cache_data('sirv_js_compressed_sizes', $url, $sizes, $cache, WEEK_IN_SECONDS);
 
@@ -7643,7 +7660,7 @@ function sirv_update_option($option, $old_value, $new_value){
 
   $cache_key = null;
 
-  $pdp_options = array("SIRV_WOO_IS_USE_VIEW_FILE", "SIRV_WOO_VIEW_FOLDER_STRUCTURE", "SIRV_WOO_VIEW_FOLDER_VARIATION_STRUCTURE", "SIRV_WOO_TTL", "SIRV_WOO_SMV_CONTENT_ORDER", "SIRV_WOO_CONTENT_ORDER", "SIRV_WOO_SHOW_VARIATIONS", "SIRV_WOO_SHOW_MAIN_VARIATION_IMAGE", "SIRV_WOO_PIN", "SIRV_WOO_MAX_HEIGHT", "SIRV_WOO_PRODUCTS_PROFILE", "SIRV_WOO_PRODUCTS_MOBILE_PROFILE", "SIRV_WOO_ZOOM_IS_ENABLE", "SIRV_WOO_MV_SKELETON");
+  $pdp_options = array("SIRV_WOO_IS_USE_VIEW_FILE", "SIRV_WOO_VIEW_FOLDER_STRUCTURE", "SIRV_WOO_VIEW_FOLDER_VARIATION_STRUCTURE", "SIRV_WOO_TTL", "SIRV_WOO_SMV_CONTENT_ORDER", "SIRV_WOO_CONTENT_ORDER", "SIRV_WOO_SHOW_VARIATIONS", "SIRV_WOO_SHOW_MAIN_VARIATION_IMAGE", "SIRV_WOO_PIN", "SIRV_WOO_MAX_HEIGHT", "SIRV_WOO_PRODUCTS_PROFILE", "SIRV_WOO_PRODUCTS_MOBILE_PROFILE", "SIRV_WOO_ZOOM_IS_ENABLE", "SIRV_WOO_MV_SKELETON", "SIRV_WOO_THUMBS_SIZE", "SIRV_WOO_THUMBS_POSITION");
 
   //SIRV_WOO_CAT_IS_ENABLE
   $cat_options = array("SIRV_WOO_CAT_PROFILE", "SIRV_WOO_CAT_ITEMS", "SIRV_WOO_CAT_CONTENT", "SIRV_WOO_CAT_SOURCE", "SIRV_WOO_CAT_SHOWING_METHOD", "SIRV_WOO_CAT_ZOOM_ON_HOVER", "SIRV_WOO_CAT_SWAP_METHOD");

@@ -2,12 +2,7 @@
 
 defined('ABSPATH') or die('No script kiddies please!');
 
-require_once(dirname(__FILE__) . '/includes/classes/options/options.helper.class.php');
-
 $error = '';
-$base_options = ['SIRV_FOLDER', 'SIRV_CDN_URL', 'SIRV_ENABLE_CDN', 'SIRV_SHORTCODES_PROFILES', 'SIRV_CDN_PROFILES', 'SIRV_USE_SIRV_RESPONSIVE', 'SIRV_CROP_SIZES', 'SIRV_JS', 'SIRV_JS_MODULES', 'SIRV_CUSTOM_CSS', 'SIRV_RESPONSIVE_PLACEHOLDER, SIRV_PARSE_STATIC_IMAGES', 'SIRV_PARSE_VIDEOS', 'SIRV_CSS_BACKGROUND_IMAGES', 'SIRV_EXCLUDE_FILES', 'SIRV_EXCLUDE_RESPONSIVE_FILES', 'SIRV_EXCLUDE_PAGES', 'SIRV_DELETE_FILE_ON_SIRV', 'SIRV_SYNC_ON_UPLOAD',  'SIRV_PREVENT_CREATE_WP_THUMBS', 'SIRV_PREVENTED_SIZES', 'SIRV_HTTP_AUTH_CHECK', 'SIRV_HTTP_AUTH_USER', 'SIRV_HTTP_AUTH_PASS', 'SIRV_CUSTOM_SMV_SH_OPTIONS', 'SIRV_WOO_SHOW_ADD_MEDIA_BUTTON'];
-OptionsHelper::prepareOptionsData();
-$options_names = array_merge($base_options, OptionsHelper::get_options_names_list());
 
 function isWoocommerce()
 {
@@ -25,26 +20,11 @@ function sirv_getStatus()
 }
 
 
-function sirv_get_cache_count($isGarbage, $cacheInfo)
-{
-  $synced = $cacheInfo['total_count'];
-  if ($isGarbage) {
-    if ( $cacheInfo['SYNCED']['count'] - $cacheInfo['garbage_count'] > $cacheInfo['total_count'] ) {
-      $synced = $cacheInfo['total_count'];
-    } else {
-      $synced = $cacheInfo['SYNCED']['count'] - $cacheInfo['garbage_count'];
-    }
-  }
-
-  return $synced;
-}
-
-
 function sirv_get_sync_button_text($isAllSynced, $cacheInfo)
 {
   $sync_button_text = 'Sync images';
 
-  if ($isAllSynced) {
+  if ( $isAllSynced ) {
     if ( $cacheInfo['FAILED']['count'] == 0 && $cacheInfo['PROCESSING']['count'] == 0 ) {
       $sync_button_text = '100% synced';
     } else {
@@ -60,7 +40,7 @@ function sirv_get_sync_button_text($isAllSynced, $cacheInfo)
 $sirvAPIClient = sirv_getAPIClient();
 $sirvStatus = $sirvAPIClient->preOperationCheck();
 
-if ($sirvStatus) {
+if ( $sirvStatus ) {
   $isWoocommerce = isWoocommerce();
 
   $domains = array();
@@ -85,14 +65,10 @@ if ($sirvStatus) {
   $profiles = sirv_getProfilesList();
   $storageInfo = sirv_getStorageInfo();
 
-
-  $isOverCache = $cacheInfo['SYNCED']['count'] >  $cacheInfo['total_count'] ? true : false;
+  $cacheInfo['SYNCED']['count'] = $cacheInfo['SYNCED']['count'] > $cacheInfo['total_count'] ? $cacheInfo['total_count'] : $cacheInfo['SYNCED']['count'];
   $isSynced = $cacheInfo['SYNCED']['count'] > 0 ? true : false;
   $isFailed = $cacheInfo['FAILED']['count'] > 0 ? true : false;
   $isGarbage = $cacheInfo['garbage_count'] > 0 ? true : false;
-
-  if ($isOverCache) $cacheInfo['SYNCED']['count'] = sirv_get_cache_count($isGarbage, $cacheInfo);
-
 
   $isAllSynced = ($cacheInfo['SYNCED']['count'] + $cacheInfo['FAILED']['count'] + $cacheInfo['PROCESSING']['count']) == $cacheInfo['total_count'];
   $is_sync_button_disabled = $isAllSynced ? 'disabled' : '';
@@ -112,9 +88,6 @@ if ($sirvStatus) {
 
 <form action="options.php" method="post" id="sirv-save-options">
   <?php
-  wp_nonce_field('sirv-settings-group-options');
-  wp_nonce_field('options-options');
-
   $active_tab = (isset($_POST['active_tab'])) ? $_POST['active_tab'] : '#sirv-settings';
   ?>
   <div class="sirv-wrapped-nav">
@@ -151,11 +124,10 @@ if ($sirvStatus) {
     <div class="sirv-tab-content" id="sirv-cache">
       <?php include(dirname(__FILE__) . '/submenu_pages/sync.php'); ?>
     </div>
-  <?php } ?>
+  <?php
+    }
 
-  <input type="hidden" name="active_tab" id="active_tab" value="#settings" />
-  <input type='hidden' name='option_page' value="options" />
-  <input type="hidden" name="action" value="update" />
-  <input type="hidden" name="page_options" value="<?php echo implode(', ', $options_names); ?>" />
+    settings_fields('sirv-settings-group');
+  ?>
 
 </form>

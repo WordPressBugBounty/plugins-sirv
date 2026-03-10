@@ -541,6 +541,68 @@ $design_options = array(
       'value' => ''
     ),
   ),
+  'SIRV_WOO_THUMBS_SIZE' => array (
+    'enabled_option' => true,
+    'option_name' => 'SIRV_WOO_THUMBS_SIZE',
+    'label' => 'Thumbnail size (px)',
+    'type' => 'input',
+    'func' => 'render_text_option',
+    'value' => '',
+    'default' => '80',
+    'default_type' => 'str',
+    'attrs' => array (
+        'type' => 'number',
+        'min' => 1,
+        'step' => 1,
+        'placeholder' => 'size of gallery thumbnails',
+        'value' => ''
+    ),
+  ),
+  'SIRV_WOO_THUMBS_POSITION' => array(
+    'enabled_option' => true,
+    'option_name' => 'SIRV_WOO_THUMBS_POSITION',
+    'label' => 'Thumbnails position',
+    //'is_new_line' => true,
+    'type' => 'radio',
+    'func' => 'render_radio_option',
+    'value' => '',
+    'values' => array(
+      array(
+        'label' => 'Top',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'top',
+        ),
+      ),
+      array(
+        'label' => 'Right',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'right',
+        ),
+      ),
+      array(
+        'label' => 'Bottom',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'bottom',
+        ),
+      ),
+      array(
+        'label' => 'Left',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => 'left',
+        ),
+      ),
+    ),
+    'default' => 'bottom',
+    'default_type' => 'str',
+  ),
   'SIRV_WOO_PRODUCTS_PROFILE' => array(
     'enabled_option' => true,
     'option_name' => 'SIRV_WOO_PRODUCTS_PROFILE',
@@ -708,13 +770,21 @@ float: left;',
     'option_name' => 'SIRV_WOO_MV_SKELETON',
     'label' => 'Gallery placeholder',
     'is_new_line' => true,
-    'below_text' => 'Show gallery skeleton while images are loading.',
+    'below_text' => 'Show gallery placeholder/skeleton while images are loading.',
     'type' => 'radio',
     'func' => 'render_radio_option',
     'value' => '',
     'values' => array(
       array(
-        'label' => 'Enable',
+        'label' => 'Image',
+        'check_data_type' => 'checked',
+        'attrs' => array(
+          'type' => 'radio',
+          'value' => '3',
+        ),
+      ),
+      array(
+        'label' => 'Skeleton',
         'check_data_type' => 'checked',
         'attrs' => array(
           'type' => 'radio',
@@ -722,7 +792,7 @@ float: left;',
         ),
       ),
       array(
-        'label' => 'Disable',
+        'label' => 'None',
         'check_data_type' => 'checked',
         'attrs' => array(
           'type' => 'radio',
@@ -730,10 +800,9 @@ float: left;',
         ),
       )
     ),
-    'default' => '1',
+    'default' => '2',
     'default_type' => 'str',
     'show_status' => false,
-    'enabled_value' => '1',
   ),
 );
 

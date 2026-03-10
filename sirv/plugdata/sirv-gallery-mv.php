@@ -59,8 +59,7 @@ class Sirv_Gallery_MV
     protected function fixUrl($url){
         $sirv_cdn_url = get_option('SIRV_CDN_URL');
 
-        $p_url = parse_url($url);
-        $m_url = 'https://' . $sirv_cdn_url . $p_url['path'];
+        $m_url = 'https://' . $sirv_cdn_url . '/' . basename($url);
 
         $profile = $this->get_profile();
 

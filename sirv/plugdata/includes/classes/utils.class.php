@@ -249,7 +249,7 @@
       $filesize = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
       $error = curl_error($ch);
 
-      curl_close($ch);
+    if (PHP_VERSION_ID < 80000) curl_close($ch);
 
       return array(
         "filesize" => $filesize > 0 ? $filesize : 0,
@@ -308,7 +308,7 @@
       $headers = curl_getinfo($ch);
       $error = curl_error($ch);
 
-      curl_close($ch);
+    if (PHP_VERSION_ID < 80000) curl_close($ch);
 
       if ($error) {
         global $sirv_gbl_sirv_logger;
@@ -360,7 +360,7 @@
       $result = curl_exec($ch);
       $error = curl_error($ch);
 
-      curl_close($ch);
+    if (PHP_VERSION_ID < 80000) curl_close($ch);
 
     if ($error) {
       global $sirv_gbl_sirv_logger;

@@ -4,8 +4,8 @@ Donate link: https://sirv.com/
 Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
-Tested up to: 6.9.0
-Stable tag: 8.1.0
+Tested up to: 6.9.1
+Stable tag: 8.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -223,11 +223,17 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 == Changelog ==
 
+= 8.2.0 (2026-03-10) =
+* Show image placeholder in product gallery.
+* Improved SQL queries for potentially better performance.
+* Tested for WordPress version 7.0 (scheduled for April 9, 2026 ).
+* Many small fixes and optimizations.
+
 = 8.1.0 (2025-12-04) =
 * New feature to replace slashes with hyphens in Sirv folder path for WooCommerce products.
 * Fixed issue that prevented modified images syncing to Sirv.
 * Better naming and counting of synchronization stats.
-* Improved logic to exclde images served by Sirv, with simpler and more flexible folder path.
+* Improved logic to exclude images served by Sirv, with simpler and more flexible folder path.
 * Added Sirv URL in Media Library attachment details video.
 * Improved synchronization process.
 * Optimized SQL queries to execute faster.
@@ -414,7 +420,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 = 7.1.4 =
 * Added link to Patchstack bug report program.
 
-== 7.1.3 ==
+= 7.1.3 =
 * Plugin tested with the latest WordPress version - 6.4.2.
 * Fixed minor security issue.
 * Added option to hide Sirv elements on the product edit page.
@@ -422,10 +428,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Fixed conflict with WPRocket JS file optimization.
 * Many small fixes and optimizations.
 
-== 7.1.2 ==
+= 7.1.2 =
 * Added option to show/hide Sirv product image block.
 
-== 7.1.1 ==
+= 7.1.1 =
 * Plugin tested with the latest WordPress version - 6.3.1.
 * Added ability to show Sirv variation image in WooCommerce cart and order confirmation emails.
 * Added ability to store in cache non-WordPress Sirv images. Previously they were marked as Failed.
@@ -435,21 +441,21 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Improved logic for parsing static content.
 * Small fixes and optimizations.
 
-== 7.1.0 ==
+= 7.1.0 =
 * Improved static image parsing.
 * Fixed issue with showing Sirv images in WP admin.
 * Removed zoom option "mode=deep" for custom galleries (shortcodes).
 * Small fixes and optimizations.
 
-== 7.0.2 ==
+= 7.0.2 =
 * Fixed issue when uploading non image/video files.
 * Improved WooCommerce image block appearance if Sirv product image set.
 
-== 7.0.1 ==
+= 7.0.1 =
 * Fixed issue with missing Sirv images.
 * Fixed issue when adding WooCommerce placeholder if only main image exists.
 
-== 7.0.0 ==
+= 7.0.0 =
 * Added ability to use Sirv plugin to set main WooCommerce product image.
 * Added support to embed 3D models (GLB/glTF) in pages, posts & products.
 * Added new variant for Variation images and improved option's logic.
@@ -460,7 +466,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Added ability to edit shortcodes for any item if gallery has different item types.
 * Many small fixes and optimizations.
 
-== 6.9.3 ==
+= 6.9.3 =
 * Plugin tested with the latest WordPress version - 6.2.
 * Small style fixes for WordPress 6.2.
 * Improved how the plugin handles WooCommerce variation images.
@@ -469,14 +475,14 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Improved sync for files with unicode symbols.
 * Small improvements and optimizations.
 
-== 6.9.2 ==
+= 6.9.2 =
 * Fixed issue with srcset.
 * Added support Sirv Media Viewer for WooCommerce for blocksy's theme.
 
-== 6.9.1 ==
+= 6.9.1 =
 * Fixed issue with undefined array key.
 
-== 6.9.0 ==
+= 6.9.0 =
 * Added option to add classes to your Sirv product gallery container. Uses include copying classes from your previous WooCommerce gallery.
 * Improved WooCommerce product gallery for Sirv Media Viewer.
 * Improved logic for CSS background images.
@@ -487,30 +493,30 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Improved loading scripts for Elementor.  Fixed deprecated warnings.
 * Many small fixes and optimizations.
 
-== 6.8.4 ==
+= 6.8.4 =
 * Fixed issue with variations change.
 * Improved parse static images.
 * Added gallery module for sirv.js.
 * Improved login action.
 * Small fixes and optimizations.
 
-== 6.8.3 ==
+= 6.8.3 =
 * Fixed issue with product gallery not properly showing.
 
-== 6.8.2 ==
+= 6.8.2 =
 * Added option of smaller sirv.js version, for faster loading.
 * Improved WooCommerce product variations if variation has no images.
 * Improved HTML reports for image sync.
 * Improved error handling for login page.
 
-== 6.8.1 ==
+= 6.8.1 =
 * Plugin tested with the latest WordPress version - 6.1.1.
 * Fixed some security issues
 * Improved crop option.
 * Improved Gallery placeholder option.
 * Small text fixes.
 
-== 6.8.0 ==
+= 6.8.0 =
 * Plugin tested with the latest WordPress version - 6.1.
 * Added option to sync images requiring HTTP authentication.
 * Added option to bypass responsive image scaling via img attribute.
@@ -527,10 +533,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Many small fixes and optimizations.
 
 
-== 6.7.1 ==
+= 6.7.1 =
 * Updated tested version.
 
-== 6.7.0 ==
+= 6.7.0 =
 * Plugin tested with the latest WordPress version - 5.9.
 * Added new option to manage WordPress thumbnails - delete, regenerate and disable.
 * Added new option to pre-sync images to Sirv when uploaded to WordPress.
@@ -538,14 +544,14 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Improved reporting of images that failed to sync.
 * Small fixes and optimizations.
 
-== 6.6.1 ==
+= 6.6.1 =
 * Added option to link image to a page URL or big image.
 * Improved custom domain option.
 * Improved CSS images parsing.
 * Improved Gutenberg support.
 * Small fixes and optimizations.
 
-== 6.6.0 ==
+= 6.6.0 =
 * Added option to autodelete image from Sirv, if deleted from WP media library.
 * Improved user feedback during bulk synchronization.
 * Added new video options to the Add Sirv Media window.
@@ -554,10 +560,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Small improvements to Settings page.
 * Small fixes and optimizations.
 
-== 6.5.1 ==
+= 6.5.1 =
 * Fixed issue with Class 'SirvElementorWidget\getValue' not found.
 
-== 6.5.0 ==
+= 6.5.0 =
 * Plugin tested with the latest WordPress version - 5.8.
 * Added ability to rename folders within the Sirv Media Library (right-click).
 * Improved logic when renaming the primary Sirv synchronization folder, to avoid duplication.
@@ -569,13 +575,13 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Moved frontend styles and scripts inline, to improve PageSpeed score.
 * Many small fixes and improvements.
 
-== 6.3.2 ==
+= 6.3.2 =
 * Fixed small issue with plugin folder.
 
-== 6.3.1 ==
+= 6.3.1 =
 * Fixed small issue with plugin folder.
 
-== 6.3.0 ==
+= 6.3.0 =
 * Added new TTL option to automatically clear product Sirv gallery cache.
 * Fixed issues with captions under images in product gallery.
 * Fixed issue with undefined getBoundingClientRect.
@@ -584,10 +590,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Style improvements for WooCommerce options.
 * Small fixes and optimizations.
 
-== 6.2.1 ==
+= 6.2.1 =
 * Fixed issue with Undefined array key "spinHeight".
 
-== 6.2.0 ==
+= 6.2.0 =
 * Improved parsing to sync images missing an HTTP(S) protocol.
 * Improved CSS image sync feature.
 * Added ability to search in current folder.
@@ -600,7 +606,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Added Sirv JS v3 spin options when embedding 360 spin in page/post.
 * Small fixes and improvements.
 
-== 6.1.0 ==
+= 6.1.0 =
 * Added option to exclude files/folders from CDN sync.
 * Added mobile profile, to apply different product gallery settings on mobiles.
 * Added the hook "sirv_after_product_smv" to mimic the hook "woocommerce_product_thumbnails".
@@ -614,7 +620,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Improved styling on the settings page.
 * Many small fixes and improvements.
 
-== 6.0.0 ==
+= 6.0.0 =
 * Plugin tested with the latest WordPress version - 5.7.
 * Recommendation to switch to Sirv JS v3 from Sirv JS v2 before it is deprecated in 6 months.
 * Added new feature to sync CSS background images (beta) and serve them from CDN.
@@ -625,20 +631,20 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Added optimizations for faster content parsing.
 * Small fixes and optimizations.
 
-== 5.8.0 ==
+= 5.8.0 =
 * Reduced size of plugin autoload options - may require reconnection of Sirv account.
 * Fixed style issues with responsive/static block in Gutenberg editor.
 * Fixed issue with max-width for responsive images.
 * Improved error message notifications.
 * Small fixes and improvements.
 
-== 5.7.1 ==
+= 5.7.1 =
 * Merry Christmas dear users and a happy New Year!
 * Improved network status description.
 * Fixed issue with apostrophe in the Sirv library.
 * Fixed small issues with Sirv Media Viewer for WooCommerce.
 
-== 5.7.0 ==
+= 5.7.0 =
 * Plugin tested with the latest WordPress version - 5.6.
 * WooCommerce product pages can now use content uploaded to Sirv and WordPress in parallel (in Sirv Media Viewer).
 * Visual improvements to the options page.
@@ -648,15 +654,15 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Added fixes to help solve login problems.
 * Small fixes and optimizations.
 
-== 5.6.9 ==
+= 5.6.9 =
 * Changed redirects to the account page.
 * Fixed issue with empty cdn url.
 
-== 5.6.8 ==
+= 5.6.8 =
 * Fixed issue with embed sirv.js through http.
 * Fixed plugin version in changelog.
 
-== 5.6.7 ==
+= 5.6.7 =
 * Fixed issue with Sirv Elementor widget.
 * Fixed issue with using multi custom domains.
 * Fixed small issues with the plugin menu pages.
@@ -664,10 +670,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Added checks when creating a new account.
 * Other small fixes.
 
-== 5.6.6 ==
+= 5.6.6 =
 * Fixed issue with unable to insert Sirv Media into the Gutenberg editor.
 
-== 5.6.5 ==
+= 5.6.5 =
 * Added option to choose sirv.js components.
 * Reworked options page layout.
 * Reduced blur overspill for blurred placeholder.
@@ -676,7 +682,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Fixed issue when showing negative values on sync tab.
 * Small fixes and optimizations.
 
-== 5.6.4 ==
+= 5.6.4 =
 * Added option parse static images and serve them from Sirv.
 * Added option to show/hide WooCommerce product variation image.
 * Added improvements to the failed image sync reports.
@@ -684,16 +690,16 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Fixed issue with detection of sirv.js on some pages.
 * Fixed issue where spin doesn’t show as thumbnail.
 
-== 5.6.3 ==
+= 5.6.3 =
 * Fixed issue with showing incorrect slides in Sirv Media Viewer for WooCommerce.
 
-== 5.6.2 ==
+= 5.6.2 =
 * Optimized Sirv Media Viewer rendering process for WooCommerce.
 
-== 5.6.1 ==
+= 5.6.1 =
 * Fixed issue with changing variations on product page.
 
-== 5.6.0 ==
+= 5.6.0 =
 * Plugin tested with the latest WordPress version - 5.5.
 * Optimized WordPress media library sync process.
 * Added ability to load images from a URL with virtual links.
@@ -704,10 +710,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Small fixes and optimizations.
 
 
-== 5.5.6 ==
+= 5.5.6 =
 * Fixed an issue with placeholders for responsive images.
 
-== 5.5.5 ==
+= 5.5.5 =
 * Image title and description(Alt text) now automatically synced from WordPress Media Library to Sirv.
 * Intelligent folder naming splits huge folders into sub-folders if they exceed 5,000 images.
 * Added maximum height option for Sirv WooCommerce PDP image gallery.
@@ -716,13 +722,13 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Fixed an issue with blurred placeholders for responsive images.
 * Small fixes.
 
-== 5.5.2 ==
+= 5.5.2 =
 * Improvements to the Create account functionality.
 
-== 5.5.1 ==
+= 5.5.1 =
 * Improvements to the Empty Sirv content cache option.
 
-== 5.5.0 ==
+= 5.5.0 =
 * Added option to set shortcode for images/galleries.
 * Added blurred placeholder for lazy-loaded images.
 * Added choice of image crop methods.
@@ -731,54 +737,54 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Improvements to the Add Media dialog.
 * Small fixes and optimizations.
 
-== 5.0.8 ==
+= 5.0.8 =
 * Some styles and typo changes for the options page.
 
-== 5.0.7 ==
+= 5.0.7 =
 * Improved the sign-up/login form.
 * Added option to change settings for Sirv media gallery in WooCommerce.
 * Allow selection of gallery assets for WooCommerce when plugin is disabled.
 * Refinements to plugin icon, menu and elsewhere.
 * Text refinements.
 
-== 5.0.6 ==
+= 5.0.6 =
 * Added ability to apply custom CSS..
 * Improved work with variations in WooCommerce.
 * Small fixes with Media Viewer gallery in WooCommerce.
 
-== 5.0.5 ==
+= 5.0.5 =
 * Changed rendering method for WooCommerce product galleries, to better support non-standard templates.
 * Added custom style option in WooCommerce product galleries, to help adjust gallery position.
 
-== 5.0.4 ==
+= 5.0.4 =
 * Fixed typo.
 * Fixed issue with non-clickable tabs.
 
-== 5.0.3 ==
+= 5.0.3 =
 * Fixed symbol issue.
 
-== 5.0.2 ==
+= 5.0.2 =
 * Fixed issue with incorrect check to FAILED image.
 * Changed menu icon.
 
 
-== 5.0.1 ==
+= 5.0.1 =
 * Fixed issue with error system.
 
-== 5.0 ==
+= 5.0 =
 * Added support for WooCommerce (beta) - 360 spins, image zoom and videos (from Sirv, YouTube or Vimeo). Must use Sirv Media Viewer JS version.
 * Added feature to add multiple sirv items(images, spins, videos) per variation.
 * Displays image resolution and video duration in Sirv library.
 * Fixed a rare issue with special symbols in filenames.
 * Small fixes and improvements.
 
-== 4.1.3 ==
+= 4.1.3 =
 * Updated to the latest Sirv Media Viewer sirv.js v3.0.4.
 
-== 4.1.2 ==
+= 4.1.2 =
 * Updated to the latest Sirv Media Viewer sirv.js v3-release.
 
-== 4.1.1 ==
+= 4.1.1 =
 * Added support for Wordpress multisites. Plugin's settings per each site works independently.
 * Search entire Sirv library.
 * Action menu added to Sirv media gallery.
@@ -789,15 +795,15 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * More refined design.
 * Small fixes and improvements.
 
-== 4.0.10 ==
+= 4.0.10 =
 * Adds Gutenberg support for the Featured Image From URL plugin.
 
-== 4.0.9 ==
+= 4.0.9 =
 * Added visual improvements to the Sirv Media Library.
 * Added improvements to the loading content on scrolling.
 * Small fixes and optimizations.
 
-== 4.0.8 ==
+= 4.0.8 =
 * Added support for Sirv Media Viewer galleries(beta). You need to select the latest version of sirv.js in the plugin settings.
 * Added support for videos. Works in Media Viewer only.
 * Added support for video streaming.
@@ -808,7 +814,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 * Plugin tested with the latest WordPress version - 5.4.
 * Small fixes and improvements.
 
-== 4.0.7 ==
+= 4.0.7 =
 * Added tooltip showing image name in media embedder.
 * Fixed login issue when password contains apostrophe.
 * Fixed issue with domain not showing in settings.
@@ -929,6 +935,7 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 = 3.2.1 =
 * Plugin tested with the latest WordPress version - 5.1.
 * Updated readme.
+
 = 3.2 =
 * Improved batch synchronisation.
 * Small refinements and fixes.

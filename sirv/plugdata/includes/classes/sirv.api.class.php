@@ -1161,12 +1161,12 @@ class SirvAPIClient
         $response->result = $res_object;
 
         //TODO: if result html then return result_txt or empty
-        $response->result_txt = trim($result);
+        $response->result_txt = $result ? trim($result) : '';
         $response->error = $error;
 
         $this->lastResponse = $response;
 
-        curl_close($curl);
+        if (PHP_VERSION_ID < 80000) curl_close($curl);
         //fclose($fp);
 
         return $response;

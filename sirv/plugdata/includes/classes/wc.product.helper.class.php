@@ -154,7 +154,7 @@ class SirvProdImageHelper{
     } catch (Exception $e) {
       //log
     }finally{
-      curl_close($ch);
+      if (PHP_VERSION_ID < 80000) curl_close($ch);
       return $size;
     }
 }

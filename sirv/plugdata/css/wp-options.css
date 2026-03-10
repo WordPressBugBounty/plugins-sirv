@@ -10,7 +10,8 @@
     display: none;
 }
 
-.optiontable.form-table input[type="text"] {
+.optiontable.form-table input[type="text"],
+.optiontable.form-table input[type="number"] {
     /* max-width: 100%; */
     min-width: 360px;
 }
@@ -130,7 +131,8 @@ nav.nav-tab-wrapper {
 }
 
 .sirv-optiontable-holder table input[type="text"],
-.sirv-optiontable-holder table input[type="password"] {
+.sirv-optiontable-holder table input[type="password"],
+.sirv-optiontable-holder table input[type="number"] {
     width: 100%;
 }
 
@@ -1654,6 +1656,7 @@ table.sirv-smv-cache-table-data td{
 
 .optiontable.form-table label {
     padding-bottom: 5px;
+    margin-right: 5px;
 }
 
 .sirv-custom-backcss-path-text-wrap div{

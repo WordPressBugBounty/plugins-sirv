@@ -3,7 +3,14 @@ jQuery(function ($) {
   let existingIds = [];
   let itemByVariationId = {};
   let $instance = null;
-  let galleryId;
+  let galleryId = null;
+  let placeholderType = 'none';
+  let thumbnailsPosition = 'bottom';
+
+  const pdpId = sirv_woo_product.mainID;
+  const variationStatus = sirv_woo_product.variationStatus;
+  const captionBlockSelector = `.sirv-woo-smv-caption_${pdpId}`;
+  const fullScreenCaptionBlockSelector = `.sirv-woo-smv-fullscreen-caption_${pdpId}`;
 
 
   function filterByGroups(id = '') {
@@ -20,7 +27,7 @@ jQuery(function ($) {
 
     $instance.jump(0);
 
-    updateCaption(sirv_woo_product.mainID);
+    updateCaption(pdpId);
   }
 
 
@@ -30,12 +37,22 @@ jQuery(function ($) {
 
 
   function initializeCaption(){
-    let id = sirv_woo_product.mainID;
-    let isCaption = $('#sirv-woo-gallery_data_' + id).attr('data-is-caption');
+    const isCaption = $(`#sirv-woo-gallery_data_${pdpId}`).attr('data-is-caption');
+
     if(!!isCaption){
-      let caption = getSlideCaption(id);
-      if (!!!$('.sirv-woo-smv-caption_' + id).length) {
-        $('#sirv-woo-gallery_' + id + ' .smv-slides-box').after('<div class="sirv-woo-smv-caption sirv-woo-smv-caption_' + id + '">'+ caption +'</div>');
+      const caption = getSlideCaption(pdpId);
+
+      if (!$(fullScreenCaptionBlockSelector).length) {
+        $(`#sirv-woo-gallery_${pdpId} .smv-slides-box`).after(
+          `<div class="sirv-woo-smv-caption sirv-woo-smv-fullscreen-caption_${pdpId}">${caption}</div></div>`,
+        );
+      }
+
+      if (placeholderType === 'image') {
+        $(captionBlockSelector).show();
+      } else {
+        if (inArray(thumbnailsPosition, ['bottom', 'top']))
+        $(fullScreenCaptionBlockSelector).show();
       }
     }
   }
@@ -45,9 +62,9 @@ jQuery(function ($) {
     let $caption;
 
     if(!!galleryId){
-      $caption = $($('#'+ galleryId +' .smv-slide.smv-shown .smv-content div,'+ '#'+ galleryId +' .smv-slide.smv-shown .smv-content img')[0]);
+      $caption = $($(`#${galleryId} .smv-slide.smv-shown .smv-content div, #${galleryId} .smv-slide.smv-shown .smv-content img`)[0]);
     }else{
-      $caption = $($('#sirv-woo-gallery_' + id + ' .smv-slide.smv-shown .smv-content div, '+ '#sirv-woo-gallery_' + id + ' .smv-slide.smv-shown .smv-content img')[0]);
+      $caption = $($(`#sirv-woo-gallery_${id} .smv-slide.smv-shown .smv-content div, #sirv-woo-gallery_${id} .smv-slide.smv-shown .smv-content img`)[0]);
     }
 
     return $caption.attr('data-slide-caption') || '';
@@ -55,46 +72,51 @@ jQuery(function ($) {
 
 
   function updateCaption(id){
-    $('.sirv-woo-smv-caption_' + id).html(getSlideCaption(id));
+    const caption = getSlideCaption(id);
+
+    $(captionBlockSelector).html(caption);
+    $(fullScreenCaptionBlockSelector).html(caption);
   }
 
 
   function getJSONData(key, type) {
     let data = type === 'object' ? {} : [];
-    const idsJsonStr = $("#sirv-woo-gallery_data_" + sirv_woo_product.mainID).attr(key);
+    const idsJsonStr = $(`#sirv-woo-gallery_data_${pdpId}`).attr(key);
     try {
       data = JSON.parse(idsJsonStr);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
+
     return data;
   }
 
 
   function showVariation(variation_id){
     if (!!variation_id) {
-      if (sirv_woo_product.variationStatus !== "allByVariation") {
+      if (variationStatus !== "allByVariation") {
         filterByGroups(variation_id);
-      } else if (sirv_woo_product.variationStatus === "allByVariation" && !!itemByVariationId[variation_id]) {
+      } else if (variationStatus === "allByVariation" && !!itemByVariationId[variation_id]) {
         $instance.jump(itemByVariationId[variation_id]);
       }
     } else {
-      if (sirv_woo_product.variationStatus === "all") {
+      if (variationStatus === "all") {
         filterByGroups();
       } else {
-        filterByGroups(sirv_woo_product.mainID);
+        filterByGroups(pdpId);
       }
     }
   }
 
 
   $(document).ready(function () {
-
+    placeholderType = $(`#sirv-woo-gallery_data_${pdpId}`).attr('data-gallery-placeholder-type');
+    thumbnailsPosition = $(`#sirv-woo-gallery_data_${pdpId}`).attr(
+      "data-thumbnails-position",
+    );
     existingIds = getJSONData("data-existings-ids", "array");
 
     itemByVariationId = getJSONData("data-item-by-variation-id", "object");
-    galleryId = $('#sirv-woo-gallery_' + sirv_woo_product.mainID + ' div.smv').attr('id');
-
 
     $( ".single_variation_wrap" ).on( "show_variation", function ( event, variation ) {
     let variation_id = variation.variation_id || '';
@@ -119,26 +141,43 @@ jQuery(function ($) {
     Sirv.on('viewer:ready', function (viewer) {
       $('.sirv-skeleton').removeClass('sirv-skeleton');
       $('.sirv-woo-opacity-zero').addClass('sirv-woo-opacity');
-      $instance = Sirv.viewer.getInstance('#sirv-woo-gallery_' + sirv_woo_product.mainID);
+
+      $instance = Sirv.viewer.getInstance('#sirv-woo-gallery_' + pdpId);
+      galleryId = $(`#sirv-woo-gallery_${pdpId} div.smv`).attr('id');
 
       let curVariantId = $("input.variation_id").val() * 1;
       if(curVariantId > 0){
-        if (sirv_woo_product.variationStatus === "allByVariation"){
+        if (variationStatus === "allByVariation"){
           filterByGroups();
         }
           showVariation(curVariantId);
       }
 
-      //galleryId = $('#sirv-woo-gallery_' + sirv_woo_product.mainID + ' div.smv').attr('id');
       initializeCaption();
+
+      var opacityTimer = setTimeout(function(){
+        $(".sirv-pdp-gallery-placeholder").css("opacity", "0");
+        clearTimeout(opacityTimer);
+      }, 800);
+    });
+
+
+    Sirv.on("viewer:fullscreenIn", function(viewer){
+      if (placeholderType === "image" || inArray(thumbnailsPosition, ['right', 'left'])) {
+        $(fullScreenCaptionBlockSelector).show();
+      }
+    });
+
+
+    Sirv.on("viewer:fullscreenOut", function(viewer){
+      if (placeholderType === "image" || inArray(thumbnailsPosition, ['right', 'left'])) {
+        $(fullScreenCaptionBlockSelector).hide();
+      }
     });
 
 
     Sirv.on('viewer:afterSlideIn', function(slide){
-        let id = sirv_woo_product.mainID;
-        let caption = getSlideCaption(id);
-
-        $('.sirv-woo-smv-caption_' + id).html(caption);
+        updateCaption(pdpId);
     });
 
   }); //end dom ready

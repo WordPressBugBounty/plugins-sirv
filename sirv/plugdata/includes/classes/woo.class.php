@@ -360,19 +360,24 @@ class Woo
         <ul class="sirv-woo-images" id="sirv-woo-images_<?php echo $id; ?>" data-id="<?php echo $id; ?>">
           <?php
           $gallery_json_str = self::get_post_sirv_data($id, '_sirv_woo_gallery_data', false);
+          $gallery_json_str = (isset($gallery_json_str) && is_string($gallery_json_str)) ? $gallery_json_str : '';
 
-          if ($type == 'variation') {
-            $saved_img_url = htmlentities(html_entity_decode(self::get_post_sirv_data($id, 'sirv_woo_product_image', false, false)));
-            $variation_main_image_attachment_id = self::get_post_sirv_data($id, 'sirv_woo_product_image_attachment_id', false, false);
+          if ( $type == 'variation' ) {
+            $sirv_product_image = self::get_post_sirv_data($id, 'sirv_woo_product_image', false, false);
 
-            if (empty($saved_img_url)) {
+            if ( isset($sirv_product_image) ) {
+              $saved_img_url = htmlentities(html_entity_decode($sirv_product_image));
+              $variation_main_image_attachment_id = self::get_post_sirv_data($id, 'sirv_woo_product_image_attachment_id', false, false);
+            }
+
+            if ( empty($saved_img_url) ) {
               $saved_img_url = '';
               $variation_main_image_attachment_id = -1;
             }
           }
 
-          $data = (array) json_decode($gallery_json_str, true);
-          if ($data && $data['items'] && !empty($data['items'])) {
+          $data = (array) @json_decode($gallery_json_str, true);
+          if ( $data && $data['items'] && !empty($data['items']) ) {
             $items = $data['items'];
             $count = count($items);
 
@@ -438,13 +443,17 @@ class Woo
 
   public function save_sirv_gallery_data($product_id)
   {
-    self::save_sirv_data($product_id);
+    if ( isset($product_id) && is_numeric($product_id) ) {
+      self::save_sirv_data($product_id);
+    }
   }
 
 
   public static function save_sirv_variation_data($variation_id, $loop)
   {
-    self::save_sirv_data($variation_id, 'variation');
+    if ( isset($variation_id) && is_numeric($variation_id) ) {
+      self::save_sirv_data($variation_id, 'variation');
+    }
   }
 
 
@@ -1727,6 +1736,13 @@ class Woo
     return $url;
   }
 
+
+  protected function get_pdp_profile()
+  {
+    return wp_is_mobile() ? get_option('SIRV_WOO_PRODUCTS_MOBILE_PROFILE') : get_option('SIRV_WOO_PRODUCTS_PROFILE');
+  }
+
+
   public function remove_script_tag($string)
   {
     return preg_replace('/<(\/)*script.*?>/im', '', $string);
@@ -1961,8 +1977,12 @@ class Woo
   {
     $items_html = '';
     $isCaption = false;
-    $skeleton_option = get_option('SIRV_WOO_MV_SKELETON');
-    $isSkeleton = $skeleton_option == '1' ? true : false;
+    $gallery_placeholder_option = get_option('SIRV_WOO_MV_SKELETON');
+    $is_skeleton = $gallery_placeholder_option == '1' ? true : false;
+    $is_gallery_placeholder = $gallery_placeholder_option == '3' ? true : false;
+
+    $smv_thumbnail_size = get_option('SIRV_WOO_THUMBS_SIZE');
+    $smv_thumbnail_position = get_option('SIRV_WOO_THUMBS_POSITION');
 
     /* $mv_custom_options = $this->remove_script_tag(get_option('SIRV_WOO_MV_CUSTOM_OPTIONS'));
     $mv_custom_options_block = !empty($mv_custom_options) ? '<script nowprocket>' . $mv_custom_options . '</script>' . PHP_EOL : ''; */
@@ -1970,24 +1990,33 @@ class Woo
     $mv_custom_css = get_option('SIRV_WOO_MV_CUSTOM_CSS');
     $mv_custom_css = !empty($mv_custom_css) ? '<style>' . $mv_custom_css . '</style>' . PHP_EOL : '';
 
-    $max_height = get_option("SIRV_WOO_MAX_HEIGHT");
-    $max_height_style = empty($max_height) ? '' : '<style>.sirv-woo-wrapper .Sirv > .smv{ max-height: ' . $max_height . 'px; }</style>';
+    if ( ! $is_gallery_placeholder ) {
+      $max_height = get_option("SIRV_WOO_MAX_HEIGHT");
+      $max_height_style = empty($max_height) ? '' : '<style>.sirv-woo-wrapper .Sirv > .smv{ max-height: ' . $max_height . 'px; }</style>';
+    } else {
+      $max_height_style = '';
+    }
 
     list($items, $is_all_items_disabled, $is_all_variations, $variation_status) = $this->manage_disable_state($items);
 
-    $viewer_options = array();
     $smv_order_content = get_option('SIRV_WOO_SMV_CONTENT_ORDER');
-    if (!empty(json_decode($smv_order_content))) $viewer_options['itemsOrder'] = '[\'' . implode("','", json_decode($smv_order_content)) . '\']';
+    if ( !empty(json_decode($smv_order_content)) ) $viewer_options['itemsOrder'] = '[\'' . implode("','", json_decode($smv_order_content)) . '\']';
 
-    if ( $isSkeleton ) $viewer_options['autostart'] = 'created';
+    if ( $is_skeleton ) $viewer_options["autostart"] = 'created';
+    if ( $is_gallery_placeholder ){
+      $viewer_options["thumbnails.target"] = '.sirv-pdp-gallery-thumbnails';
+      if ( in_array($smv_thumbnail_position, array('left', 'right', 'top')) && count((array) $items) > 1) $viewer_options["thumbnails.always"] = 'true';
+    }
 
-    //$ids_data = array();
+    $viewer_options['thumbnails.size'] = $smv_thumbnail_size;
+    $viewer_options['thumbnails.position'] = wp_is_mobile() ? 'bottom' : $smv_thumbnail_position;
 
     $pin_data = json_decode(get_option('SIRV_WOO_PIN'), true);
 
     $existings_ids = array();
     $item_by_variation_id = array();
     $unique_ids = array();
+    $placeholder_image_item = array();
 
     foreach ($items as $item) {
       if (empty($item->url)) continue;
@@ -1997,6 +2026,8 @@ class Woo
       $zoom = self::get_zoom_class($item->type);
       $caption = isset($item->caption) ? urldecode($item->caption) : '';
       if ($caption) $isCaption = true;
+
+      if ( is_array($placeholder_image_item) && (!$item->isDisabled && in_array($item->type, array('image', 'video', 'spin', 'wc_placeholder_image'))) ) $placeholder_image_item = $item;
 
       $existings_ids[] = isset($item->groups) ? $item->groups : (int) $item->viewId;
 
@@ -2014,21 +2045,75 @@ class Woo
       } else {
         $items_html .= '<img' . $this->get_data_group($item, $is_all_variations) . 'data-src="' . $src . '" data-type="static" data-view-id="' . $item->viewId . '" data-order="' . $item->order . '" data-slide-caption="' . $caption . '" ' . $is_item_disabled . ' />' . PHP_EOL;
       }
-
-      //$ids_data[$item->viewId][] = (int) $item->order;
     }
 
-    $opacityClass = $isSkeleton ? ' sirv-woo-opacity-zero' : '';
 
+    $sirv_classes_arr  = array();
+    $gallery_placeholder_type = 'none';
+
+    if ( $is_skeleton ) {
+      $sirv_classes_arr[] = 'sirv-woo-opacity-zero';
+      $gallery_placeholder_type = 'skeleton';
+      } else if ( $is_gallery_placeholder ) {
+        $sirv_classes_arr[] = 'sirv-mainimage';
+        $gallery_placeholder_type = 'image';
+      }
+
+
+
+    $sirv_classes = implode(' ', $sirv_classes_arr);
+    $sirv_classes = $sirv_classes ? ' ' . $sirv_classes : '';
 
     $existings_ids = $variation_status === 'byVariation' ? $existings_ids : array_merge(...$existings_ids);
     $existings_ids = array_values(array_unique($existings_ids));
     $data_item_by_variation_id = 'data-item-by-variation-id="' . htmlspecialchars(json_encode($item_by_variation_id), ENT_QUOTES, 'UTF-8') . '" ';
 
 
-    $json_data_block = '<div style="display: none;" ' . $data_item_by_variation_id . 'data-existings-ids="' . htmlspecialchars(json_encode($existings_ids), ENT_QUOTES, 'UTF-8') . '" id="sirv-woo-gallery_data_' . $this->product_id . '" data-is-caption="' . $isCaption . '"></div>' . PHP_EOL;
+    $json_data_block = '<div style="display: none;" ' . $data_item_by_variation_id . 'data-existings-ids="' . htmlspecialchars(json_encode($existings_ids), ENT_QUOTES, 'UTF-8') . '" id="sirv-woo-gallery_data_' . $this->product_id . '" data-is-caption="' . $isCaption . '" data-gallery-placeholder-type="' . $gallery_placeholder_type . '" data-thumbnails-position="'. $viewer_options['thumbnails.position'] .'"></div>' . PHP_EOL;
 
-    return /* $mv_custom_options_block . PHP_EOL .  */ $json_data_block . '<div class="Sirv' . $opacityClass . '" id="sirv-woo-gallery_' . $this->product_id . '"' . $this->render_viewer_options($viewer_options) . '>' . PHP_EOL . $items_html . '</div>' . PHP_EOL . $mv_custom_css . $max_height_style;
+    $placehoder_image_html = '';
+    if ( $is_gallery_placeholder ) {
+      $placeholder_image_url = $this->get_placeholder_image_url($placeholder_image_item, $this->get_pdp_profile());
+      $placehoder_image_html =  $placeholder_image_url ? '<img class="sirv-pdp-gallery-placeholder" src="' . $placeholder_image_url . '" alt="" loading="lazy"/>' : '';
+    }
+
+    $sirv_container = '<div class="Sirv'. $sirv_classes .'" id="sirv-woo-gallery_' . $this->product_id . '"' . $this->render_viewer_options($viewer_options) . '>' . PHP_EOL . $items_html . '</div>' . PHP_EOL;
+
+    return $placehoder_image_html . $json_data_block . $sirv_container. $mv_custom_css . $max_height_style;
+  }
+
+
+  protected function get_placeholder_image_url($item, $profile=''){
+
+    if( !(array) $item ) return '';
+
+    $url_params = '';
+
+    $url = $item->url;
+
+    if( $item->provider == 'sirv' ){
+      $profile_pattern = $profile ? "&profile=$profile" : '';
+      $q = 'q=20';
+      $video_to_image = '&thumbnail=500';
+      //$spin_to_image = '&thumb';
+      $spin_to_image = '&thumb=spin&image.frames=1';
+      $img_pattern = '';
+
+      switch ($item->type) {
+        case 'image':
+          # code...
+          break;
+        case 'video':
+          $img_pattern = $video_to_image;
+          break;
+        case 'spin':
+          $img_pattern = $spin_to_image;
+      }
+
+      $url_params = "?$q$img_pattern$profile_pattern";
+    }
+
+    return "$url$url_params";
   }
 
 

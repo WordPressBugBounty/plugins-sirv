@@ -105,14 +105,14 @@ class SirvWidget extends \Elementor\Widget_Base {
 		$placehodler_grey = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAKSURBVAgdY3gPAADxAPAXl1qaAAAAAElFTkSuQmCC";
 		$placeholder_grey_params = '?q=1&w=10&colorize.color=efefef';
 
-		$isResponsive = (Boolean) $data['images']['full']['isResponsive'];
-		$isLazyLoading = (Boolean) $data['images']['full']['isLazyLoading'];
+		$isResponsive = (bool) $data['images']['full']['isResponsive'];
+		$isLazyLoading = (bool) $data['images']['full']['isLazyLoading'];
 		$width = $data['images']['full']['width'];
 		$align = $data['images']['full']['align'];
 		$linkType = isset($data['images']['full']['linkType']) ? $data['images']['full']['linkType'] : 'none';
 		$customLink = isset($data['images']['full']['customLink']) ? $data['images']['full']['customLink'] : '';
 		$isBlankWindow = isset($data['images']['full']['isBlankWindow']) ? (bool) $data['images']['full']['isBlankWindow'] : false;
-		$isAltCaption = (Boolean) $data['images']['full']['isAltCaption'];
+		$isAltCaption = (bool) $data['images']['full']['isAltCaption'];
 
 		$sirvClass = $isResponsive ? 'Sirv' : '';
 
