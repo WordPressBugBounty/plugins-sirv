@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           8.2.0
+ * Version:           8.2.1
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '8.2.0');
+define('SIRV_PLUGIN_VERSION', '8.2.1');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -177,6 +177,7 @@ function sirv_wc_init(){
 
   if (get_option('SIRV_WOO_SHOW_SIRV_GALLERY') == 'show') {
     add_action('woocommerce_product_after_variable_attributes', array('Woo', 'render_variation_gallery'), 10, 3);
+    add_action('woocommerce_process_product_meta', array('Woo', 'save_sirv_gallery_data'), 10, 2);
     add_action('woocommerce_save_product_variation', array('Woo', 'save_sirv_variation_data'), 10, 2);
   }
 
@@ -969,7 +970,7 @@ function sirv_fill_empty_options(){
   if (!get_option('SIRV_CDN_URL')) update_option('SIRV_CDN_URL', '');
   if (!get_option('SIRV_CUSTOM_DOMAINS')) update_option('SIRV_CUSTOM_DOMAINS', json_encode(array(
     "domains" => array(),
-    "expired_at" => time() * 60 * 60 * 24,
+    "expired_at" => time() + (60 * 60 * 24),
   )));
   if (!get_option('SIRV_STAT')) update_option('SIRV_STAT', '', 'no');
   if (!get_option('SIRV_FETCH_MAX_FILE_SIZE')) update_option('SIRV_FETCH_MAX_FILE_SIZE', '');
@@ -1186,22 +1187,22 @@ if (function_exists('register_block_type')) {
         'sirv-addmedia-block-editor-js',
         SIRV_PLUGIN_SUBDIR_URL_PATH . 'gutenberg/addmedia-block/editor-script.js',
         array('wp-blocks', 'wp-element', 'wp-editor', 'wp-i18n', 'sirv_modal', 'sirv_logic', 'sirv_modal-logic', 'sirv_logic-md5', 'jquery'),
-        false,
+        SIRV_PLUGIN_VERSION,
         true
       );
 
       wp_register_style(
         'sirv-addmedia-block-css',
         SIRV_PLUGIN_SUBDIR_URL_PATH  . 'gutenberg/addmedia-block/sirv-addmeddia-style.css',
-        array( 'wp-edit-blocks' ),
-        filemtime(SIRV_PLUGIN_SUBDIR_PATH  . 'gutenberg/addmedia-block/sirv-addmeddia-style.css' )
+        array(),
+        SIRV_PLUGIN_VERSION
       );
 
       wp_register_style(
         'sirv-addmedia-block-editor-css',
         SIRV_PLUGIN_SUBDIR_URL_PATH . 'gutenberg/addmedia-block/editor-style.css',
         array('wp-edit-blocks'),
-        filemtime(SIRV_PLUGIN_SUBDIR_PATH  . 'gutenberg/addmedia-block/editor-style.css')
+        SIRV_PLUGIN_VERSION
       );
 
       register_block_type('sirv/addmedia-block', array(
@@ -1872,6 +1873,7 @@ function sirv_register_settings(){
   register_setting('sirv-settings-group', 'SIRV_HTTP_AUTH_USER');
   register_setting('sirv-settings-group', 'SIRV_HTTP_AUTH_PASS');
   register_setting('sirv-settings-group', 'SIRV_WOO_SHOW_ADD_MEDIA_BUTTON');
+  register_setting('sirv-settings-group', 'SIRV_CSS_BACKGROUND_IMAGES');
 
   //register_setting('sirv-settings-group', 'SIRV_CLIENT_ID');
   //register_setting('sirv-settings-group', 'SIRV_CLIENT_SECRET');
@@ -1884,7 +1886,6 @@ function sirv_register_settings(){
   //register_setting('sirv-settings-group', 'SIRV_CUSTOM_DOMAINS');
   //register_setting('sirv-settings-group', 'SIRV_STAT');
   //register_setting('sirv-settings-group', 'SIRV_FETCH_MAX_FILE_SIZE');
-  //register_setting('sirv-settings-group', 'SIRV_CSS_BACKGROUND_IMAGES');
   //register_setting('sirv-settings-group', 'SIRV_CSS_BACKGROUND_IMAGES_SYNC_DATA');
   //register_setting('sirv-settings-group', 'SIRV_VERSION_PLUGIN_INSTALLED');
   //register_setting('sirv-settings-group', 'SIRV_WP_NETWORK_WIDE');

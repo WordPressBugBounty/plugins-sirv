@@ -22,7 +22,6 @@ class Woo
     add_action('add_meta_boxes', [$this, 'add_sirv_gallery_metabox']);
     add_action('add_meta_boxes', [$this, 'add_sirv_product_image_metabox']);
     add_action('add_meta_boxes', [$this, 'remove_wc_prod_image_metabox']);
-    add_action('save_post', [$this, 'save_sirv_gallery_data']);
 
     $this->cdn_url = get_option('SIRV_CDN_URL');
 
@@ -208,7 +207,7 @@ class Woo
     $item_pattern = '?thumbnail=78&image';
     $variation_id = absint($variation->ID);
 
-    self::render_sirv_gallery_html($variation_id, $item_pattern, 'variation');
+    self::render_sirv_gallery_html($variation_id, $item_pattern, 'variation', $loop);
   }
 
 
@@ -235,7 +234,6 @@ class Woo
         <img src="<?php echo $img_url ?>" />
       </div>
       <input type="hidden" id="sirv_woo_product_image_<?php echo $product_id; ?>" name="sirv_woo_product_image_<?php echo $product_id; ?>" value="<?php echo $saved_img_url; ?>">
-      <input type="hidden" id="sirv_woo_product_previous_image_<?php echo $product_id; ?>" name="sirv_woo_product_previous_image_<?php echo $product_id; ?>" value="<?php echo $saved_img_url; ?>">
       <input type="hidden" id="sirv_woo_product_image_attachment_id_<?php echo $product_id; ?>" name="sirv_woo_product_image_attachment_id_<?php echo $product_id; ?>" value="<?php echo $attachment_id; ?>">
       <div class="sirv-woo-gallery-toolbar sirv-woo-product-image-toolbar hide-if-no-js">
         <button type="button" class="button button-primary button-large sirv-woo-add-product-image" data-id="<?php echo $product_id; ?>">Set product image</button>
@@ -274,8 +272,13 @@ class Woo
   }
 
 
-  protected static function render_sirv_gallery_html($id, $item_pattern, $type)
+  protected static function render_sirv_gallery_html($id, $item_pattern, $type, $variation_index = null)
   {
+    $sirv_woo_gallery_data_name = is_null($variation_index) ? "sirv_woo_gallery_data" : "sirv_woo_gallery_data_var[$variation_index]";
+    $sirv_woo_product_image_name = is_null($variation_index) ? "sirv_woo_product_image" : "sirv_woo_product_image_var[$variation_index]";
+    $sirv_woo_product_image_attachment_id_name = is_null($variation_index) ? "sirv_woo_product_image_attachment_id" : "sirv_woo_product_image_attachment_id_var[$variation_index]";
+
+    $variation_index = is_null($variation_index) ? $id : $variation_index;
     $isVariation = $type == 'variation';
     $variation_class = $isVariation ? ' sirv-variation-container' : '';
     $variation_wrapper_class = $isVariation ? ' sirv-variation-wrapper' : '';
@@ -310,7 +313,7 @@ class Woo
             }else{
               if( $isVariation ){
                 //echo "Variation has no SKU. Add SKU to automatically show Sirv media";
-              }else{
+              } else {
                 //echo "Product has no SKU. Add SKU to automatically show Sirv media";
               }
             }
@@ -330,54 +333,54 @@ class Woo
                                 <img class="sirv-view-gallery-item-img" src="' . $thumb_url . '">
                               </div>
               </li>' . PHP_EOL;
-            }
-            ?>
-          </ul>
-        <?php
-        } else {
-          if ( !$folder_path ) {
-            if ( $isVariation ) {
-              //echo "Variation has no SKU. Add SKU to automatically show Sirv media";
-              echo '<div class="sirv-view-gallery-empty"><span>Variation has no SKU. Add SKU to automatically show Sirv media</span></div>';
-            } else {
-              //echo "Product has no SKU. Add SKU to automatically show Sirv media";
-              echo '<div class="sirv-view-gallery-empty"><span>Product has no SKU. Add SKU to automatically show Sirv media</span></div>';
-            }
+              }
+              ?>
+            </ul>
+          <?php
           } else {
-            echo '<div class="sirv-view-gallery-empty"><span>No media found</span></div>';
+            if (!$folder_path) {
+              if ($isVariation) {
+                //echo "Variation has no SKU. Add SKU to automatically show Sirv media";
+                echo '<div class="sirv-view-gallery-empty"><span>Variation has no SKU. Add SKU to automatically show Sirv media</span></div>';
+              } else {
+                //echo "Product has no SKU. Add SKU to automatically show Sirv media";
+                echo '<div class="sirv-view-gallery-empty"><span>Product has no SKU. Add SKU to automatically show Sirv media</span></div>';
+              }
+            } else {
+              echo '<div class="sirv-view-gallery-empty"><span>No media found</span></div>';
+            }
           }
-        }
-        ?>
-        <hr style="margin-right: 9px;" />
-      </div>
+          ?>
+          <hr style="margin-right: 9px;" />
+        </div>
       <?php } ?>
       <div id="sirv-woo-gallery_<?php echo $id; ?>" class="sirv-woo-gallery-container <?php echo $variation_class ?>" data-id="<?php echo $id; ?>">
         <?php if ($is_view_parse_enable) { ?>
-        <div class="sirv-view-gallery-header">
-          <div class="sirv-view-gallery-header_title">Extra media</div>
-        </div>
+          <div class="sirv-view-gallery-header">
+            <div class="sirv-view-gallery-header_title">Extra media</div>
+          </div>
         <?php } ?>
         <ul class="sirv-woo-images" id="sirv-woo-images_<?php echo $id; ?>" data-id="<?php echo $id; ?>">
           <?php
           $gallery_json_str = self::get_post_sirv_data($id, '_sirv_woo_gallery_data', false);
           $gallery_json_str = (isset($gallery_json_str) && is_string($gallery_json_str)) ? $gallery_json_str : '';
 
-          if ( $type == 'variation' ) {
+          if ($type == 'variation') {
             $sirv_product_image = self::get_post_sirv_data($id, 'sirv_woo_product_image', false, false);
 
-            if ( isset($sirv_product_image) ) {
+            if (isset($sirv_product_image)) {
               $saved_img_url = htmlentities(html_entity_decode($sirv_product_image));
               $variation_main_image_attachment_id = self::get_post_sirv_data($id, 'sirv_woo_product_image_attachment_id', false, false);
             }
 
-            if ( empty($saved_img_url) ) {
+            if (empty($saved_img_url)) {
               $saved_img_url = '';
               $variation_main_image_attachment_id = -1;
             }
           }
 
           $data = (array) @json_decode($gallery_json_str, true);
-          if ( $data && $data['items'] && !empty($data['items']) ) {
+          if ($data && $data['items'] && !empty($data['items'])) {
             $items = $data['items'];
             $count = count($items);
 
@@ -417,14 +420,13 @@ class Woo
             <a class="button button-primary button-large sirv-woo-delete-all" data-id="<?php echo $id; ?>">Delete all items</a>
           </div>
         <?php } ?>
-        <input type="hidden" id="sirv_woo_gallery_data_<?php echo $id; ?>" name="sirv_woo_gallery_data_<?php echo $id; ?>" value="<?php echo htmlentities(html_entity_decode($gallery_json_str)); ?>" />
+        <input type="hidden" id="sirv_woo_gallery_data_<?php echo $id; ?>" name="<?php echo $sirv_woo_gallery_data_name; ?>" value="<?php echo htmlentities(html_entity_decode($gallery_json_str)); ?>" />
         <div class="sirv-woo-gallery-toolbar hide-if-no-js">
           <div class="sirv-woo-gallery-toolbar-main">
             <?php if ($type == 'variation') { ?>
               <a class="button button-primary button-large sirv-woo-add-variation-image" data-type="<?php echo $type; ?>" data-id="<?php echo $id; ?>">Set Sirv variation image</a>
-              <input type="hidden" id="sirv_woo_product_image_<?php echo $id; ?>" name="sirv_woo_product_image_<?php echo $id; ?>" value="<?php echo $saved_img_url; ?>">
-              <input type="hidden" id="sirv_woo_product_previous_image_<?php echo $id; ?>" name="sirv_woo_product_previous_image_<?php echo $id; ?>" value="<?php echo $saved_img_url; ?>">
-              <input type="hidden" id="sirv_woo_product_image_attachment_id_<?php echo $id; ?>" name="sirv_woo_product_image_attachment_id_<?php echo $id; ?>" value="<?php echo $variation_main_image_attachment_id; ?>">
+              <input type="hidden" id="sirv_woo_product_image_<?php echo $id; ?>" name="<?php echo $sirv_woo_product_image_name; ?>" value="<?php echo $saved_img_url; ?>">
+              <input type="hidden" id="sirv_woo_product_image_attachment_id_<?php echo $id; ?>" name="<?php echo $sirv_woo_product_image_attachment_id_name; ?>" value="<?php echo $variation_main_image_attachment_id; ?>">
             <?php } ?>
             <a class="button button-primary button-large sirv-woo-add-media" data-type="<?php echo $type; ?>" data-id="<?php echo $id; ?>">Add Sirv media</a>
             <a class="button button-primary button-large sirv-woo-add-online-video" data-id="<?php echo $id; ?>">Add online video</a>
@@ -441,27 +443,56 @@ class Woo
   }
 
 
-  public function save_sirv_gallery_data($product_id)
+  public static function save_sirv_gallery_data($product_id, $post)
   {
-    if ( isset($product_id) && is_numeric($product_id) ) {
-      self::save_sirv_data($product_id);
+    $sirv_meta = [
+        'sirv_woo_gallery_data' => isset($_POST['sirv_woo_gallery_data']) ? $_POST['sirv_woo_gallery_data'] : '',
+        'sirv_woo_product_image' => isset($_POST['sirv_woo_product_image']) ? $_POST['sirv_woo_product_image'] : '',
+        'sirv_woo_product_image_attachment_id' => isset($_POST['sirv_woo_product_image_attachment_id']) ? $_POST['sirv_woo_product_image_attachment_id'] : -1,
+    ];
+    self::save_sirv_product_meta($product_id, $sirv_meta);
+  }
+
+
+  public static function save_sirv_variation_data($variation_id, $variation_index)
+  {
+    $sirv_meta = [
+      'sirv_woo_gallery_data' => isset($_POST['sirv_woo_gallery_data_var'][$variation_index]) ? $_POST['sirv_woo_gallery_data_var'][$variation_index] : '',
+      'sirv_woo_product_image' => isset($_POST['sirv_woo_product_image_var'][$variation_index]) ? $_POST['sirv_woo_product_image_var'][$variation_index] : '',
+      'sirv_woo_product_image_attachment_id' => isset($_POST['sirv_woo_product_image_attachment_id_var'][$variation_index]) ? $_POST['sirv_woo_product_image_attachment_id_var'][$variation_index] : -1,
+    ];
+    self::save_sirv_product_meta($variation_id, $sirv_meta, true);
+  }
+
+
+  /**
+   * Save sirv product meta
+   *
+   * @param int $product_id
+   * @param array{sirv_woo_gallery_data: string, sirv_woo_product_image: string, sirv_woo_product_image_attachment_id: int} $fields_data
+   * @param bool $is_variation
+   *
+   * @return void
+   */
+  protected static function save_sirv_product_meta($product_id, $sirv_meta, $is_variation = false)
+  {
+    self::set_post_sirv_data($product_id, '_sirv_woo_gallery_data', $sirv_meta['sirv_woo_gallery_data']);
+    self::save_sirv_product_image($product_id, $sirv_meta['sirv_woo_product_image'], $sirv_meta['sirv_woo_product_image_attachment_id']);
+
+    $instance = new self($product_id);
+    if ($is_variation) {
+      $instance->get_sirv_remote_data($product_id, $is_variation, true);
+    } else {
+      $instance->update_woo_smv_cache($product_id);
     }
   }
 
 
-  public static function save_sirv_variation_data($variation_id, $loop)
-  {
-    if ( isset($variation_id) && is_numeric($variation_id) ) {
-      self::save_sirv_data($variation_id, 'variation');
-    }
-  }
-
-
-  protected static function save_sirv_product_image($product_image, $product_id, $previous_attachment_id)
+  protected static function save_sirv_product_image($product_id, $product_image, $previous_attachment_id)
   {
     $attachment_id = -1;
 
-    if ( $product_image == '' && $previous_attachment_id == -1 ) return;
+    if ($product_image == '' && $previous_attachment_id == -1) return;
 
     $prev_attach_id = (int) $previous_attachment_id !== -1 ? $previous_attachment_id : null;
 
@@ -477,31 +508,6 @@ class Woo
 
     self::set_post_sirv_data($product_id, 'sirv_woo_product_image', $product_image, false);
     self::set_post_sirv_data($product_id, 'sirv_woo_product_image_attachment_id', $attachment_id, false);
-  }
-
-
-  protected static function save_sirv_data($product_id, $post_type = 'product')
-  {
-    if( (isset($_POST['post_type']) && $_POST['post_type'] == 'product') || isset($_POST['product-type']) ){
-      $isVariation = $post_type == 'variation' ? true : false;
-
-      $product_id = (isset($_POST['post_ID']) &&  $post_type == 'product') ? $_POST['post_ID'] : $product_id;
-
-      if (!empty($_REQUEST['action']) && ($_REQUEST['action'] == 'editpost' || $_REQUEST['action'] == 'woocommerce_save_variations')) {
-        $gallery_data = isset($_POST['sirv_woo_gallery_data_' . $product_id]) ? $_POST['sirv_woo_gallery_data_' . $product_id] : '';
-        $product_image = isset($_POST['sirv_woo_product_image_' . $product_id]) ? $_POST['sirv_woo_product_image_' . $product_id] : '';
-        $previous_attachment_id = isset($_POST['sirv_woo_product_image_attachment_id_' . $product_id]) ? $_POST['sirv_woo_product_image_attachment_id_' . $product_id] : -1;
-        self::set_post_sirv_data($product_id, '_sirv_woo_gallery_data', $gallery_data);
-        self::save_sirv_product_image($product_image, $product_id, $previous_attachment_id);
-
-        $instance = new self($product_id);
-        if ( $isVariation ) {
-          $instance->get_sirv_remote_data($product_id, $isVariation, true);
-        } else {
-          $instance->update_woo_smv_cache($product_id);
-        }
-      }
-    }
   }
 
 
@@ -528,13 +534,14 @@ class Woo
   }
 
 
-  public function update_woo_smv_cache($product_id){
+  public function update_woo_smv_cache($product_id)
+  {
     global $sirv_gbl_woo_cat_is_enable;
     $is_use_view_files = get_option('SIRV_WOO_IS_USE_VIEW_FILE') == 'on' ? true : false;
 
     $cache_keys = array('_sirv_woo_pdp_cache');
 
-    if ( $sirv_gbl_woo_cat_is_enable ) {
+    if ($sirv_gbl_woo_cat_is_enable) {
       $cache_keys[] = '_sirv_woo_cat_cache';
     }
 
@@ -548,7 +555,7 @@ class Woo
 
     foreach ($cache_keys as $cache_key) {
       $cache = $this->get_woo_cache_row($product_id, $cache_key);
-      if ( !empty($cache) ) {
+      if (!empty($cache)) {
         require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/jobs.php');
 
         sirv_update_smv_cache_html(array("cache" => $cache, "ttl" => $ttl));
@@ -560,41 +567,42 @@ class Woo
   }
 
 
-  public function get_cached_woo_smv_html($cache_key){
+  public function get_cached_woo_smv_html($cache_key)
+  {
     $html = '';
     $ttl = null;
 
-    if ( empty($cache_key) || !$this->product_id ) return $html;
+    if (empty($cache_key) || !$this->product_id) return $html;
 
     $cache_option_status = sirv_is_enable_option('SIRV_WOO_SMV_CACHE_IS_ENABLE', 'on');
-    if ( ! $cache_option_status ) return $this->get_woo_smv_html_by_key($this->product_id, $cache_key);
+    if (! $cache_option_status) return $this->get_woo_smv_html_by_key($this->product_id, $cache_key);
 
 
     $is_use_view_files = sirv_is_enable_option('SIRV_WOO_IS_USE_VIEW_FILE', 'on');
 
-    if ( $is_use_view_files ) {
+    if ($is_use_view_files) {
       $ttl = $this->get_view_file_ttl();
 
-      if ( $ttl == 1 ) {
+      if ($ttl == 1) {
         return $this->get_woo_smv_html_by_key($this->product_id, $cache_key);
       }
     }
 
     $cache = $this->get_woo_cache_row($this->product_id, $cache_key);
 
-    if ( !empty($cache) ) {
+    if (!empty($cache)) {
       $html = $cache['cache_value'];
       //sirv_qdebug('In cache. Cache key: ' . $cache_key . ' for product ID: ' . $this->product_id . ' with status: ' . $cache['cache_status']);
 
-      if ( !is_null($cache['expired_at']) && time() > strtotime($cache['expired_at']) ) {
+      if (!is_null($cache['expired_at']) && time() > strtotime($cache['expired_at'])) {
         //sirv_qdebug('Cache expired. Cache key: ' . $cache_key . ' for product ID: ' . $this->product_id);
 
         $background_option_status = sirv_is_enable_option('SIRV_WOO_SMV_CACHE_BACKGROUND_IS_ENABLE', 'on');
 
-        if ( $background_option_status  &&  !in_array($cache['cache_status'], array('EXPIRED', 'DELETED'))) {
+        if ($background_option_status  &&  !in_array($cache['cache_status'], array('EXPIRED', 'DELETED'))) {
           //sirv_qdebug('Background job. Cache key: ' . $cache_key . ' for product ID: ' . $this->product_id);
           $GLOBALS['sirv_jobs']['sirv_update_smv_cache_html'][] = array("cache" => $cache, "ttl" => $ttl);
-        } else  {
+        } else {
           //sirv_qdebug('Foreground job. Cache key: ' . $cache_key . ' for product ID: ' . $this->product_id);
           $html = $this->get_woo_smv_html_by_key($this->product_id, $cache_key);
 
@@ -604,7 +612,6 @@ class Woo
 
           $result = $this->save_data_to_cache($cache);
         }
-
       }
     } else {
       //sirv_qdebug('Not in cache. Cache key: ' . $cache_key . ' for product ID: ' . $this->product_id);
@@ -618,7 +625,8 @@ class Woo
   }
 
 
-  public function get_product_media_and_create_record_in_db($product_id, $cache_key, $cache_value, $ttl=null){
+  public function get_product_media_and_create_record_in_db($product_id, $cache_key, $cache_value, $ttl = null)
+  {
     $data = array(
       'post_id' => $product_id,
       'cache_key' => $cache_key,
@@ -632,7 +640,8 @@ class Woo
   }
 
 
-  public function get_woo_cache_row($post_id, $cache_key){
+  public function get_woo_cache_row($post_id, $cache_key)
+  {
     global $wpdb;
 
     $sirv_cache_table = $wpdb->prefix . 'sirv_cache';
@@ -649,10 +658,11 @@ class Woo
    * @param bool $is_json  is stored value is json stirng or not
    * @return mixed if $is_json is true or empty result then return object, otherwise return string
    */
-  public function get_woo_cache_value($post_id, $cache_key, $is_json = true){
+  public function get_woo_cache_value($post_id, $cache_key, $is_json = true)
+  {
     $cache_row = $this->get_woo_cache_row($post_id, $cache_key);
 
-    if ( !empty($cache_row) ) {
+    if (!empty($cache_row)) {
       return $is_json ? json_decode($cache_row['cache_value']) : $cache_row['cache_value'];
     }
 
@@ -669,7 +679,7 @@ class Woo
     $error = null;
 
     $post_type = get_post_type($data_object['post_id']);
-    if ( $post_type ) $data_object['post_type'] = $post_type;
+    if ($post_type) $data_object['post_type'] = $post_type;
 
     //$result = $wpdb->replace($wpdb->postmeta, $data_object, array('%d', '%s', '%s'));
     $result = $wpdb->replace($sirv_table_cache, $data_object);
@@ -720,7 +730,7 @@ class Woo
     if ($this->isSirvMainImage($this->product_id)) {
       $main_product_image[] = (object) $this->parse_sirv_main_image_as_item($this->product_id);
 
-      if ( !empty($main_product_image) ) {
+      if (!empty($main_product_image)) {
         $all_urls[] = $main_product_image[0]->url;
       }
     }
@@ -744,14 +754,14 @@ class Woo
     $sirv_local_data = (object) $this->get_sirv_local_data($this->product_id);
     $sirv_remote_data = (object) $this->get_sirv_remote_data($this->product_id, $isVariation, $isEnableCheck);
 
-    if ( !isset($sirv_local_data->items) ) $sirv_local_data->items = array();
-    if ( !isset($sirv_remote_data->items) ) $sirv_remote_data->items = array();
+    if (!isset($sirv_local_data->items)) $sirv_local_data->items = array();
+    if (!isset($sirv_remote_data->items)) $sirv_remote_data->items = array();
 
     return $this->merge_object_data($sirv_local_data->items, $sirv_remote_data->items, true);
   }
 
 
-  public function get_export_data_to_csv_column($isVariation, $isEnableCheck=false)
+  public function get_export_data_to_csv_column($isVariation, $isEnableCheck = false)
   {
     $sirv_gallery = $this->get_sirv_items_data($isVariation, $isEnableCheck);
     $sirv_item_urls = array();
@@ -783,22 +793,22 @@ class Woo
 
     $should_load = array('main_image');
 
-    if ( $is_not_wc_only ) {
+    if ($is_not_wc_only) {
       $should_load[] = 'sirv_local';
       $should_load[] = 'sirv_remote';
     }
 
-    if ( $is_not_sirv_only ) {
+    if ($is_not_sirv_only) {
       $should_load[] = 'wc_gallery';
     }
 
     $media = $this->parse_media_data($product_id, false, $should_load);
 
-    if ( $is_not_wc_only ) {
+    if ($is_not_wc_only) {
       $sirv_data = $this->merge_object_data($media['sirv_local'], $media['sirv_remote'], true);
     }
 
-    if ( $is_not_sirv_only ) {
+    if ($is_not_sirv_only) {
       $wc_gallery = $media['wc_gallery'];
     }
 
@@ -814,37 +824,38 @@ class Woo
   }
 
   //loaded keys: sirv_local, sirv_remote, wc_gallery, sirv_variations, main_image
-  protected function parse_media_data($product_id, $is_variation, $should_load = array()){
+  protected function parse_media_data($product_id, $is_variation, $should_load = array())
+  {
     global $sirv_gbl_smv_media;
 
-    if ( in_array('sirv_local', $should_load) ) {
-      if ( !isset($sirv_gbl_smv_media[$product_id]['sirv_local']) ) {
+    if (in_array('sirv_local', $should_load)) {
+      if (!isset($sirv_gbl_smv_media[$product_id]['sirv_local'])) {
         $sirv_local_data = (object) $this->get_sirv_local_data($product_id);
         $sirv_gbl_smv_media[$product_id]['sirv_local'] = isset($sirv_local_data->items) ? $sirv_local_data->items : array();
       }
     }
 
-    if ( in_array('sirv_remote', $should_load) ) {
-      if ( !isset($sirv_gbl_smv_media[$product_id]['sirv_remote']) ) {
+    if (in_array('sirv_remote', $should_load)) {
+      if (!isset($sirv_gbl_smv_media[$product_id]['sirv_remote'])) {
         $sirv_remote_data = (object) $this->get_sirv_remote_data($product_id, $is_variation, true);
         $sirv_gbl_smv_media[$product_id]['sirv_remote'] = isset($sirv_remote_data->items) ? $sirv_remote_data->items : array();
       }
     }
 
-    if ( in_array('wc_gallery', $should_load) ) {
-      if ( !isset($sirv_gbl_smv_media[$product_id]['wc_gallery']) ) {
+    if (in_array('wc_gallery', $should_load)) {
+      if (!isset($sirv_gbl_smv_media[$product_id]['wc_gallery'])) {
         $sirv_gbl_smv_media[$product_id]['wc_gallery'] = $this->parse_wc_gallery($product_id);
       }
     }
 
-    if ( in_array('sirv_variations', $should_load) ) {
-      if ( !isset($sirv_gbl_smv_media[$product_id]['sirv_variations']) ) {
+    if (in_array('sirv_variations', $should_load)) {
+      if (!isset($sirv_gbl_smv_media[$product_id]['sirv_variations'])) {
         $sirv_gbl_smv_media[$product_id]['sirv_variations'] = $this->parse_variations($product_id);
       }
     }
 
-    if ( in_array('main_image', $should_load) ) {
-      if ( !isset($sirv_gbl_smv_media[$product_id]['main_image']) ) {
+    if (in_array('main_image', $should_load)) {
+      if (!isset($sirv_gbl_smv_media[$product_id]['main_image'])) {
         $sirv_gbl_smv_media[$product_id]['main_image'] = $this->get_main_image($product_id);
       }
     }
@@ -881,7 +892,7 @@ class Woo
   {
     $status = get_option('SIRV_WOO_IS_USE_VIEW_FILE') == 'on' ? true : false;
 
-    if ( $status ) {
+    if ($status) {
       return $this->get_cache_woo_view_file_data($product_id, $isVariation, $force_update);
     }
 
@@ -909,7 +920,7 @@ class Woo
 
     $view_path = $this->get_product_path($product_id, $is_variation);
 
-    if ( false === $view_path && ! $is_force_update ) {
+    if (false === $view_path && ! $is_force_update) {
       //TODO: save status to DB?
       return (object) array(
         'items' => array(),
@@ -920,7 +931,7 @@ class Woo
     $ttl = $this->get_view_file_ttl();
 
     $cache = $this->get_woo_cache_row($product_id, $cache_key);
-    if ( empty($cache) ) {
+    if (empty($cache)) {
       $view_file = $this->load_view_file_data($product_id, $view_path);
       $view_file_data = $view_file['data'];
 
@@ -932,8 +943,7 @@ class Woo
       $cache['expired_at'] = is_null($ttl) ? null : date("Y-m-d H:i:s", time() + $ttl);
 
       $result = $this->save_data_to_cache($cache);
-
-    } else if ( $is_force_update || in_array($cache['cache_status'], array('EXPIRED', 'DELETED')) || $ttl === 1 ) {
+    } else if ($is_force_update || in_array($cache['cache_status'], array('EXPIRED', 'DELETED')) || $ttl === 1) {
 
       $view_file_data = (object) json_decode($cache['cache_value']);
 
@@ -941,7 +951,7 @@ class Woo
 
       $check_data = $this->check_view_file_changes($view_path, $mtime);
 
-      if ( $check_data['is_view_file_changed'] || in_array($cache['cache_status'], array('EXPIRED', 'DELETED')) ) {
+      if ($check_data['is_view_file_changed'] || in_array($cache['cache_status'], array('EXPIRED', 'DELETED'))) {
         $view_file = $this->load_view_file_data($product_id, $view_path);
         $view_file["data"]->mtime = $check_data['mtime']; // no file version if check_view_file_changes return false cuz $view_path == false
 
@@ -955,16 +965,15 @@ class Woo
       $cache['expired_at'] = is_null($ttl) ? null : date("Y-m-d H:i:s", time() + $ttl);
 
       $result = $this->save_data_to_cache($cache);
-
     } else {
       $view_file_data = (object) json_decode($cache['cache_value']);
       // $status: EMPTY, SUCCESS, FAILED, EXPIRED, DELETED, NOCACHE
 
-      if ( ! is_null($cache['expired_at']) && time() > strtotime($cache['expired_at']) ) {
+      if (! is_null($cache['expired_at']) && time() > strtotime($cache['expired_at'])) {
         global $sirv_gbl_background_mode;
 
         //if false that means that we not in shutdown event and can add background job, if true than we need do jobs instead add new background job.
-        if ( ! $sirv_gbl_background_mode ) {
+        if (! $sirv_gbl_background_mode) {
           $GLOBALS['sirv_jobs']['sirv_update_view_file_cache'][] = array("cache" => $cache, "ttl" => $ttl, "view_file_path" => $view_path);
         } else {
           require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/jobs.php');
@@ -978,7 +987,8 @@ class Woo
   }
 
 
-  protected function get_view_file_ttl(){
+  protected function get_view_file_ttl()
+  {
     $ttl_time = (int) get_option('SIRV_WOO_TTL');
     $ttl_time = $ttl_time == 0 ? 24 * 60 * 60 : $ttl_time;
 
@@ -990,7 +1000,7 @@ class Woo
   {
     $prod_path = $this->get_relative_product_path($product_id, $isVariation);
 
-    if ( false === $prod_path ) return $prod_path;
+    if (false === $prod_path) return $prod_path;
 
     $path = sirv_get_sirv_path($prod_path);
 
@@ -1012,13 +1022,13 @@ class Woo
   {
     $response = array("is_view_file_changed" => false, "mtime" => $mtime);
 
-    if ( $view_path === false) return $response;
+    if ($view_path === false) return $response;
 
     $headers = Utils::get_headers_curl($view_path . '.view');
 
     $header_mtime = isset($headers['last-modified']) ? strtotime($headers['last-modified']) : false;
 
-    if ( ! $header_mtime || ($header_mtime !== $mtime) ) {
+    if (! $header_mtime || ($header_mtime !== $mtime)) {
       $response['is_view_file_changed'] = true;
       $response['mtime'] = $header_mtime;
     }
@@ -1033,20 +1043,20 @@ class Woo
     $data = array("items" => array(), "is_main_image_from_view_file" => false);
     $sirv_view_data = array();
 
-    if ( $view_file_path === false) return array("data" => (object) $data, "status" => 'FAILED');
+    if ($view_file_path === false) return array("data" => (object) $data, "status" => 'FAILED');
 
     $is_skip_items_to_main_image = false;
     $is_parse_main_image = get_option('SIRV_WOO_MAIN_PRODUCT_IMAGE_FROM_VIEW_FILE') == 'on' ? true : false;
 
     $response = Utils::get_sirv_item_info_curl($view_file_path . '.view');
 
-    if( ! $response['error'] && $response['result'] ){
+    if (! $response['error'] && $response['result']) {
       $view_data = @json_decode($response['result']);
     } else {
       $view_data = array();
     }
 
-    if ( (is_object($view_data) && !isset($view_data->_isplaceholder)) && !empty($view_data->assets) && count($view_data->assets) ) {
+    if ((is_object($view_data) && !isset($view_data->_isplaceholder)) && !empty($view_data->assets) && count($view_data->assets)) {
       $sirv_view_data['status'] = 'SUCCESS';
 
       //added natural sort for the view file items
@@ -1059,10 +1069,10 @@ class Woo
           continue;
         }
 
-        if ( (!$is_skip_items_to_main_image && $asset->type !== 'model') && $is_parse_main_image ) {
+        if ((!$is_skip_items_to_main_image && $asset->type !== 'model') && $is_parse_main_image) {
           $item_url = $view_file_path . '/' . $asset->name;
           $previous_attachment_id = self::get_post_sirv_data($product_id, 'sirv_woo_product_image_attachment_id', false, false);
-          $this->save_sirv_product_image($item_url, $product_id, $previous_attachment_id);
+          $this->save_sirv_product_image($product_id, $item_url , $previous_attachment_id);
 
           $is_skip_items_to_main_image = true;
           continue;
@@ -1071,7 +1081,7 @@ class Woo
         $data['items'][] = $this->convert_view_data($product_id, $asset, $index, $view_file_path);
       }
     } else {
-      $status = ( is_object($view_data) && !isset($view_data->_isplaceholder) ) ? 'EMPTY' : 'FAILED';
+      $status = (is_object($view_data) && !isset($view_data->_isplaceholder)) ? 'EMPTY' : 'FAILED';
       $sirv_view_data['status'] = $status;
     }
 
@@ -1121,11 +1131,11 @@ class Woo
     preg_match_all($pattern, $path, $vars, PREG_SET_ORDER);
     $vars_data = array();
 
-    for( $i = 0; $i < count($vars); $i++ ){
+    for ($i = 0; $i < count($vars); $i++) {
       $vars_data[$vars[$i][0]] = $this->get_folder_var($vars[$i][1], $vars[$i][2], $product_id, $isVariation);
     }
 
-    if(
+    if (
       (isset($vars_data['{product-sku}']) && $vars_data['{product-sku}'] == '') ||
       (isset($vars_data['{category-slug}']) && $vars_data['{category-slug}'] == '') ||
       (isset($vars_data['{variation-sku}']) && $vars_data['{variation-sku}'] == '') ||
@@ -1139,7 +1149,8 @@ class Woo
   }
 
 
-  protected function get_folder_var($str_var, $filters_str, $product_id, $isVariation){
+  protected function get_folder_var($str_var, $filters_str, $product_id, $isVariation)
+  {
     $value = '';
     $main_product_id = $isVariation ? wp_get_post_parent_id($product_id) : $product_id;
 
@@ -1151,7 +1162,7 @@ class Woo
       case 'product-sku':
         $value = $this->get_product_sku($main_product_id);
 
-        if( !empty($filters_str) ) {
+        if (!empty($filters_str)) {
           require_once(SIRV_PLUGIN_SUBDIR_PATH . 'includes/classes/view.file.path.filters.class.php');
           $view_filter = new ViewFilePathFilters($filters_str);
           $value = $view_filter->run_filters($value);
@@ -1180,7 +1191,8 @@ class Woo
   }
 
 
-  function convert_slash_to_hyphen($str){
+  function convert_slash_to_hyphen($str)
+  {
     return $this->convert_symbols($str, array('/' => '-', '\\' => '-'));
   }
 
@@ -1192,8 +1204,9 @@ class Woo
    * @param array $rules array(from => to) Example: array('/' => '-', '\' => '-')
    * @return string
    */
-  function convert_symbols($str, $rules){
-    if ( !is_array($rules) || count($rules) == 0 || !is_string($str) || $str == '' ) return $str;
+  function convert_symbols($str, $rules)
+  {
+    if (!is_array($rules) || count($rules) == 0 || !is_string($str) || $str == '') return $str;
 
     $search = array_keys($rules);
     $replace = array_values($rules);
@@ -1323,11 +1336,11 @@ class Woo
     $items = (object) array();
     $is_empty_main_image = empty((array) $main_image);
 
-    if ( $is_empty_main_image && empty($sirv_images) && empty($wc_images) ) return $items;
+    if ($is_empty_main_image && empty($sirv_images) && empty($wc_images)) return $items;
 
     $items = $this->merge_items($order, $sirv_images, $wc_images);
 
-    if ( !$is_empty_main_image ) {
+    if (!$is_empty_main_image) {
       $items = (array) $items;
       array_unshift($items, $main_image);
       $items = (object) $items;
@@ -1387,7 +1400,7 @@ class Woo
     $order = 0;
 
     foreach ($items as $item) {
-      if ( empty($item->url) ) continue;
+      if (empty($item->url)) continue;
 
       $item->order = $order;
       $fixed_items[] = $item;
@@ -1705,7 +1718,7 @@ class Woo
 
     $wp_image_arr = wp_get_attachment_image_src($image_id, 'full');
 
-    if ( !empty($wp_image_arr) ) {
+    if (!empty($wp_image_arr)) {
       $url = Utils::clean_uri_params($wp_image_arr[0]);
       $provider = $this->is_sirv_item($url) ? 'sirv' : 'woocommerce';
     }
@@ -1821,7 +1834,7 @@ class Woo
   protected function get_cat_gallery_html($items)
   {
 
-    if ( empty((array) $items) ) return $this->get_empty_gallery_html();
+    if (empty((array) $items)) return $this->get_empty_gallery_html();
 
     $filteredContent = $this->get_filtered_cat_content(get_option('SIRV_WOO_CAT_CONTENT'));
     $swap = json_decode(get_option('SIRV_WOO_CAT_SWAP_METHOD'), true);
@@ -1864,7 +1877,7 @@ class Woo
 
         $gallery_cat_html = '
           <div class="sirv-figure">
-            <img class="Sirv image-main" src="'. $src .'" data-src="' . $data_src . '">
+            <img class="Sirv image-main" src="' . $src . '" data-src="' . $data_src . '">
           </div>
         ' . PHP_EOL;
       }
@@ -1909,11 +1922,11 @@ class Woo
       $gallery_cat_html = '<div class="Sirv" id="sirv-woo-cat-gallery_' . $this->product_id . '" ' . $this->render_viewer_options($viewer_options) . '>' . PHP_EOL;
 
       foreach ($items as $item) {
-        if ( !in_array($item->type, $filteredContent) ) continue;
+        if (!in_array($item->type, $filteredContent)) continue;
 
-        if ( $item->provider == "sirv" ) {
+        if ($item->provider == "sirv") {
           $zoom = $isHoverZoom ? self::get_zoom_class($item->type) : '';
-          if ( $item->type === 'spin' ) {
+          if ($item->type === 'spin') {
             $showing_method_pattern = $showing_method == "static" ? "?thumb" : "?image";
             $gallery_cat_html .= '<img data-src="' . $item->url . $showing_method_pattern  . '&' . $profile . '"' . '/>' . PHP_EOL;
           } else {
@@ -1923,7 +1936,7 @@ class Woo
           $gallery_cat_html .= '<img data-type="static" data-src="' . $item->url . '">' . PHP_EOL;
         }
 
-        if ( $item_count >= $items_count ) {
+        if ($item_count >= $items_count) {
           $item_count += 1;
           break;
         }
@@ -1931,7 +1944,7 @@ class Woo
         $item_count += 1;
       }
 
-      if ( $item_count - 1 == 0 ) {
+      if ($item_count - 1 == 0) {
         $wc_placeholder_item = $this->get_wc_placeholder_as_item();
         $static = $wc_placeholder_item->provider == 'woocommerce' ? 'data-type="static"' : '';
         $gallery_cat_html .= '<img ' . $static . ' data-src="' . $wc_placeholder_item->url . '">' . PHP_EOL;
@@ -1940,7 +1953,7 @@ class Woo
       $gallery_cat_html .= "</div>" . PHP_EOL;
     }
 
-    if ( $gallery_cat_html == '' ) return $this->get_empty_gallery_html();
+    if ($gallery_cat_html == '') return $this->get_empty_gallery_html();
 
     return $gallery_cat_html;
   }
@@ -1954,7 +1967,7 @@ class Woo
 
     return
       '<div class="sirv-figure" id="sirv-woo-cat-gallery_' . $this->product_id . '">
-            <img class="Sirv image-main" src="'. $src .'" data-src="'. $wc_placeholder_item->url .'">
+            <img class="Sirv image-main" src="' . $src . '" data-src="' . $wc_placeholder_item->url . '">
           </div>
         ' . PHP_EOL;
   }
@@ -1964,7 +1977,7 @@ class Woo
   {
     $filtered_arr = array();
     foreach ($items as $item) {
-      if ( $item->type === $item_type ) {
+      if ($item->type === $item_type) {
         $filtered_arr[] = $item;
       }
     }
@@ -1990,7 +2003,7 @@ class Woo
     $mv_custom_css = get_option('SIRV_WOO_MV_CUSTOM_CSS');
     $mv_custom_css = !empty($mv_custom_css) ? '<style>' . $mv_custom_css . '</style>' . PHP_EOL : '';
 
-    if ( ! $is_gallery_placeholder ) {
+    if (! $is_gallery_placeholder) {
       $max_height = get_option("SIRV_WOO_MAX_HEIGHT");
       $max_height_style = empty($max_height) ? '' : '<style>.sirv-woo-wrapper .Sirv > .smv{ max-height: ' . $max_height . 'px; }</style>';
     } else {
@@ -2000,12 +2013,12 @@ class Woo
     list($items, $is_all_items_disabled, $is_all_variations, $variation_status) = $this->manage_disable_state($items);
 
     $smv_order_content = get_option('SIRV_WOO_SMV_CONTENT_ORDER');
-    if ( !empty(json_decode($smv_order_content)) ) $viewer_options['itemsOrder'] = '[\'' . implode("','", json_decode($smv_order_content)) . '\']';
+    if (!empty(json_decode($smv_order_content))) $viewer_options['itemsOrder'] = '[\'' . implode("','", json_decode($smv_order_content)) . '\']';
 
-    if ( $is_skeleton ) $viewer_options["autostart"] = 'created';
-    if ( $is_gallery_placeholder ){
+    if ($is_skeleton) $viewer_options["autostart"] = 'created';
+    if ($is_gallery_placeholder) {
       $viewer_options["thumbnails.target"] = '.sirv-pdp-gallery-thumbnails';
-      if ( in_array($smv_thumbnail_position, array('left', 'right', 'top')) && count((array) $items) > 1) $viewer_options["thumbnails.always"] = 'true';
+      if (in_array($smv_thumbnail_position, array('left', 'right', 'top')) && count((array) $items) > 1) $viewer_options["thumbnails.always"] = 'true';
     }
 
     $viewer_options['thumbnails.size'] = $smv_thumbnail_size;
@@ -2027,7 +2040,7 @@ class Woo
       $caption = isset($item->caption) ? urldecode($item->caption) : '';
       if ($caption) $isCaption = true;
 
-      if ( is_array($placeholder_image_item) && (!$item->isDisabled && in_array($item->type, array('image', 'video', 'spin', 'wc_placeholder_image'))) ) $placeholder_image_item = $item;
+      if (is_array($placeholder_image_item) && (!$item->isDisabled && in_array($item->type, array('image', 'video', 'spin', 'wc_placeholder_image')))) $placeholder_image_item = $item;
 
       $existings_ids[] = isset($item->groups) ? $item->groups : (int) $item->viewId;
 
@@ -2051,13 +2064,13 @@ class Woo
     $sirv_classes_arr  = array();
     $gallery_placeholder_type = 'none';
 
-    if ( $is_skeleton ) {
+    if ($is_skeleton) {
       $sirv_classes_arr[] = 'sirv-woo-opacity-zero';
       $gallery_placeholder_type = 'skeleton';
-      } else if ( $is_gallery_placeholder ) {
-        $sirv_classes_arr[] = 'sirv-mainimage';
-        $gallery_placeholder_type = 'image';
-      }
+    } else if ($is_gallery_placeholder) {
+      $sirv_classes_arr[] = 'sirv-mainimage';
+      $gallery_placeholder_type = 'image';
+    }
 
 
 
@@ -2069,29 +2082,30 @@ class Woo
     $data_item_by_variation_id = 'data-item-by-variation-id="' . htmlspecialchars(json_encode($item_by_variation_id), ENT_QUOTES, 'UTF-8') . '" ';
 
 
-    $json_data_block = '<div style="display: none;" ' . $data_item_by_variation_id . 'data-existings-ids="' . htmlspecialchars(json_encode($existings_ids), ENT_QUOTES, 'UTF-8') . '" id="sirv-woo-gallery_data_' . $this->product_id . '" data-is-caption="' . $isCaption . '" data-gallery-placeholder-type="' . $gallery_placeholder_type . '" data-thumbnails-position="'. $viewer_options['thumbnails.position'] .'"></div>' . PHP_EOL;
+    $json_data_block = '<div style="display: none;" ' . $data_item_by_variation_id . 'data-existings-ids="' . htmlspecialchars(json_encode($existings_ids), ENT_QUOTES, 'UTF-8') . '" id="sirv-woo-gallery_data_' . $this->product_id . '" data-is-caption="' . $isCaption . '" data-gallery-placeholder-type="' . $gallery_placeholder_type . '" data-thumbnails-position="' . $viewer_options['thumbnails.position'] . '"></div>' . PHP_EOL;
 
     $placehoder_image_html = '';
-    if ( $is_gallery_placeholder ) {
+    if ($is_gallery_placeholder) {
       $placeholder_image_url = $this->get_placeholder_image_url($placeholder_image_item, $this->get_pdp_profile());
       $placehoder_image_html =  $placeholder_image_url ? '<img class="sirv-pdp-gallery-placeholder" src="' . $placeholder_image_url . '" alt="" loading="lazy"/>' : '';
     }
 
-    $sirv_container = '<div class="Sirv'. $sirv_classes .'" id="sirv-woo-gallery_' . $this->product_id . '"' . $this->render_viewer_options($viewer_options) . '>' . PHP_EOL . $items_html . '</div>' . PHP_EOL;
+    $sirv_container = '<div class="Sirv' . $sirv_classes . '" id="sirv-woo-gallery_' . $this->product_id . '"' . $this->render_viewer_options($viewer_options) . '>' . PHP_EOL . $items_html . '</div>' . PHP_EOL;
 
-    return $placehoder_image_html . $json_data_block . $sirv_container. $mv_custom_css . $max_height_style;
+    return $placehoder_image_html . $json_data_block . $sirv_container . $mv_custom_css . $max_height_style;
   }
 
 
-  protected function get_placeholder_image_url($item, $profile=''){
+  protected function get_placeholder_image_url($item, $profile = '')
+  {
 
-    if( !(array) $item ) return '';
+    if (!(array) $item) return '';
 
     $url_params = '';
 
     $url = $item->url;
 
-    if( $item->provider == 'sirv' ){
+    if ($item->provider == 'sirv') {
       $profile_pattern = $profile ? "&profile=$profile" : '';
       $q = 'q=20';
       $video_to_image = '&thumbnail=500';

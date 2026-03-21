@@ -59,7 +59,10 @@ class Sirv_Gallery_MV
     protected function fixUrl($url){
         $sirv_cdn_url = get_option('SIRV_CDN_URL');
 
-        $m_url = 'https://' . $sirv_cdn_url . '/' . basename($url);
+        $p_url = parse_url(html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+
+        $fragment = isset($p_url['fragment']) ? $p_url['fragment'] : '';
+        $m_url = 'https://' . $sirv_cdn_url . $p_url['path'] . $fragment;
 
         $profile = $this->get_profile();
 
@@ -303,19 +306,19 @@ class Sirv_Gallery_MV
             case 'image':
 
                 if($this->params['apply_zoom']){
-                    $html = '<div ' . $dataItemId . ' data-type="zoom" data-src="' . $url . '"' . $options['zoom'] . ' data-alt="' . $caption . '"></div>' . PHP_EOL;
+                    $html = '<div ' . $dataItemId . ' data-type="zoom" data-src="' . esc_url($url) . '"' . $options['zoom'] . ' data-alt="' . $caption . '"></div>' . PHP_EOL;
                 }else{
-                    $html = '<img ' . $dataItemId . ' data-src="' . $url . '">' . PHP_EOL;
+                    $html = '<img ' . $dataItemId . ' data-src="' . esc_url($url) . '">' . PHP_EOL;
                 }
                 break;
             case 'video':
-                $html = '<div ' . $dataItemId . ' data-src="' . $url . '"' . $options['video'] . ' data-alt="' . $caption . '"></div>' . PHP_EOL;
+                $html = '<div ' . $dataItemId . ' data-src="' . esc_url($url) . '"' . $options['video'] . ' data-alt="' . $caption . '"></div>' . PHP_EOL;
                 break;
             case 'spin':
-                $html = '<div ' . $dataItemId . ' data-src="' . $url . '"' . $options['spin'] . ' data-alt="' . $caption . '"></div>' . PHP_EOL;
+                $html = '<div ' . $dataItemId . ' data-src="' . esc_url($url) . '"' . $options['spin'] . ' data-alt="' . $caption . '"></div>' . PHP_EOL;
                 break;
             case 'model':
-                $html = '<div ' . $dataItemId . ' data-src="' . $url . '"' . $options['model'] . ' data-alt="' . $caption . '"></div>' . PHP_EOL;
+                $html = '<div ' . $dataItemId . ' data-src="' . esc_url($url) . '"' . $options['model'] . ' data-alt="' . $caption . '"></div>' . PHP_EOL;
                 break;
         }
 

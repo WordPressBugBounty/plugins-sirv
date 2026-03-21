@@ -4,8 +4,8 @@ Donate link: https://sirv.com/
 Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
-Tested up to: 6.9.1
-Stable tag: 8.2.0
+Tested up to: 6.9.4
+Stable tag: 8.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -222,6 +222,13 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 18. To upload images to your Sirv library, go to the Media Library page within the Sirv sub-menu (in the left navigation column).
 
 == Changelog ==
+
+= 8.2.1 (2026-03-21) =
+* Tested with the latest WordPress version 6.9.4.
+* Improved product metadata saving logic.
+* Fixed an issue with URL escaping in shortcodes.
+* Resolved a bug where CSS image styles were not saving correctly.
+* Optimized Gutenberg blocks by removing redundant frontend dependencies and adding asset caching.
 
 = 8.2.0 (2026-03-10) =
 * Show image placeholder in product gallery.
