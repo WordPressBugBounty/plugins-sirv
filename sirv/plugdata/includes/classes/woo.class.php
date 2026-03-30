@@ -233,8 +233,8 @@ class Woo
       <div class="sirv-woo-product-image">
         <img src="<?php echo $img_url ?>" />
       </div>
-      <input type="hidden" id="sirv_woo_product_image_<?php echo $product_id; ?>" name="sirv_woo_product_image_<?php echo $product_id; ?>" value="<?php echo $saved_img_url; ?>">
-      <input type="hidden" id="sirv_woo_product_image_attachment_id_<?php echo $product_id; ?>" name="sirv_woo_product_image_attachment_id_<?php echo $product_id; ?>" value="<?php echo $attachment_id; ?>">
+      <input type="hidden" id="sirv_woo_product_image_<?php echo $product_id; ?>" name="sirv_woo_product_image" value="<?php echo $saved_img_url; ?>">
+      <input type="hidden" id="sirv_woo_product_image_attachment_id_<?php echo $product_id; ?>" name="sirv_woo_product_image_attachment_id" value="<?php echo $attachment_id; ?>">
       <div class="sirv-woo-gallery-toolbar sirv-woo-product-image-toolbar hide-if-no-js">
         <button type="button" class="button button-primary button-large sirv-woo-add-product-image" data-id="<?php echo $product_id; ?>">Set product image</button>
         <button type="button" class="button button-primary button-large sirv-woo-delete-product-image" data-id="<?php echo $product_id; ?>" data-placeholder="<?php echo $no_image_placeholder; ?>">
