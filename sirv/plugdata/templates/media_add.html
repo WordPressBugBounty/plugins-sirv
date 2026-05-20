@@ -269,6 +269,102 @@
         line-height: 1.4em;
     }
 
+    /* Fix: Elementor resets appearance/background on all inputs, breaking radio checked state. */
+
+    /* Flex on labels that wrap flat radio buttons */
+    .gallery-options-wrapper label.sirv-flat-radio-buttons,
+    .gallery-options-wrapper label.sirv-flat-radio-button {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+    }
+    /* sirv-images-types labels: no !important so inline display:none can override */
+    .gallery-options-wrapper .sirv-images-types label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        margin-bottom: 3px;
+    }
+
+    .gallery-options-wrapper input[type="radio"] {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        width: 16px !important;
+        height: 16px !important;
+        min-width: 16px !important;
+        flex-shrink: 0;
+        border: 2px solid #8c8f94 !important;
+        border-radius: 50% !important;
+        background: #fff !important;
+        cursor: pointer;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    .gallery-options-wrapper input[type="radio"]:checked {
+        border: 4px solid var(--wp-admin-theme-color, #3F81BC) !important;
+        background: #fff !important;
+        box-shadow: none !important;
+    }
+    /* WP 6.x admin CSS injects ::before to draw the inner dot — hide it */
+    .gallery-options-wrapper input[type="radio"]::before,
+    .gallery-options-wrapper input[type="radio"]:checked::before {
+        display: none !important;
+    }
+    .gallery-options-wrapper input[type="radio"]:disabled {
+        border-color: #c3c4c7 !important;
+        background: #f6f7f7 !important;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    .gallery-options-wrapper input[type="radio"]:disabled:checked {
+        border-color: #c3c4c7 !important;
+        background: #f6f7f7 !important;
+    }
+    .gallery-options-wrapper input[type="radio"]:focus {
+        outline: 2px solid var(--wp-admin-theme-color, #3F81BC);
+        outline-offset: 1px;
+    }
+
+    /* Checkbox styles — same accent color as radio buttons */
+    .gallery-options-wrapper input[type="checkbox"] {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        width: 16px !important;
+        height: 16px !important;
+        min-width: 16px !important;
+        flex-shrink: 0;
+        border: 2px solid #8c8f94 !important;
+        border-radius: 3px !important;
+        background: #fff !important;
+        cursor: pointer;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transition: border-color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+        vertical-align: middle;
+        margin-right: 5px !important;
+    }
+    .gallery-options-wrapper input[type="checkbox"]:checked {
+        border-color: var(--wp-admin-theme-color, #3F81BC) !important;
+        background-color: var(--wp-admin-theme-color, #3F81BC) !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 8l3.5 3.5 6.5-6.5'/%3E%3C/svg%3E") !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        background-size: 12px !important;
+    }
+    .gallery-options-wrapper input[type="checkbox"]::before {
+        display: none !important;
+    }
+    .gallery-options-wrapper input[type="checkbox"]:focus {
+        outline: 2px solid var(--wp-admin-theme-color, #3F81BC);
+        outline-offset: 1px;
+    }
 
 </style>
 <script type="text/javascript">

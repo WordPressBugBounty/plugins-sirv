@@ -493,7 +493,11 @@ jQuery( function($){
             if ($viewPathTextEl.length) $viewPathTextEl.text(response.view_path);
           }
 
-          if(response?.cache?.items){
+          $viewGalleryUL.empty();
+
+          const items = response?.cache?.items ?? [];
+
+          if(items.length > 0){
             const itemsPattern = "?thumbnail=78&image";
 
             let documentFragment = $(document.createDocumentFragment());
@@ -509,11 +513,9 @@ jQuery( function($){
               );
             }
 
-
-            $viewGalleryUL.empty();
             $viewGalleryUL.append(documentFragment);
           }else{
-            $viewGalleryUL.empty();
+            $viewGalleryUL.append('<li class="sirv-view-gallery-empty-item"><span>No media found</span></li>');
           }
         })
         .fail(function (jqXHR, status, error) {

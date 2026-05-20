@@ -29,7 +29,8 @@ class Woo
   }
 
 
-  public function update_smv_cache($product_id, $is_variation){
+  public function update_smv_cache($product_id, $is_variation)
+  {
     $path = $this->get_product_path($product_id, $is_variation);
 
     if (false === $path) return array("error" => "Path does not exist", "view_path" => '', "cache" => array());
@@ -178,9 +179,9 @@ class Woo
 
   public function render_fake_wc_product_metabox($post)
   {
-      ?>
-        <div>WooCommerce product image block has been disabled because Sirv product image has been chosen.</div>
-      <?php
+?>
+    <div>WooCommerce product image block has been disabled because Sirv product image has been chosen.</div>
+  <?php
   }
 
 
@@ -222,7 +223,7 @@ class Woo
 
     $img_url = $no_image_placeholder;
 
-    if ( !empty($saved_img_url) ) {
+    if (!empty($saved_img_url)) {
       $img_url = $saved_img_url . $item_pattern;
     } else {
       $saved_img_url = '';
@@ -242,9 +243,9 @@ class Woo
         </button>
       </div>
       <?php
-        if (self::isFIFUActive() && self::isFIFUProductImage($product_id)) {
-          echo Utils::showMessage("Choose either Sirv or FIFU for product image, not both.", 'warning');
-        }
+      if (self::isFIFUActive() && self::isFIFUProductImage($product_id)) {
+        echo Utils::showMessage("Choose either Sirv or FIFU for product image, not both.", 'warning');
+      }
       ?>
     </div>
   <?php
@@ -285,72 +286,59 @@ class Woo
     $instance = new self($id);
     $is_view_parse_enable = get_option('SIRV_WOO_IS_USE_VIEW_FILE') == 'on' ? true : false;
 
-    if ( $is_view_parse_enable ) {
+    if ($is_view_parse_enable) {
       $remote_data = $instance->get_sirv_remote_data($id, $isVariation);
       $folder_path = $instance->get_relative_product_path($id, $isVariation);
     }
   ?>
     <div class="sirv-gallery-wrapper<?php echo $variation_wrapper_class ?>">
       <?php
-        if ($type == 'variation') {
-          echo '<div class="sirv-gallery-wrapper-title">Sirv variation gallery</div>' . PHP_EOL;
-        }
+      if ($type == 'variation') {
+        echo '<div class="sirv-gallery-wrapper-title">Sirv variation gallery</div>' . PHP_EOL;
+      }
       if ($is_view_parse_enable) {
       ?>
-      <div class="sirv-view-gallery" id="sirv-view-gallery-<?php echo $id; ?>">
-        <div class="sirv-view-gallery-header">
-          <div class="sirv-view-gallery-header_title">Sirv folder media</div>
-          <div class="sirv-view-gallery-header__tools">
-            <?php if ( $folder_path ){ ?>
-              <button type="button" class="button sirv-woo-admin-update-smv-cache" data-product-id="<?php echo $id; ?>" data-type="<?php echo $type ?>">Refresh</button>
-            <?php } ?>
+        <div class="sirv-view-gallery" id="sirv-view-gallery-<?php echo $id; ?>">
+          <div class="sirv-view-gallery-header">
+            <div class="sirv-view-gallery-header_title">Sirv folder media</div>
+            <div class="sirv-view-gallery-header__tools">
+              <?php if ($folder_path) { ?>
+                <button type="button" class="button sirv-woo-admin-update-smv-cache" data-product-id="<?php echo $id; ?>" data-type="<?php echo $type ?>">Refresh</button>
+              <?php } ?>
+            </div>
           </div>
-        </div>
-        <div class="sirv-view-gallery-header-path">
-          <?php
-            if( $folder_path ){
-              echo '/' . $folder_path;
-            }else{
-              if( $isVariation ){
-                //echo "Variation has no SKU. Add SKU to automatically show Sirv media";
-              } else {
-                //echo "Product has no SKU. Add SKU to automatically show Sirv media";
-              }
-            }
-          ?>
-        </div>
-        <?php
-        if ( !empty($remote_data->items) ) {
-          $view_data = $remote_data->items;
-        ?>
-          <ul class="sirv-view-images" id="sirv-view-images-ul-<?php echo $id; ?>">
+          <div class="sirv-view-gallery-header-path">
             <?php
-            foreach ($view_data as $view_item) {
-              $url = htmlentities(html_entity_decode($view_item->url));
-              $thumb_url = self::get_gallery_item_url($view_item->type, $url, $item_pattern);
-              echo '<li class="sirv-view-gallery-item" data-type="' . $view_item->type . '">
-                <div class="sirv-view-gallery-item-img-wrap">
-                                <img class="sirv-view-gallery-item-img" src="' . $thumb_url . '">
-                              </div>
-              </li>' . PHP_EOL;
-              }
-              ?>
-            </ul>
-          <?php
-          } else {
-            if (!$folder_path) {
+            if ($folder_path) {
+              echo '/' . $folder_path;
+            } else {
               if ($isVariation) {
                 //echo "Variation has no SKU. Add SKU to automatically show Sirv media";
-                echo '<div class="sirv-view-gallery-empty"><span>Variation has no SKU. Add SKU to automatically show Sirv media</span></div>';
               } else {
                 //echo "Product has no SKU. Add SKU to automatically show Sirv media";
-                echo '<div class="sirv-view-gallery-empty"><span>Product has no SKU. Add SKU to automatically show Sirv media</span></div>';
               }
-            } else {
-              echo '<div class="sirv-view-gallery-empty"><span>No media found</span></div>';
             }
-          }
-          ?>
+            ?>
+          </div>
+          <ul class="sirv-view-images" id="sirv-view-images-ul-<?php echo (int) $id; ?>">
+            <?php if (!empty($remote_data->items)) : ?>
+              <?php foreach ($remote_data->items as $view_item) : ?>
+                <?php
+                $url = htmlentities(html_entity_decode($view_item->url));
+                $thumb_url = self::get_gallery_item_url($view_item->type, $url, $item_pattern);
+                ?>
+                <li class="sirv-view-gallery-item" data-type="<?php echo esc_attr($view_item->type); ?>">
+                  <div class="sirv-view-gallery-item-img-wrap">
+                    <img class="sirv-view-gallery-item-img" src="<?php echo esc_url($thumb_url); ?>">
+                  </div>
+                </li>
+              <?php endforeach; ?>
+            <?php elseif (!$folder_path) : ?>
+              <li class="sirv-view-gallery-empty-item"><span><?php echo $isVariation ? 'Variation has no SKU. Add SKU to automatically show Sirv media' : 'Product has no SKU. Add SKU to automatically show Sirv media'; ?></span></li>
+            <?php else : ?>
+              <li class="sirv-view-gallery-empty-item"><span>No media found</span></li>
+            <?php endif; ?>
+          </ul>
           <hr style="margin-right: 9px;" />
         </div>
       <?php } ?>
@@ -446,9 +434,9 @@ class Woo
   public static function save_sirv_gallery_data($product_id, $post)
   {
     $sirv_meta = [
-        'sirv_woo_gallery_data' => isset($_POST['sirv_woo_gallery_data']) ? $_POST['sirv_woo_gallery_data'] : '',
-        'sirv_woo_product_image' => isset($_POST['sirv_woo_product_image']) ? $_POST['sirv_woo_product_image'] : '',
-        'sirv_woo_product_image_attachment_id' => isset($_POST['sirv_woo_product_image_attachment_id']) ? $_POST['sirv_woo_product_image_attachment_id'] : -1,
+      'sirv_woo_gallery_data' => isset($_POST['sirv_woo_gallery_data']) ? $_POST['sirv_woo_gallery_data'] : '',
+      'sirv_woo_product_image' => isset($_POST['sirv_woo_product_image']) ? $_POST['sirv_woo_product_image'] : '',
+      'sirv_woo_product_image_attachment_id' => isset($_POST['sirv_woo_product_image_attachment_id']) ? $_POST['sirv_woo_product_image_attachment_id'] : -1,
     ];
     self::save_sirv_product_meta($product_id, $sirv_meta);
   }
@@ -1072,7 +1060,7 @@ class Woo
         if ((!$is_skip_items_to_main_image && $asset->type !== 'model') && $is_parse_main_image) {
           $item_url = $view_file_path . '/' . $asset->name;
           $previous_attachment_id = self::get_post_sirv_data($product_id, 'sirv_woo_product_image_attachment_id', false, false);
-          $this->save_sirv_product_image($product_id, $item_url , $previous_attachment_id);
+          $this->save_sirv_product_image($product_id, $item_url, $previous_attachment_id);
 
           $is_skip_items_to_main_image = true;
           continue;

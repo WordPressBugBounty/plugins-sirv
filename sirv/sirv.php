@@ -4,7 +4,7 @@
  * Plugin Name: Sirv
  * Plugin URI: http://sirv.com
  * Description: Fully-automatic image optimization, next-gen formats (WebP), responsive resizing, lazy loading and CDN delivery. Every best-practice your website needs. Use "Add Sirv Media" button to embed images, galleries, zooms, 360 spins and streaming videos in posts / pages. Stunning media viewer for WooCommerce. Watermarks, text titles... every WordPress site deserves this plugin! <a href="admin.php?page=sirv/data/options.php">Settings</a>
- * Version:           8.2.2
+ * Version:           8.2.3
  * Requires PHP:      5.6
  * Requires at least: 3.0.1
  * Author:            sirv.com
@@ -15,7 +15,7 @@
 defined('ABSPATH') or die('No script kiddies please!');
 
 
-define('SIRV_PLUGIN_VERSION', '8.2.2');
+define('SIRV_PLUGIN_VERSION', '8.2.3');
 define('SIRV_PLUGIN_DIR', 'sirv');
 define('SIRV_PLUGIN_SUBDIR', 'plugdata');
 /// var/www/html/wordpress/wp-content/plugins/sirv/
@@ -2121,33 +2121,33 @@ function sirv_check_responsive($content){
 
   if (get_option('SIRV_JS') === '2') {
     $pattern = '/class=(("|\')|("|\')([^"\']*)\s)Sirv(("|\')|\s([^"\']*)("|\'))/is';
-    $sirvjs_pattern = '/(<script.*?src=[\"\']https:\/\/scripts\.sirv\.com\/.*?sirv(\.full)?\.js.*?[\"\'].*?>)/is';
+    $sirvjs_pattern = '/<script\b[^>]*\bsrc=(["\'])https:\/\/scripts\.sirv\.com\/(?:[^"\']*\/)?sirv(?:\.full)?\.js(?:\?[^"\']*)?\1[^>]*><\/script>/i';
     $link_prefetch_pattern = '/(<link.*?href=[\"\']https:\/\/scripts\.sirv\.com[\"\'].*?rel=[\"\']preconnect[\"\'].*?>)/is';
 
     if (preg_match($pattern, $content) === 1) {
-      if (preg_match($sirvjs_pattern, $content) == 0) {
-        $sirv_js_path = getValue::getOption('SIRV_JS_FILE');
+      global $post;
+      global $sirv_gbl_woo_is_enable;
 
-        global $post;
-        global $sirv_gbl_woo_is_enable;
+      $mv_custom_options_block = '';
 
-        $mv_custom_options_block = '';
-
-        if (isset($post->post_type) && $post->post_type == 'product') {
-          if ($sirv_gbl_woo_is_enable) {
-            $woo = new Woo($post->ID);
-            $mv_custom_options = $woo->remove_script_tag(get_option('SIRV_WOO_MV_CUSTOM_OPTIONS'));
-            $mv_custom_options_block = !empty($mv_custom_options) ?  PHP_EOL . '<script nowprocket>' . PHP_EOL . $mv_custom_options . PHP_EOL . '</script>' . PHP_EOL : '';
-
-          }
+      if (isset($post->post_type) && $post->post_type == 'product') {
+        if ($sirv_gbl_woo_is_enable) {
+          $woo = new Woo($post->ID);
+          $mv_custom_options = $woo->remove_script_tag(get_option('SIRV_WOO_MV_CUSTOM_OPTIONS'));
+          $mv_custom_options_block = !empty($mv_custom_options) ? PHP_EOL . '<script nowprocket>' . PHP_EOL . $mv_custom_options . PHP_EOL . '</script>' . PHP_EOL : '';
         }
+      }
 
-        if(preg_match($link_prefetch_pattern, $content) === 1){
-          $content = preg_replace($link_prefetch_pattern,  '$1'. PHP_EOL .'<script src="' . $sirv_js_path . '"></script>'. $mv_custom_options_block, $content, 1);
-        }else{
-          $content = preg_replace('/(<\/head>)/is', '<script src="' . $sirv_js_path . '"></script>$1', $content, 1);
-        }
+      if (preg_match($sirvjs_pattern, $content) === 1) {
+        $content = preg_replace($sirvjs_pattern, '', $content);
+      }
 
+      $sirv_js_path = getValue::getOption('SIRV_JS_FILE');
+
+      if(preg_match($link_prefetch_pattern, $content) === 1){
+        $content = preg_replace($link_prefetch_pattern, '$1'. PHP_EOL .'<script src="' . $sirv_js_path . '"></script>'. $mv_custom_options_block, $content, 1);
+      }else{
+        $content = preg_replace('/(<\/head>)/is', '<script src="' . $sirv_js_path . '"></script>'. $mv_custom_options_block .'$1', $content, 1);
       }
 
       $sirv_custom_css = get_option('SIRV_CUSTOM_CSS');
@@ -5426,6 +5426,7 @@ function sirv_save_shortcode_in_db(){
 
   global $sirv_gbl_base_prefix;
   global $wpdb;
+  $error = '';
 
   $table_name = $sirv_gbl_base_prefix . 'sirv_shortcodes';
 

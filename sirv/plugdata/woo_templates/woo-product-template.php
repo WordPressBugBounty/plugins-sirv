@@ -268,7 +268,9 @@ $skeletonClass = $is_skeleton ? ' sirv-skeleton ' : '';
   .sirv-woo-wrapper {
     <?php
       echo $custom_styles . PHP_EOL;
-      echo $css_var_thumbs_size;
+      if ( $is_gallery_placeholder ) {
+        echo $css_var_thumbs_size;
+      }
     ?>
   }
 </style>

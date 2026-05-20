@@ -4,8 +4,8 @@ Donate link: https://sirv.com/
 Tags: compress, optimize, image, resize, CDN
 Requires PHP: 5.6
 Requires at least: 3.0.1
-Tested up to: 6.9.4
-Stable tag: 8.2.2
+Tested up to: 7.0
+Stable tag: 8.2.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -222,6 +222,14 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 18. To upload images to your Sirv library, go to the Media Library page within the Sirv sub-menu (in the left navigation column).
 
 == Changelog ==
+
+= 8.2.3 (2026-05-20) =
+* Tested with the latest WordPress version 7.0.
+* Improved color scheme compatibility for WordPress 7.0.
+* Fixed radio button and checkbox layout conflicts with Elementor.
+* Fixed remote Sirv data refresh action for products and variations.
+* Fixed an "undefined variable" PHP notice during image placeholder usage.
+* Optimized sirv.js script loading logic.
 
 = 8.2.2 (2026-03-30) =
 * Fixed an issue that prevented saving Sirv product image.
