@@ -356,6 +356,17 @@ a.upload_image_button{
     margin: 0;
 }
 
+.sirv-woo-product-image-toolbar .sirv-woo-delete-product-image {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sirv-woo-product-image-toolbar .button.button-primary span.dashicons {
+    color: #fff;
+    line-height: 1;
+}
+
 .sirv-view-gallery ul li.sirv-view-gallery-empty-item span {
     font-size: 18px;
     text-align: center;

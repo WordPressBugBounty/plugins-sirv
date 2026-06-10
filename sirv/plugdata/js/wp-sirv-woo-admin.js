@@ -69,9 +69,11 @@ jQuery( function($){
     function deleteVariationImage(e){
       const id = $(this).attr('rel');
       const $storage = $("#sirv_woo_product_image_" + id);
+      const $attachmentStorage = $("#sirv_woo_product_image_attachment_id_" + id);
 
       if(!!$storage.val()){
         $storage.val("");
+        $attachmentStorage.val("-1");
       }
     }
 
